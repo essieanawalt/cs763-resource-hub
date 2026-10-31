@@ -18,7 +18,7 @@ What it does:
 ## 2. Tech stack
 
 - C# / ASP.NET Core Web API (.NET 10)
-- PostgreSQL 17
+- PostgreSQL 18
 - Entity Framework Core (Npgsql provider)
 - Docker + docker-compose (api + db containers)
 - JSON REST API, OpenAPI/Swagger docs
@@ -32,6 +32,8 @@ What it does:
 | Help desk staff | View and reply to tickets, close tickets, revoke assets, assign replacements |
 
 **[Assumption]** Users, courses and teams are owned by other campus systems. Per project rules (no cross-service calls), they are loaded from local static mock data (Section 7), not managed by this service.
+
+**[Assumption]** "Course groups" in the project description are represented by each team's `courseId`. There is no separate course-group entity.
 
 **[Assumption]** Login is out of scope for this version. The caller is identified by an `X-User-Id` request header that matches a mock user.
 
@@ -53,6 +55,21 @@ available ──(request approved)──> assigned ──(team redeems)──> r
 Request statuses: `pending`, `approved`, `denied`
 Ticket statuses: `open`, `closed`
 
+### Business rules
+
+| # | Rule |
+|---|---|
+| R1 | **Approval matching:** approving a request assigns the oldest `available` asset whose `type` equals the request's `assetType` and whose `name` exactly equals the request's `assetName`. If none exists, return `409` and leave the request `pending`. |
+| R2 | Denying a request sets it to `denied` and stores the reason. No asset changes. |
+| R3 | Only a `pending` request can be approved or denied. Otherwise `409`. |
+| R4 | Only an `assigned` asset can be redeemed. Otherwise `409`. |
+| R5 | Any asset except a `revoked` one can be revoked. Revoking clears nothing else; `teamId` is kept for history. |
+| R6 | **Replace:** revokes the asset, then assigns the oldest `available` asset with the same `type` and `name` to the same team. If none exists, return `409` and change nothing. |
+| R7 | A ticket can only be opened for an asset currently held by the caller's team (`assigned` or `redeemed`). Otherwise `409`. |
+| R8 | Replies can't be added to a `closed` ticket. Otherwise `409`. |
+| R9 | Asset `code` must be unique. Adding a duplicate returns `409`. |
+| R10 | Every asset and request change writes one audit log entry (Section 5). |
+
 ## 5. Data model
 
 ### Entity relationships
@@ -63,6 +80,7 @@ erDiagram
     TEAM ||--o{ ASSET_REQUEST : makes
     ASSET ||--o| ASSET_REQUEST : fulfils
     ASSET ||--o{ AUDIT_LOG_ENTRY : "is tracked by"
+    ASSET_REQUEST ||--o{ AUDIT_LOG_ENTRY : "is tracked by"
     ASSET ||--o{ TICKET : "is about"
     TICKET ||--o{ TICKET_REPLY : has
     USER ||--o{ TICKET : opens
@@ -77,7 +95,7 @@ TEAM and USER come from mock data (Section 7). The tables below are stored in Po
 | type | text | `license_key` or `cloud_voucher` |
 | name | text | e.g. "JetBrains All Products", "AWS Credits" |
 | provider | text | e.g. JetBrains, AWS, Azure |
-| code | text | The key or voucher code |
+| code | text | The key or voucher code. Unique |
 | value_usd | numeric(10,2) | Vouchers only; null for license keys |
 | status | text | available / assigned / redeemed / revoked |
 | team_id | text | null when available |
@@ -95,6 +113,7 @@ TEAM and USER come from mock data (Section 7). The tables below are stored in Po
 | reason | text | Free text |
 | status | text | pending / approved / denied |
 | decided_by | text | Instructor user id, null while pending |
+| deny_reason | text | Set when denied |
 | asset_id | uuid | FK → assets.id, set when approved |
 | created_at | timestamptz | |
 | decided_at | timestamptz | |
@@ -103,8 +122,9 @@ TEAM and USER come from mock data (Section 7). The tables below are stored in Po
 | Column | Type | Notes |
 |---|---|---|
 | id | bigserial | PK |
-| asset_id | uuid | FK → assets.id |
-| action | text | created / assigned / redeemed / revoked / replaced |
+| asset_id | uuid | FK → assets.id. Null for request-only events |
+| request_id | uuid | FK → asset_requests.id. Null for asset-only events |
+| action | text | asset_created / asset_assigned / asset_redeemed / asset_revoked / asset_replaced / request_created / request_approved / request_denied |
 | team_id | text | Team involved, if any |
 | performed_by | text | User id |
 | details | text | Optional note |
@@ -134,48 +154,196 @@ TEAM and USER come from mock data (Section 7). The tables below are stored in Po
 
 ## 6. REST endpoints
 
-Base path: `/api/v1`
+Base path: `/api/v1`. All bodies are JSON, field names in camelCase. Caller identified by `X-User-Id` header (Section 3).
 
 ### Assets
-| Method | Path | Who | Description |
-|---|---|---|---|
-| GET | /assets | Instructor | List all assets. Filters: `status`, `type`, `teamId` |
-| POST | /assets | Instructor | Add an asset to the pool |
-| GET | /assets/{id} | Instructor, owning team | Get one asset |
-| GET | /teams/{teamId}/assets | Team members, instructor | List a team's assets |
-| POST | /assets/{id}/redeem | Owning team | Mark assigned asset as redeemed |
-| POST | /assets/{id}/revoke | Help desk | Revoke an asset |
-| POST | /assets/{id}/replace | Help desk | Revoke and assign a new available asset of the same type to the same team |
-| GET | /assets/{id}/audit | Instructor | Audit log for one asset |
+| Method | Path | Who | Body | Returns |
+|---|---|---|---|---|
+| GET | /assets | Instructor | — | `200` Page of Asset. Filters: `status`, `type`, `teamId` |
+| POST | /assets | Instructor | CreateAsset | `201` Asset |
+| GET | /assets/{id} | Instructor, owning team | — | `200` Asset |
+| GET | /teams/{teamId}/assets | Team members, instructor | — | `200` Page of Asset |
+| POST | /assets/{id}/redeem | Owning team | — | `200` Asset (R4) |
+| POST | /assets/{id}/revoke | Help desk | RevokeAsset | `200` Asset (R5) |
+| POST | /assets/{id}/replace | Help desk | RevokeAsset | `200` Asset — the new one (R6) |
+| GET | /assets/{id}/audit | Instructor | — | `200` Page of AuditLogEntry |
 
 ### Requests
-| Method | Path | Who | Description |
-|---|---|---|---|
-| POST | /requests | Student | Request an asset for their team |
-| GET | /requests | Instructor | List requests. Filter: `status` |
-| GET | /teams/{teamId}/requests | Team members | List a team's requests |
-| POST | /requests/{id}/approve | Instructor | Approve; assigns an available matching asset |
-| POST | /requests/{id}/deny | Instructor | Deny with a reason |
+| Method | Path | Who | Body | Returns |
+|---|---|---|---|---|
+| POST | /requests | Student | CreateRequest | `201` AssetRequest |
+| GET | /requests | Instructor | — | `200` Page of AssetRequest. Filter: `status` |
+| GET | /teams/{teamId}/requests | Team members | — | `200` Page of AssetRequest |
+| POST | /requests/{id}/approve | Instructor | — | `200` AssetRequest with `assetId` set (R1, R3) |
+| POST | /requests/{id}/deny | Instructor | DenyRequest | `200` AssetRequest (R2, R3) |
 
 ### Help desk
-| Method | Path | Who | Description |
-|---|---|---|---|
-| POST | /tickets | Student | Open a ticket about a team asset |
-| GET | /tickets | Help desk | List tickets. Filter: `status` |
-| GET | /teams/{teamId}/tickets | Team members | List a team's tickets |
-| GET | /tickets/{id} | Help desk, owning team | Ticket with replies |
-| POST | /tickets/{id}/replies | Help desk, owning team | Add a reply |
-| POST | /tickets/{id}/close | Help desk | Close a ticket |
+| Method | Path | Who | Body | Returns |
+|---|---|---|---|---|
+| POST | /tickets | Student | CreateTicket | `201` Ticket (R7) |
+| GET | /tickets | Help desk | — | `200` Page of Ticket. Filter: `status` |
+| GET | /teams/{teamId}/tickets | Team members | — | `200` Page of Ticket |
+| GET | /tickets/{id} | Help desk, owning team | — | `200` Ticket with `replies` |
+| POST | /tickets/{id}/replies | Help desk, owning team | CreateReply | `201` TicketReply (R8) |
+| POST | /tickets/{id}/close | Help desk | — | `200` Ticket |
 
 ### Other
-| Method | Path | Description |
+| Method | Path | Who | Returns |
+|---|---|---|---|
+| GET | /health | Anyone | `200` `{ "status": "ok" }` |
+| GET | /audit | Instructor | `200` Page of AuditLogEntry. Filters: `teamId`, `action` |
+
+### Paging
+List endpoints accept `page` (default 1) and `pageSize` (default 20, max 100) and return:
+```json
+{ "items": [ ], "page": 1, "pageSize": 20, "totalCount": 42 }
+```
+
+## 6a. Schemas
+
+Types: `string`, `number`, `uuid` (string), `datetime` (ISO 8601 UTC string), `enum`. "Req" = required in request bodies.
+
+### Request bodies
+
+**CreateAsset**
+| Field | Type | Req | Notes |
+|---|---|---|---|
+| type | enum `license_key` \| `cloud_voucher` | yes | |
+| name | string | yes | |
+| provider | string | yes | |
+| code | string | yes | Unique (R9) |
+| valueUsd | number | vouchers only | Must be null/omitted for license keys |
+
+**CreateRequest**
+| Field | Type | Req | Notes |
+|---|---|---|---|
+| teamId | string | yes | Mock team id |
+| assetType | enum `license_key` \| `cloud_voucher` | yes | |
+| assetName | string | yes | Matched exactly against asset `name` (R1) |
+| reason | string | no | |
+
+**DenyRequest**
+| Field | Type | Req |
 |---|---|---|
-| GET | /health | Health check for Docker/CI |
-| GET | /audit | Full audit log (instructor). Filters: `teamId`, `action` |
+| reason | string | yes |
 
-### Example payloads
+**RevokeAsset** (revoke and replace)
+| Field | Type | Req |
+|---|---|---|
+| reason | string | no |
 
-**POST /assets**
+**CreateTicket**
+| Field | Type | Req |
+|---|---|---|
+| assetId | uuid | yes |
+| subject | string | yes |
+| description | string | yes |
+
+**CreateReply**
+| Field | Type | Req |
+|---|---|---|
+| message | string | yes |
+
+### Response objects
+
+**Asset**
+| Field | Type | Notes |
+|---|---|---|
+| id | uuid | |
+| type | enum | license_key / cloud_voucher |
+| name | string | |
+| provider | string | |
+| code | string | |
+| valueUsd | number \| null | |
+| status | enum | available / assigned / redeemed / revoked |
+| teamId | string \| null | |
+| createdAt | datetime | |
+| updatedAt | datetime | |
+
+**AssetRequest**
+| Field | Type | Notes |
+|---|---|---|
+| id | uuid | |
+| teamId | string | |
+| requestedBy | string | User id (from `X-User-Id`) |
+| assetType | enum | |
+| assetName | string | |
+| reason | string \| null | |
+| status | enum | pending / approved / denied |
+| decidedBy | string \| null | |
+| denyReason | string \| null | |
+| assetId | uuid \| null | Set when approved |
+| createdAt | datetime | |
+| decidedAt | datetime \| null | |
+
+**Ticket**
+| Field | Type | Notes |
+|---|---|---|
+| id | uuid | |
+| assetId | uuid | |
+| teamId | string | |
+| openedBy | string | User id |
+| subject | string | |
+| description | string | |
+| status | enum | open / closed |
+| createdAt | datetime | |
+| closedAt | datetime \| null | |
+| replies | TicketReply[] | Only on `GET /tickets/{id}` |
+
+**TicketReply**
+| Field | Type |
+|---|---|
+| id | uuid |
+| ticketId | uuid |
+| authorId | string |
+| message | string |
+| createdAt | datetime |
+
+**AuditLogEntry**
+| Field | Type | Notes |
+|---|---|---|
+| id | number | |
+| assetId | uuid \| null | |
+| requestId | uuid \| null | |
+| action | enum | See audit_log table |
+| teamId | string \| null | |
+| performedBy | string | User id |
+| details | string \| null | |
+| createdAt | datetime | |
+
+### Example: request and approve
+
+**POST /requests** (header `X-User-Id: u-stu-04`)
+```json
+{
+  "teamId": "team-cs763-03",
+  "assetType": "license_key",
+  "assetName": "JetBrains All Products",
+  "reason": "Need Rider for backend work"
+}
+```
+`201 Created`
+```json
+{
+  "id": "a3e0c7d2-1f4b-4e8a-9c21-7b5d6e4f3a90",
+  "teamId": "team-cs763-03",
+  "requestedBy": "u-stu-04",
+  "assetType": "license_key",
+  "assetName": "JetBrains All Products",
+  "reason": "Need Rider for backend work",
+  "status": "pending",
+  "decidedBy": null,
+  "denyReason": null,
+  "assetId": null,
+  "createdAt": "2026-11-02T15:00:00Z",
+  "decidedAt": null
+}
+```
+
+**POST /requests/a3e0c7d2-.../approve** (header `X-User-Id: u-inst-01`)
+`200 OK` — same object with `"status": "approved"`, `"decidedBy": "u-inst-01"`, `"assetId"` set, `"decidedAt"` set. The asset becomes `assigned` to `team-cs763-03`. Two audit entries are written: `request_approved` and `asset_assigned`.
+
+**POST /assets** (header `X-User-Id: u-inst-01`)
 ```json
 {
   "type": "cloud_voucher",
@@ -185,50 +353,7 @@ Base path: `/api/v1`
   "valueUsd": 100.00
 }
 ```
-Response `201 Created`:
-```json
-{
-  "id": "6f1c2a9e-4b7d-4c1e-9a55-2f0d3b8e1a10",
-  "type": "cloud_voucher",
-  "name": "AWS Credits",
-  "provider": "AWS",
-  "code": "AWS-EDU-7F3K-91QZ",
-  "valueUsd": 100.00,
-  "status": "available",
-  "teamId": null,
-  "createdAt": "2026-11-02T14:00:00Z",
-  "updatedAt": "2026-11-02T14:00:00Z"
-}
-```
-
-**POST /requests**
-```json
-{
-  "teamId": "team-cs763-03",
-  "assetType": "license_key",
-  "assetName": "JetBrains All Products",
-  "reason": "Need Rider for backend work"
-}
-```
-
-**POST /requests/{id}/deny**
-```json
-{ "reason": "No licenses left this term" }
-```
-
-**POST /tickets**
-```json
-{
-  "assetId": "6f1c2a9e-4b7d-4c1e-9a55-2f0d3b8e1a10",
-  "subject": "Voucher rejected",
-  "description": "AWS says the code is already used"
-}
-```
-
-**POST /tickets/{id}/replies**
-```json
-{ "message": "Revoked and replaced, check your team's assets" }
-```
+`201 Created` — Asset with `"status": "available"`, `"teamId": null`.
 
 ### Error format
 All errors use one shape:
@@ -240,7 +365,7 @@ All errors use one shape:
 |---|---|
 | 400 | Missing or invalid fields |
 | 404 | Item doesn't exist |
-| 409 | Invalid status change (e.g. redeem a revoked asset, approve when no asset is available) |
+| 409 | Breaks a business rule R1–R9 (e.g. redeem a revoked asset, approve when no matching asset is available, duplicate code) |
 
 ## 7. Static mock data
 
