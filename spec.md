@@ -23,6 +23,78 @@ What it does:
 - Docker + docker-compose (api + db containers)
 - JSON REST API, OpenAPI/Swagger docs
 
+## 2a. Architecture
+
+### Context
+The hub is one of four isolated Project Portal services. It runs in its own containers, owns its own database, and makes no calls to other services. Data owned elsewhere (users, courses, teams) comes from local mock files.
+
+### Containers
+
+```mermaid
+flowchart LR
+    client["API client<br/>(curl, Swagger UI, tests)"]
+    subgraph compose["docker-compose"]
+        api["api<br/>ASP.NET Core<br/>:8080"]
+        db[("db<br/>PostgreSQL 18<br/>:5432")]
+    end
+    mock["mock-data/*.json<br/>(read-only, bundled in image)"]
+    client -- "HTTP/JSON" --> api
+    api -- "EF Core / Npgsql" --> db
+    mock -. "loaded at startup" .-> api
+```
+
+| Container | Image | Port (host:container) | Notes |
+|---|---|---|---|
+| api | built from repo Dockerfile | 8080:8080 | Waits for db to be healthy |
+| db | postgres:18 | 5432:5432 | Data kept in a named volume |
+
+### Layers inside the API
+
+```mermaid
+flowchart TB
+    C["Controllers<br/>HTTP routes, request/response DTOs, status codes"]
+    S["Services<br/>Business rules R1–R11, audit log writes"]
+    D["Data<br/>EF Core DbContext, entities, migrations"]
+    M["MockData<br/>Users, courses, teams from JSON"]
+    C --> S
+    S --> D
+    S --> M
+```
+
+| Layer | Responsibility |
+|---|---|
+| Controllers | Map routes in Section 6, read the `X-User-Id` header, convert DTOs, return status codes |
+| Services | One per area: `AssetService`, `RequestService`, `TicketService`, `AuditService`. Apply business rules and write audit entries |
+| Data | `HubDbContext` with the 5 tables in Section 5; schema via EF Core migrations; seed assets on first run |
+| MockData | Loads `mock-data/*.json` once at startup; lookup by user id and team id |
+
+### Example flow: approve a request
+1. `POST /api/v1/requests/{id}/approve` reaches `RequestsController`
+2. Controller looks up the caller from `X-User-Id` via MockData (R11)
+3. `RequestService` loads the request, checks it is `pending` (R3), finds a matching available asset (R1)
+4. In one database transaction: request → `approved`, asset → `assigned`, two audit entries written (R10)
+5. Controller returns `200` with the updated AssetRequest
+
+### Repository layout
+
+```
+cs763-resource-hub/
+  spec.md
+  CLAUDE.md
+  global.json                 # pins .NET SDK 10
+  Dockerfile                  # multi-stage
+  docker-compose.yml
+  .github/workflows/devsecops.yml
+  src/ResourceHub.Api/
+    Controllers/
+    Services/
+    Data/                     # DbContext, entities, migrations, seed
+    MockData/                 # loader + mock-data/*.json
+    Dtos/
+    Program.cs
+  tests/ResourceHub.Tests/    # API integration tests
+```
+
 ## 3. Roles
 
 | Role | Can do |
@@ -69,7 +141,7 @@ Ticket statuses: `open`, `closed`
 | R8 | Replies can't be added to a `closed` ticket. Otherwise `409`. |
 | R9 | Asset `code` must be unique. Adding a duplicate returns `409`. |
 | R10 | Every asset and request change writes at least one audit log entry (Section 5). Approve writes `request_approved` + `asset_assigned`. Replace writes `asset_revoked` on the old asset and `asset_replaced` on the new asset, with the old asset id in `details`. |
-| R11 | Every request must include an `X-User-Id` header matching a mock user. If missing or unknown, return `400`. |
+| R11 | Every request except `/health` must include an `X-User-Id` header matching a mock user. If missing or unknown, return `400`. |
 
 ## 5. Data model
 
@@ -191,7 +263,7 @@ Base path: `/api/v1`. All bodies are JSON, field names in camelCase. Caller iden
 ### Other
 | Method | Path | Who | Returns |
 |---|---|---|---|
-| GET | /health | Anyone | `200` `{ "status": "ok" }` |
+| GET | /health | Anyone | `200` `{ "status": "ok", "database": "ok" }` if PostgreSQL is reachable; `503` `{ "status": "unhealthy", "database": "unreachable" }` if not. No `X-User-Id` needed |
 | GET | /audit | Instructor | `200` Page of AuditLogEntry. Filters: `teamId`, `action` |
 
 ### Paging
