@@ -5,9 +5,20 @@ namespace ResourceHub.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/health")]
-public class HealthController(HubDbContext db, ILogger<HealthController> logger) : ControllerBase
+// Classic constructor instead of a primary constructor: Semgrep's C# parser
+// cannot parse primary constructors and would skip part of this file.
+public class HealthController : ControllerBase
 {
     private static readonly TimeSpan CheckTimeout = TimeSpan.FromSeconds(5);
+
+    private readonly HubDbContext db;
+    private readonly ILogger<HealthController> logger;
+
+    public HealthController(HubDbContext db, ILogger<HealthController> logger)
+    {
+        this.db = db;
+        this.logger = logger;
+    }
 
     // Spec §6: 200 when PostgreSQL is reachable, 503 when not. No X-User-Id needed.
     [HttpGet]

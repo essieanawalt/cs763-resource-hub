@@ -9,6 +9,8 @@ connection through an EF Core `DbContext` (no tables yet).
 
 ```
 global.json                  # pins .NET SDK 10
+Directory.Build.props        # turns on NuGet lock files (packages.lock.json)
+.github/workflows/devsecops.yml  # CI: build, test, image, Trivy, Semgrep, SonarQube Cloud
 Dockerfile                   # multi-stage: SDK build -> ASP.NET runtime
 docker-compose.yml           # api (:8080) + db (PostgreSQL 18, :5432)
 ResourceHub.slnx
@@ -104,3 +106,25 @@ RESOURCEHUB_TEST_DB="Host=localhost;Port=5432;Database=resourcehub;Username=reso
 | `ConnectionStrings:HubDb` | env `ConnectionStrings__HubDb` (compose) or `appsettings.Development.json` | Required; app fails on first DB use without it |
 | `POSTGRES_PASSWORD` | shell / `.env` | Used by both containers; default `resourcehub_dev` |
 | `ASPNETCORE_HTTP_PORTS` | Dockerfile | `8080` |
+
+## NuGet lock files
+
+Each project has a `packages.lock.json` that pins every direct and transitive package. CI and the
+Dockerfile restore with `--locked-mode`, so a restore that would change the lock file fails. After
+adding or upgrading a package, run `dotnet restore` and commit the updated lock files. Trivy also
+reads these files to find NuGet dependencies; without them it detects none.
+
+## CI (GitHub Actions)
+
+`.github/workflows/devsecops.yml` runs on every push to `main` and on pull requests.
+
+| Job | Steps |
+|---|---|
+| Build, test, image, Trivy, SonarQube | Restore, SonarQube begin, build (Release), test (with a PostgreSQL 18 service container, coverage), SonarQube end, `docker build`, Trivy dependency scan, Trivy image scan |
+| Semgrep | Open-source Semgrep CLI with the public `p/csharp` rules (no account or token) |
+
+Only a broken build, a failing test or a failing Docker build fails the run. Scanner findings
+are reported in the logs and uploaded as artifacts (`trivy-reports`, `semgrep-reports`,
+`sonarqube-report`, `test-results`) without failing the run. SonarQube Cloud results are on
+the SonarQube Cloud dashboard; it needs the `SONAR_TOKEN` repository secret and is skipped
+when the secret is not available (for example, pull requests from forks).

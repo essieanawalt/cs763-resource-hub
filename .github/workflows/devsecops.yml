@@ -1,0 +1,228 @@
+# DevSecOps pipeline: build + test, Docker image, Trivy, Semgrep, SonarQube Cloud.
+#
+# Only a broken build, a failing test or a failing Docker build fails the run.
+# Scanner steps use continue-on-error and never set a failing exit code, so
+# findings are reported (logs + artifacts) without blocking.
+
+name: DevSecOps
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+  # Scanner images pinned by version and digest.
+  TRIVY_IMAGE: aquasec/trivy:0.75.0@sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa
+  SEMGREP_IMAGE: semgrep/semgrep:1.180.0@sha256:529ee8a277ec8adc5b534d7c74eea0a47e9de21d62852b6ba7ac6ba9566845c3
+  API_IMAGE: resourcehub-api:ci
+
+jobs:
+  build:
+    name: Build, test, image, Trivy, SonarQube
+    runs-on: ubuntu-latest
+
+    services:
+      # Lets the health endpoint's "database reachable" test run in CI.
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: resourcehub
+          POSTGRES_USER: resourcehub
+          POSTGRES_PASSWORD: ci_only_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U resourcehub -d resourcehub"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      RESOURCEHUB_TEST_DB: Host=localhost;Port=5432;Database=resourcehub;Username=resourcehub;Password=ci_only_password
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: Set up .NET (version from global.json)
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - name: Set up JDK 21 (SonarQube scanner)
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          java-version: 21
+          distribution: zulu
+
+      - name: Cache SonarQube Cloud packages
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Cache SonarQube Cloud scanner
+        id: cache-sonar-scanner
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/scanner
+          key: ${{ runner.os }}-sonar-scanner
+          restore-keys: ${{ runner.os }}-sonar-scanner
+
+      - name: Install SonarQube Cloud scanner
+        if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/scanner"
+          dotnet tool update dotnet-sonarscanner --tool-path "$RUNNER_TEMP/scanner"
+
+      - name: Restore (locked to packages.lock.json)
+        run: dotnet restore ResourceHub.slnx --locked-mode
+
+      # ---- SonarQube Cloud wraps the one and only build ----
+      # Skipped when SONAR_TOKEN is unavailable (e.g. pull requests from forks).
+      - name: SonarQube begin
+        if: env.SONAR_TOKEN != ''
+        continue-on-error: true
+        shell: bash
+        run: |
+          "$RUNNER_TEMP/scanner/dotnet-sonarscanner" begin \
+            /k:"essieanawalt_cs763-resource-hub" \
+            /o:"essieanawalt" \
+            /d:sonar.token="$SONAR_TOKEN" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" \
+            /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx"
+
+      - name: Build
+        run: dotnet build ResourceHub.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: >-
+          dotnet test ResourceHub.slnx --configuration Release --no-build
+          --logger trx
+          --collect "XPlat Code Coverage;Format=opencover"
+
+      - name: SonarQube end (upload analysis)
+        if: always() && env.SONAR_TOKEN != ''
+        continue-on-error: true
+        shell: bash
+        run: |
+          "$RUNNER_TEMP/scanner/dotnet-sonarscanner" end /d:sonar.token="$SONAR_TOKEN"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-results
+          path: tests/**/TestResults/
+          if-no-files-found: ignore
+
+      - name: Upload SonarQube report task
+        if: always() && env.SONAR_TOKEN != ''
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sonarqube-report
+          # Holds the dashboard URL and task id; the full report lives on sonarcloud.io.
+          path: .sonarqube/out/.sonar/report-task.txt
+          if-no-files-found: warn
+
+      # ---- Docker image ----
+      - name: Build Docker image
+        run: docker build --tag "$API_IMAGE" .
+
+      # ---- Trivy: dependencies (packages.lock.json) and image ----
+      - name: Trivy dependency scan
+        continue-on-error: true
+        shell: bash
+        run: |
+          mkdir -p reports/trivy
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE":/src:ro \
+            -v "$GITHUB_WORKSPACE/reports/trivy":/out \
+            -v trivy-cache:/root/.cache \
+            "$TRIVY_IMAGE" fs /src \
+              --scanners vuln \
+              --skip-dirs '**/bin' --skip-dirs '**/obj' --skip-dirs 'reports' --skip-dirs '.sonarqube' \
+              --list-all-pkgs \
+              --exit-code 0 \
+              --format json --output /out/trivy-deps.json
+          for fmt in table sarif; do
+            ext=$([ "$fmt" = table ] && echo txt || echo sarif)
+            docker run --rm -v "$GITHUB_WORKSPACE/reports/trivy":/out "$TRIVY_IMAGE" \
+              convert --scanners vuln --format "$fmt" --output "/out/trivy-deps.$ext" /out/trivy-deps.json
+          done
+          cat reports/trivy/trivy-deps.txt
+
+      - name: Trivy image scan
+        continue-on-error: true
+        shell: bash
+        run: |
+          mkdir -p reports/trivy
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$GITHUB_WORKSPACE/reports/trivy":/out \
+            -v trivy-cache:/root/.cache \
+            "$TRIVY_IMAGE" image "$API_IMAGE" \
+              --scanners vuln \
+              --list-all-pkgs \
+              --exit-code 0 \
+              --format json --output /out/trivy-image.json
+          for fmt in table sarif; do
+            ext=$([ "$fmt" = table ] && echo txt || echo sarif)
+            docker run --rm -v "$GITHUB_WORKSPACE/reports/trivy":/out "$TRIVY_IMAGE" \
+              convert --scanners vuln --format "$fmt" --output "/out/trivy-image.$ext" /out/trivy-image.json
+          done
+          cat reports/trivy/trivy-image.txt
+
+      - name: Upload Trivy reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: trivy-reports
+          path: reports/trivy/
+          if-no-files-found: warn
+
+  semgrep:
+    name: Semgrep (C# static analysis)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Open-source CLI with public registry rules: no Semgrep account or token.
+      - name: Semgrep scan
+        continue-on-error: true
+        shell: bash
+        run: |
+          mkdir -p reports/semgrep
+          docker run --rm \
+            -e SEMGREP_SEND_METRICS=off \
+            -e GIT_CONFIG_COUNT=1 -e GIT_CONFIG_KEY_0=safe.directory -e GIT_CONFIG_VALUE_0=/src \
+            -v "$GITHUB_WORKSPACE":/src \
+            -w /src \
+            "$SEMGREP_IMAGE" semgrep scan \
+              --config p/csharp \
+              --metrics=off \
+              --sarif-output=reports/semgrep/semgrep.sarif \
+              --json-output=reports/semgrep/semgrep.json \
+              --text-output=reports/semgrep/semgrep.txt
+
+      - name: Upload Semgrep reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: semgrep-reports
+          path: reports/semgrep/
+          if-no-files-found: warn
