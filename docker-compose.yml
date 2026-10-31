@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: resourcehub
+      POSTGRES_USER: resourcehub
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-resourcehub_dev}
+    ports:
+      - "5432:5432"
+    volumes:
+      # postgres:18 keeps data under /var/lib/postgresql/<version>, so mount the parent.
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U resourcehub -d resourcehub"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__HubDb: "Host=db;Port=5432;Database=resourcehub;Username=resourcehub;Password=${POSTGRES_PASSWORD:-resourcehub_dev};Timeout=5"
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:

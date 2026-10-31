@@ -21,7 +21,7 @@ What it does:
 - PostgreSQL 18
 - Entity Framework Core (Npgsql provider)
 - Docker + docker-compose (api + db containers)
-- JSON REST API, OpenAPI/Swagger docs
+- JSON REST API; OpenAPI document at `/openapi/v1.json` in the Development environment only (no Swagger UI)
 
 ## 2a. Architecture
 
