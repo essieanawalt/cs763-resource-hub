@@ -1,0 +1,14 @@
+
+Report Summary
+
+┌────────────────────────────────────────────┬───────┬─────────────────┐
+│                   Target                   │ Type  │ Vulnerabilities │
+├────────────────────────────────────────────┼───────┼─────────────────┤
+│ src/ResourceHub.Api/packages.lock.json     │ nuget │        0        │
+├────────────────────────────────────────────┼───────┼─────────────────┤
+│ tests/ResourceHub.Tests/packages.lock.json │ nuget │        0        │
+└────────────────────────────────────────────┴───────┴─────────────────┘
+Legend:
+- '-': Not scanned
+- '0': Clean (no security findings detected)
+
