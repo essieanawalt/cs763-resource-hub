@@ -1,6 +1,6 @@
 # spec.md — Resource Allocation & Help Desk Hub (Domain 2)
 
-> DRAFT for review. Items marked **[Assumption]** are design choices I can change.
+Items marked **[Assumption]** are design decisions where the project description leaves room for interpretation.
 
 ## 1. Overview
 
@@ -10,7 +10,7 @@ What it does:
 - Instructors add assets to a shared pool
 - Teams request assets; instructors approve or deny
 - Approved assets are assigned to the team; the team marks them redeemed
-- Every change to an asset is written to an audit log ("tracking parameters")
+- Every change to an asset or request is written to an audit log ("tracking parameters")
 - Teams open help desk tickets about their assets; help desk staff reply, close, revoke or replace
 
 **[Assumption]** "Logging tracking parameters" is read as: a record of which asset went to which team, when, by whom, and its status.
@@ -68,7 +68,8 @@ Ticket statuses: `open`, `closed`
 | R7 | A ticket can only be opened for an asset currently held by the caller's team (`assigned` or `redeemed`). Otherwise `409`. |
 | R8 | Replies can't be added to a `closed` ticket. Otherwise `409`. |
 | R9 | Asset `code` must be unique. Adding a duplicate returns `409`. |
-| R10 | Every asset and request change writes one audit log entry (Section 5). |
+| R10 | Every asset and request change writes at least one audit log entry (Section 5). Approve writes `request_approved` + `asset_assigned`. Replace writes `asset_revoked` on the old asset and `asset_replaced` on the new asset, with the old asset id in `details`. |
+| R11 | Every request must include an `X-User-Id` header matching a mock user. If missing or unknown, return `400`. |
 
 ## 5. Data model
 
@@ -212,7 +213,7 @@ Types: `string`, `number`, `uuid` (string), `datetime` (ISO 8601 UTC string), `e
 | name | string | yes | |
 | provider | string | yes | |
 | code | string | yes | Unique (R9) |
-| valueUsd | number | vouchers only | Must be null/omitted for license keys |
+| valueUsd | number | yes for vouchers | Must be null/omitted for license keys |
 
 **CreateRequest**
 | Field | Type | Req | Notes |
@@ -363,7 +364,7 @@ All errors use one shape:
 
 | Code | When |
 |---|---|
-| 400 | Missing or invalid fields |
+| 400 | Missing or invalid fields; missing or unknown `X-User-Id` (R11) |
 | 404 | Item doesn't exist |
 | 409 | Breaks a business rule R1–R9 (e.g. redeem a revoked asset, approve when no matching asset is available, duplicate code) |
 
@@ -397,7 +398,16 @@ Loaded at startup from `mock-data/*.json`. Read-only.
 ]
 ```
 
-**Seed assets** (inserted into PostgreSQL on first run): 6 license keys and 6 cloud vouchers, mixed statuses, so every endpoint has data to return.
+**Seed assets** (inserted into PostgreSQL on first run, codes are fake):
+
+| Type | Name | Provider | Value | Count | Statuses |
+|---|---|---|---|---|---|
+| license_key | JetBrains All Products | JetBrains | — | 3 | 2 available, 1 assigned to team-cs763-01 |
+| license_key | GitHub Copilot | GitHub | — | 3 | 1 available, 1 assigned to team-cs763-02, 1 redeemed by team-cs763-01 |
+| cloud_voucher | AWS Credits | AWS | $100 | 3 | 2 available, 1 redeemed by team-cs763-03 |
+| cloud_voucher | Azure Credits | Azure | $50 | 3 | 1 available, 1 assigned to team-cs763-03, 1 revoked (was team-cs763-02) |
+
+Request `assetName` values must use these exact names to match (R1).
 
 ## 8. Deployment
 
