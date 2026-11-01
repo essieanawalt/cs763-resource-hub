@@ -1,0 +1,1325 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "fullName": "Trivy Vulnerability Scanner",
+          "informationUri": "https://github.com/aquasecurity/trivy",
+          "name": "Trivy",
+          "rules": [
+            {
+              "id": "CVE-2026-102473",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "dash: dash: Super-polynomial backtracking in pmatch when libc fnmatch is disabled"
+              },
+              "fullDescription": {
+                "text": "A flaw was found in dash. When built without libc fnmatch, the internal pmatch() matcher implements * by unbounded recursion over candidate positions. A local user who can plant filenames, or otherwise feed that matcher, can make a short multi-star pattern such as *.*.*.*.*.tar.gz consume excessive CPU."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-102473",
+              "help": {
+                "text": "Vulnerability CVE-2026-102473\nSeverity: MEDIUM\nPackage: dash\nFixed Version: \nLink: [CVE-2026-102473](https://avd.aquasec.com/nvd/cve-2026-102473)\nA flaw was found in dash. When built without libc fnmatch, the internal pmatch() matcher implements * by unbounded recursion over candidate positions. A local user who can plant filenames, or otherwise feed that matcher, can make a short multi-star pattern such as *.*.*.*.*.tar.gz consume excessive CPU.",
+                "markdown": "**Vulnerability CVE-2026-102473**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|dash||[CVE-2026-102473](https://avd.aquasec.com/nvd/cve-2026-102473)|\n\nA flaw was found in dash. When built without libc fnmatch, the internal pmatch() matcher implements * by unbounded recursion over candidate positions. A local user who can plant filenames, or otherwise feed that matcher, can make a short multi-star pattern such as *.*.*.*.*.tar.gz consume excessive CPU."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-102474",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "dash: dash: Heap out-of-bounds write in conv_escape via undersized Unicode escape reservation"
+              },
+              "fullDescription": {
+                "text": "A flaw was found in dash. The printf builtin reserves four bytes before converting a Unicode \\u or \\U escape, but the multi-byte token can need five or six bytes. A local user who can supply such an escape to dash printf or echo %b, including through dash -c and a positional argument, can write one or two bytes past that reservation."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-102474",
+              "help": {
+                "text": "Vulnerability CVE-2026-102474\nSeverity: MEDIUM\nPackage: dash\nFixed Version: \nLink: [CVE-2026-102474](https://avd.aquasec.com/nvd/cve-2026-102474)\nA flaw was found in dash. The printf builtin reserves four bytes before converting a Unicode \\u or \\U escape, but the multi-byte token can need five or six bytes. A local user who can supply such an escape to dash printf or echo %b, including through dash -c and a positional argument, can write one or two bytes past that reservation.",
+                "markdown": "**Vulnerability CVE-2026-102474**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|dash||[CVE-2026-102474](https://avd.aquasec.com/nvd/cve-2026-102474)|\n\nA flaw was found in dash. The printf builtin reserves four bytes before converting a Unicode \\u or \\U escape, but the multi-byte token can need five or six bytes. A local user who can supply such an escape to dash printf or echo %b, including through dash -c and a positional argument, can write one or two bytes past that reservation."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-18374",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "glibc: glibc: Heap buffer overflow via attacker-controlled fopen mode string"
+              },
+              "fullDescription": {
+                "text": "Passing an effectively empty string to the `,ccs=` syntax extension of the mode argument in the `fopen` function in the GNU C Library version 2.45 or earlier may result in a heap buffer overflow when the mode string input to the function is attacker controlled.\n\n\n\nThis usage pattern is not seen in applications in common GNU/Linux distributions and applications that process user-supplied values for `ccs` should not pass them through without validation."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-18374",
+              "help": {
+                "text": "Vulnerability CVE-2026-18374\nSeverity: MEDIUM\nPackage: libc6\nFixed Version: \nLink: [CVE-2026-18374](https://avd.aquasec.com/nvd/cve-2026-18374)\nPassing an effectively empty string to the `,ccs=` syntax extension of the mode argument in the `fopen` function in the GNU C Library version 2.45 or earlier may result in a heap buffer overflow when the mode string input to the function is attacker controlled.\n\n\n\nThis usage pattern is not seen in applications in common GNU/Linux distributions and applications that process user-supplied values for `ccs` should not pass them through without validation.",
+                "markdown": "**Vulnerability CVE-2026-18374**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libc6||[CVE-2026-18374](https://avd.aquasec.com/nvd/cve-2026-18374)|\n\nPassing an effectively empty string to the `,ccs=` syntax extension of the mode argument in the `fopen` function in the GNU C Library version 2.45 or earlier may result in a heap buffer overflow when the mode string input to the function is attacker controlled.\n\n\n\nThis usage pattern is not seen in applications in common GNU/Linux distributions and applications that process user-supplied values for `ccs` should not pass them through without validation."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-89092",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "glibc: nscd stack overflow leads to degraded DNS resolution"
+              },
+              "fullDescription": {
+                "text": "The nscd service in the GNU C Library 2.3.4 onwards may crash due to a \nstack overflow when a malicious DNS server returns too large a response \nfor a DNS query, resulting in degraded DNS resolution for the system.\n\n\n\nExploitation of this bug needs a system that has nscd enabled and using \nan untrusted DNS server for name resolution, with the compromised DNS \nserver being capable of processing records large enough to result in a \nstack overflow in an nscd thread stack.  During experimentation, bind 9 \nwas unable to handle large records, but that could change in future or \nwith a different name server.  In typical installations, nscd is \nexecuted in an isolated context as its own user without a shell, due to \nwhich any compromise of that service is isolated.\n\n\n\nThere is a remote possibility of nscd cache corruption if an attacker \nmanages to get the stack pointer into a desired point in the heap, \npotentially resulting in other caches in nscd being overwritten with \ncorrupt data through the stack overflow, until the buggy code path \neventually results in a crash.\n\n\n\nFinally, a crash in nscd may result in performance degradation when \nresolving names, but it does not result in a denial of service."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-89092",
+              "help": {
+                "text": "Vulnerability CVE-2026-89092\nSeverity: MEDIUM\nPackage: libc6\nFixed Version: \nLink: [CVE-2026-89092](https://avd.aquasec.com/nvd/cve-2026-89092)\nThe nscd service in the GNU C Library 2.3.4 onwards may crash due to a \nstack overflow when a malicious DNS server returns too large a response \nfor a DNS query, resulting in degraded DNS resolution for the system.\n\n\n\nExploitation of this bug needs a system that has nscd enabled and using \nan untrusted DNS server for name resolution, with the compromised DNS \nserver being capable of processing records large enough to result in a \nstack overflow in an nscd thread stack.  During experimentation, bind 9 \nwas unable to handle large records, but that could change in future or \nwith a different name server.  In typical installations, nscd is \nexecuted in an isolated context as its own user without a shell, due to \nwhich any compromise of that service is isolated.\n\n\n\nThere is a remote possibility of nscd cache corruption if an attacker \nmanages to get the stack pointer into a desired point in the heap, \npotentially resulting in other caches in nscd being overwritten with \ncorrupt data through the stack overflow, until the buggy code path \neventually results in a crash.\n\n\n\nFinally, a crash in nscd may result in performance degradation when \nresolving names, but it does not result in a denial of service.",
+                "markdown": "**Vulnerability CVE-2026-89092**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libc6||[CVE-2026-89092](https://avd.aquasec.com/nvd/cve-2026-89092)|\n\nThe nscd service in the GNU C Library 2.3.4 onwards may crash due to a \nstack overflow when a malicious DNS server returns too large a response \nfor a DNS query, resulting in degraded DNS resolution for the system.\n\n\n\nExploitation of this bug needs a system that has nscd enabled and using \nan untrusted DNS server for name resolution, with the compromised DNS \nserver being capable of processing records large enough to result in a \nstack overflow in an nscd thread stack.  During experimentation, bind 9 \nwas unable to handle large records, but that could change in future or \nwith a different name server.  In typical installations, nscd is \nexecuted in an isolated context as its own user without a shell, due to \nwhich any compromise of that service is isolated.\n\n\n\nThere is a remote possibility of nscd cache corruption if an attacker \nmanages to get the stack pointer into a desired point in the heap, \npotentially resulting in other caches in nscd being overwritten with \ncorrupt data through the stack overflow, until the buggy code path \neventually results in a crash.\n\n\n\nFinally, a crash in nscd may result in performance degradation when \nresolving names, but it does not result in a denial of service."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-67693",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "gnutls: gnutls: Information disclosure via contradictory Key Usage and Extended Key Usage extensions"
+              },
+              "fullDescription": {
+                "text": "An issue in gnutls v.3.8.13 allows an attacker to obtain sensitive information via failing to reject end-entity X.509 certificates that contain a contradictory combination of Key Usage (KU) and Extended Key Usage (EKU)"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-67693",
+              "help": {
+                "text": "Vulnerability CVE-2026-67693\nSeverity: MEDIUM\nPackage: libgnutls30t64\nFixed Version: \nLink: [CVE-2026-67693](https://avd.aquasec.com/nvd/cve-2026-67693)\nAn issue in gnutls v.3.8.13 allows an attacker to obtain sensitive information via failing to reject end-entity X.509 certificates that contain a contradictory combination of Key Usage (KU) and Extended Key Usage (EKU)",
+                "markdown": "**Vulnerability CVE-2026-67693**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libgnutls30t64||[CVE-2026-67693](https://avd.aquasec.com/nvd/cve-2026-67693)|\n\nAn issue in gnutls v.3.8.13 allows an attacker to obtain sensitive information via failing to reject end-entity X.509 certificates that contain a contradictory combination of Key Usage (KU) and Extended Key Usage (EKU)"
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-88647",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "gnutls: gnutls: Information disclosure via hostname verification bypass"
+              },
+              "fullDescription": {
+                "text": "A hostname verification bypass in GnuTLS v3.8.13 allows attackers to circumvent the Common Name fallback mechanism and eavesdrop on communications via a crafted certificate."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-88647",
+              "help": {
+                "text": "Vulnerability CVE-2026-88647\nSeverity: MEDIUM\nPackage: libgnutls30t64\nFixed Version: \nLink: [CVE-2026-88647](https://avd.aquasec.com/nvd/cve-2026-88647)\nA hostname verification bypass in GnuTLS v3.8.13 allows attackers to circumvent the Common Name fallback mechanism and eavesdrop on communications via a crafted certificate.",
+                "markdown": "**Vulnerability CVE-2026-88647**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libgnutls30t64||[CVE-2026-88647](https://avd.aquasec.com/nvd/cve-2026-88647)|\n\nA hostname verification bypass in GnuTLS v3.8.13 allows attackers to circumvent the Common Name fallback mechanism and eavesdrop on communications via a crafted certificate."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-88648",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "gnutls: gnutls: Cross-domain certificate restriction bypass via incomplete X.509 validation"
+              },
+              "fullDescription": {
+                "text": "Incomplete X.509 implementation in GnuTLS v3.8.13 allows attackers controlling a subordinate Certificate Authority to bypass cross-domain PKI restrictions and issue unauthorized certificates."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-88648",
+              "help": {
+                "text": "Vulnerability CVE-2026-88648\nSeverity: MEDIUM\nPackage: libgnutls30t64\nFixed Version: \nLink: [CVE-2026-88648](https://avd.aquasec.com/nvd/cve-2026-88648)\nIncomplete X.509 implementation in GnuTLS v3.8.13 allows attackers controlling a subordinate Certificate Authority to bypass cross-domain PKI restrictions and issue unauthorized certificates.",
+                "markdown": "**Vulnerability CVE-2026-88648**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libgnutls30t64||[CVE-2026-88648](https://avd.aquasec.com/nvd/cve-2026-88648)|\n\nIncomplete X.509 implementation in GnuTLS v3.8.13 allows attackers controlling a subordinate Certificate Authority to bypass cross-domain PKI restrictions and issue unauthorized certificates."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-95184",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "gnutls: gnutls: legitimate user certificates incorrectly rejected causing denial of service"
+              },
+              "fullDescription": {
+                "text": "Improper certificate validation in gnutls v3.8.13 causes the application to reject legitimate certificates for valid users, leading to a Denial of Service (DoS)."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-95184",
+              "help": {
+                "text": "Vulnerability CVE-2026-95184\nSeverity: MEDIUM\nPackage: libgnutls30t64\nFixed Version: \nLink: [CVE-2026-95184](https://avd.aquasec.com/nvd/cve-2026-95184)\nImproper certificate validation in gnutls v3.8.13 causes the application to reject legitimate certificates for valid users, leading to a Denial of Service (DoS).",
+                "markdown": "**Vulnerability CVE-2026-95184**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libgnutls30t64||[CVE-2026-95184](https://avd.aquasec.com/nvd/cve-2026-95184)|\n\nImproper certificate validation in gnutls v3.8.13 causes the application to reject legitimate certificates for valid users, leading to a Denial of Service (DoS)."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-95209",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "gnutls: gnutls: legitimate CA certificates incorrectly rejected causing denial of service"
+              },
+              "fullDescription": {
+                "text": "An issue in gnutls v3.8.13 causes legitimate CA certificates to be rejected, leading to a Denial of Service (DoS)."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-95209",
+              "help": {
+                "text": "Vulnerability CVE-2026-95209\nSeverity: MEDIUM\nPackage: libgnutls30t64\nFixed Version: \nLink: [CVE-2026-95209](https://avd.aquasec.com/nvd/cve-2026-95209)\nAn issue in gnutls v3.8.13 causes legitimate CA certificates to be rejected, leading to a Denial of Service (DoS).",
+                "markdown": "**Vulnerability CVE-2026-95209**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libgnutls30t64||[CVE-2026-95209](https://avd.aquasec.com/nvd/cve-2026-95209)|\n\nAn issue in gnutls v3.8.13 causes legitimate CA certificates to be rejected, leading to a Denial of Service (DoS)."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-95210",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "gnutls: gnutls: certificates with invalid extensions incorrectly accepted"
+              },
+              "fullDescription": {
+                "text": "Improper certificate validation in gnutls v3.8.13 causes the application to accept certificates containing invalid extensions."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-95210",
+              "help": {
+                "text": "Vulnerability CVE-2026-95210\nSeverity: MEDIUM\nPackage: libgnutls30t64\nFixed Version: \nLink: [CVE-2026-95210](https://avd.aquasec.com/nvd/cve-2026-95210)\nImproper certificate validation in gnutls v3.8.13 causes the application to accept certificates containing invalid extensions.",
+                "markdown": "**Vulnerability CVE-2026-95210**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libgnutls30t64||[CVE-2026-95210](https://avd.aquasec.com/nvd/cve-2026-95210)|\n\nImproper certificate validation in gnutls v3.8.13 causes the application to accept certificates containing invalid extensions."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2025-5222",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "icu: Stack buffer overflow in the SRBRoot::addTag function"
+              },
+              "fullDescription": {
+                "text": "A stack buffer overflow was found in Internationl components for unicode (ICU ). While running the genrb binary, the 'subtag' struct overflowed at the SRBRoot::addTag function. This issue may lead to memory corruption and local arbitrary code execution."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2025-5222",
+              "help": {
+                "text": "Vulnerability CVE-2025-5222\nSeverity: LOW\nPackage: libicu74\nFixed Version: \nLink: [CVE-2025-5222](https://avd.aquasec.com/nvd/cve-2025-5222)\nA stack buffer overflow was found in Internationl components for unicode (ICU ). While running the genrb binary, the 'subtag' struct overflowed at the SRBRoot::addTag function. This issue may lead to memory corruption and local arbitrary code execution.",
+                "markdown": "**Vulnerability CVE-2025-5222**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|LOW|libicu74||[CVE-2025-5222](https://avd.aquasec.com/nvd/cve-2025-5222)|\n\nA stack buffer overflow was found in Internationl components for unicode (ICU ). While running the genrb binary, the 'subtag' struct overflowed at the SRBRoot::addTag function. This issue may lead to memory corruption and local arbitrary code execution."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "2.0",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "LOW"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-103111",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "pcre2: pcre2: Out-of-bounds write via crafted regular expression"
+              },
+              "fullDescription": {
+                "text": "PCRE2 before 10.49, when there is an attacker-controlled regular expression and certain JIT API usage, allows an out-of-bounds write with arbitrary data."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-103111",
+              "help": {
+                "text": "Vulnerability CVE-2026-103111\nSeverity: MEDIUM\nPackage: libpcre2-8-0\nFixed Version: \nLink: [CVE-2026-103111](https://avd.aquasec.com/nvd/cve-2026-103111)\nPCRE2 before 10.49, when there is an attacker-controlled regular expression and certain JIT API usage, allows an out-of-bounds write with arbitrary data.",
+                "markdown": "**Vulnerability CVE-2026-103111**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libpcre2-8-0||[CVE-2026-103111](https://avd.aquasec.com/nvd/cve-2026-103111)|\n\nPCRE2 before 10.49, when there is an attacker-controlled regular expression and certain JIT API usage, allows an out-of-bounds write with arbitrary data."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-86145",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "pcre2: PCRE2: Out-of-bounds write allows arbitrary code execution via crafted regular expressions"
+              },
+              "fullDescription": {
+                "text": "PCRE2 before 10.48 allows a pcre2_dfa_match out-of-bounds write because reuse of a cached workspace block, in a recursive DFA matching workspace, lacks a size check (even though a newly allocated block, for the same purpose, does have a size check). This outcome requires an attacker-controlled regular expression, or a recursive pattern in conjunction with a small heap limit (this can be set through the API)."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-86145",
+              "help": {
+                "text": "Vulnerability CVE-2026-86145\nSeverity: MEDIUM\nPackage: libpcre2-8-0\nFixed Version: \nLink: [CVE-2026-86145](https://avd.aquasec.com/nvd/cve-2026-86145)\nPCRE2 before 10.48 allows a pcre2_dfa_match out-of-bounds write because reuse of a cached workspace block, in a recursive DFA matching workspace, lacks a size check (even though a newly allocated block, for the same purpose, does have a size check). This outcome requires an attacker-controlled regular expression, or a recursive pattern in conjunction with a small heap limit (this can be set through the API).",
+                "markdown": "**Vulnerability CVE-2026-86145**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libpcre2-8-0||[CVE-2026-86145](https://avd.aquasec.com/nvd/cve-2026-86145)|\n\nPCRE2 before 10.48 allows a pcre2_dfa_match out-of-bounds write because reuse of a cached workspace block, in a recursive DFA matching workspace, lacks a size check (even though a newly allocated block, for the same purpose, does have a size check). This outcome requires an attacker-controlled regular expression, or a recursive pattern in conjunction with a small heap limit (this can be set through the API)."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-89156",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "PCRE2: PCRE2: Out-of-bounds read via invalid UTF data during JIT fallback"
+              },
+              "fullDescription": {
+                "text": "PCRE2 before 10.48 has a pcre2_match out-of-bounds read after a JIT fallback when an attacker can provide invalid UTF data."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-89156",
+              "help": {
+                "text": "Vulnerability CVE-2026-89156\nSeverity: MEDIUM\nPackage: libpcre2-8-0\nFixed Version: \nLink: [CVE-2026-89156](https://avd.aquasec.com/nvd/cve-2026-89156)\nPCRE2 before 10.48 has a pcre2_match out-of-bounds read after a JIT fallback when an attacker can provide invalid UTF data.",
+                "markdown": "**Vulnerability CVE-2026-89156**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libpcre2-8-0||[CVE-2026-89156](https://avd.aquasec.com/nvd/cve-2026-89156)|\n\nPCRE2 before 10.48 has a pcre2_match out-of-bounds read after a JIT fallback when an attacker can provide invalid UTF data."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-89157",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "pcre2: PCRE2: Out-of-bounds write via large pattern input"
+              },
+              "fullDescription": {
+                "text": "PCRE2 before 10.48, on 32-bit platforms, has a pcre2_pattern_convert out-of-bounds write when an attacker can provide a large pattern."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-89157",
+              "help": {
+                "text": "Vulnerability CVE-2026-89157\nSeverity: MEDIUM\nPackage: libpcre2-8-0\nFixed Version: \nLink: [CVE-2026-89157](https://avd.aquasec.com/nvd/cve-2026-89157)\nPCRE2 before 10.48, on 32-bit platforms, has a pcre2_pattern_convert out-of-bounds write when an attacker can provide a large pattern.",
+                "markdown": "**Vulnerability CVE-2026-89157**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libpcre2-8-0||[CVE-2026-89157](https://avd.aquasec.com/nvd/cve-2026-89157)|\n\nPCRE2 before 10.48, on 32-bit platforms, has a pcre2_pattern_convert out-of-bounds write when an attacker can provide a large pattern."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-89158",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "PCRE2: PCRE2: Out-of-bounds write via integer overflow on 32-bit platforms"
+              },
+              "fullDescription": {
+                "text": "PCRE2 before 10.48, on 32-bit platforms, has a pcre2_compile_32 integer overflow and resultant out-of-bounds write."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-89158",
+              "help": {
+                "text": "Vulnerability CVE-2026-89158\nSeverity: MEDIUM\nPackage: libpcre2-8-0\nFixed Version: \nLink: [CVE-2026-89158](https://avd.aquasec.com/nvd/cve-2026-89158)\nPCRE2 before 10.48, on 32-bit platforms, has a pcre2_compile_32 integer overflow and resultant out-of-bounds write.",
+                "markdown": "**Vulnerability CVE-2026-89158**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libpcre2-8-0||[CVE-2026-89158](https://avd.aquasec.com/nvd/cve-2026-89158)|\n\nPCRE2 before 10.48, on 32-bit platforms, has a pcre2_compile_32 integer overflow and resultant out-of-bounds write."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-89160",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "pcre2: PCRE2: Denial of Service via out-of-bounds read during invalid UTF matching"
+              },
+              "fullDescription": {
+                "text": "PCRE2 before 10.48 has a pcre2_match out-of-bounds read during the PCRE2_MATCH_INVALID_UTF matching of an invalid UTF subject."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-89160",
+              "help": {
+                "text": "Vulnerability CVE-2026-89160\nSeverity: MEDIUM\nPackage: libpcre2-8-0\nFixed Version: \nLink: [CVE-2026-89160](https://avd.aquasec.com/nvd/cve-2026-89160)\nPCRE2 before 10.48 has a pcre2_match out-of-bounds read during the PCRE2_MATCH_INVALID_UTF matching of an invalid UTF subject.",
+                "markdown": "**Vulnerability CVE-2026-89160**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libpcre2-8-0||[CVE-2026-89160](https://avd.aquasec.com/nvd/cve-2026-89160)|\n\nPCRE2 before 10.48 has a pcre2_match out-of-bounds read during the PCRE2_MATCH_INVALID_UTF matching of an invalid UTF subject."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-89161",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "pcre2: PCRE2: Memory corruption vulnerability in pcre2_jit_match"
+              },
+              "fullDescription": {
+                "text": "In PCRE2 before 10.48, pcre2_jit_match mishandles a previously copied subject being passed in as a context. An incorrect free operation can occur."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-89161",
+              "help": {
+                "text": "Vulnerability CVE-2026-89161\nSeverity: MEDIUM\nPackage: libpcre2-8-0\nFixed Version: \nLink: [CVE-2026-89161](https://avd.aquasec.com/nvd/cve-2026-89161)\nIn PCRE2 before 10.48, pcre2_jit_match mishandles a previously copied subject being passed in as a context. An incorrect free operation can occur.",
+                "markdown": "**Vulnerability CVE-2026-89161**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libpcre2-8-0||[CVE-2026-89161](https://avd.aquasec.com/nvd/cve-2026-89161)|\n\nIn PCRE2 before 10.48, pcre2_jit_match mishandles a previously copied subject being passed in as a context. An incorrect free operation can occur."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-40228",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "systemd: systemd-journald: Unintended output to user terminals via logger command"
+              },
+              "fullDescription": {
+                "text": "In systemd 259, systemd-journald can send ANSI escape sequences to the terminals of arbitrary users when a \"logger -p emerg\" command is executed, if ForwardToWall=yes is set."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-40228",
+              "help": {
+                "text": "Vulnerability CVE-2026-40228\nSeverity: LOW\nPackage: libudev1\nFixed Version: \nLink: [CVE-2026-40228](https://avd.aquasec.com/nvd/cve-2026-40228)\nIn systemd 259, systemd-journald can send ANSI escape sequences to the terminals of arbitrary users when a \"logger -p emerg\" command is executed, if ForwardToWall=yes is set.",
+                "markdown": "**Vulnerability CVE-2026-40228**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|LOW|libudev1||[CVE-2026-40228](https://avd.aquasec.com/nvd/cve-2026-40228)|\n\nIn systemd 259, systemd-journald can send ANSI escape sequences to the terminals of arbitrary users when a \"logger -p emerg\" command is executed, if ForwardToWall=yes is set."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "2.0",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "LOW"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2024-56433",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "shadow-utils: Default subordinate ID configuration in /etc/login.defs could lead to compromise"
+              },
+              "fullDescription": {
+                "text": "shadow-utils (aka shadow) 4.4 through 4.17.0 establishes a default /etc/subuid behavior (e.g., uid 100000 through 165535 for the first user account) that can realistically conflict with the uids of users defined on locally administered networks, potentially leading to account takeover, e.g., by leveraging newuidmap for access to an NFS home directory (or same-host resources in the case of remote logins by these local network users). NOTE: it may also be argued that system administrators should not have assigned uids, within local networks, that are within the range that can occur in /etc/subuid."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2024-56433",
+              "help": {
+                "text": "Vulnerability CVE-2024-56433\nSeverity: LOW\nPackage: passwd\nFixed Version: \nLink: [CVE-2024-56433](https://avd.aquasec.com/nvd/cve-2024-56433)\nshadow-utils (aka shadow) 4.4 through 4.17.0 establishes a default /etc/subuid behavior (e.g., uid 100000 through 165535 for the first user account) that can realistically conflict with the uids of users defined on locally administered networks, potentially leading to account takeover, e.g., by leveraging newuidmap for access to an NFS home directory (or same-host resources in the case of remote logins by these local network users). NOTE: it may also be argued that system administrators should not have assigned uids, within local networks, that are within the range that can occur in /etc/subuid.",
+                "markdown": "**Vulnerability CVE-2024-56433**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|LOW|passwd||[CVE-2024-56433](https://avd.aquasec.com/nvd/cve-2024-56433)|\n\nshadow-utils (aka shadow) 4.4 through 4.17.0 establishes a default /etc/subuid behavior (e.g., uid 100000 through 165535 for the first user account) that can realistically conflict with the uids of users defined on locally administered networks, potentially leading to account takeover, e.g., by leveraging newuidmap for access to an NFS home directory (or same-host resources in the case of remote logins by these local network users). NOTE: it may also be argued that system administrators should not have assigned uids, within local networks, that are within the range that can occur in /etc/subuid."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "2.0",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "LOW"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-18477",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "tar: tar: TOCTOU in incremental dumpdir 'X' rename handling allows restore path escape"
+              },
+              "fullDescription": {
+                "text": "A TOCTOU (Time-of-Check Time-of-Use) vulnerability in GNU tar's incremental dumpdir 'X' rename handling allows a local attacker with write access to a directory being backed up to influence the restore process if the attacker has access to the system where the restore is being performed. During restoration, files or directories may be created, renamed or overwritten outside the intended extraction directory. This could lead to unauthorized file modification or, in some cases, privilege escalation. Exploitation does not require the attacker to modify or craft the archive, and standard backup and restore workflows—including extracting into a newly created directory without using the -P option do not mitigate the issue."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-18477",
+              "help": {
+                "text": "Vulnerability CVE-2026-18477\nSeverity: MEDIUM\nPackage: tar\nFixed Version: \nLink: [CVE-2026-18477](https://avd.aquasec.com/nvd/cve-2026-18477)\nA TOCTOU (Time-of-Check Time-of-Use) vulnerability in GNU tar's incremental dumpdir 'X' rename handling allows a local attacker with write access to a directory being backed up to influence the restore process if the attacker has access to the system where the restore is being performed. During restoration, files or directories may be created, renamed or overwritten outside the intended extraction directory. This could lead to unauthorized file modification or, in some cases, privilege escalation. Exploitation does not require the attacker to modify or craft the archive, and standard backup and restore workflows—including extracting into a newly created directory without using the -P option do not mitigate the issue.",
+                "markdown": "**Vulnerability CVE-2026-18477**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|tar||[CVE-2026-18477](https://avd.aquasec.com/nvd/cve-2026-18477)|\n\nA TOCTOU (Time-of-Check Time-of-Use) vulnerability in GNU tar's incremental dumpdir 'X' rename handling allows a local attacker with write access to a directory being backed up to influence the restore process if the attacker has access to the system where the restore is being performed. During restoration, files or directories may be created, renamed or overwritten outside the intended extraction directory. This could lead to unauthorized file modification or, in some cases, privilege escalation. Exploitation does not require the attacker to modify or craft the archive, and standard backup and restore workflows—including extracting into a newly created directory without using the -P option do not mitigate the issue."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-18508",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "tar: tar: --one-top-level hardlink targets not confined to top-level directory enabling arbitrary file overwrite"
+              },
+              "fullDescription": {
+                "text": "A flaw was found in GNU tar. When extracting an archive with the --one-top-level option, hardlink targets are not confined to the designated top-level directory and may resolve relative to the extraction working directory. A crafted archive can create hardlinks that escape the intended boundary and, when combined with a preexisting symbolic link under the working directory, may allow writing outside that boundary during a single extraction."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-18508",
+              "help": {
+                "text": "Vulnerability CVE-2026-18508\nSeverity: MEDIUM\nPackage: tar\nFixed Version: \nLink: [CVE-2026-18508](https://avd.aquasec.com/nvd/cve-2026-18508)\nA flaw was found in GNU tar. When extracting an archive with the --one-top-level option, hardlink targets are not confined to the designated top-level directory and may resolve relative to the extraction working directory. A crafted archive can create hardlinks that escape the intended boundary and, when combined with a preexisting symbolic link under the working directory, may allow writing outside that boundary during a single extraction.",
+                "markdown": "**Vulnerability CVE-2026-18508**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|tar||[CVE-2026-18508](https://avd.aquasec.com/nvd/cve-2026-18508)|\n\nA flaw was found in GNU tar. When extracting an archive with the --one-top-level option, hardlink targets are not confined to the designated top-level directory and may resolve relative to the extraction working directory. A crafted archive can create hardlinks that escape the intended boundary and, when combined with a preexisting symbolic link under the working directory, may allow writing outside that boundary during a single extraction."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            }
+          ],
+          "version": "0.75.0"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "CVE-2026-102473",
+          "ruleIndex": 0,
+          "level": "warning",
+          "message": {
+            "text": "Package: dash\nInstalled Version: 0.5.12-6ubuntu5\nVulnerability CVE-2026-102473\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-102473](https://avd.aquasec.com/nvd/cve-2026-102473)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: dash@0.5.12-6ubuntu5"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-102474",
+          "ruleIndex": 1,
+          "level": "warning",
+          "message": {
+            "text": "Package: dash\nInstalled Version: 0.5.12-6ubuntu5\nVulnerability CVE-2026-102474\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-102474](https://avd.aquasec.com/nvd/cve-2026-102474)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: dash@0.5.12-6ubuntu5"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-18374",
+          "ruleIndex": 2,
+          "level": "warning",
+          "message": {
+            "text": "Package: libc-bin\nInstalled Version: 2.39-0ubuntu8.9\nVulnerability CVE-2026-18374\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-18374](https://avd.aquasec.com/nvd/cve-2026-18374)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libc-bin@2.39-0ubuntu8.9"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-89092",
+          "ruleIndex": 3,
+          "level": "warning",
+          "message": {
+            "text": "Package: libc-bin\nInstalled Version: 2.39-0ubuntu8.9\nVulnerability CVE-2026-89092\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-89092](https://avd.aquasec.com/nvd/cve-2026-89092)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libc-bin@2.39-0ubuntu8.9"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-18374",
+          "ruleIndex": 2,
+          "level": "warning",
+          "message": {
+            "text": "Package: libc6\nInstalled Version: 2.39-0ubuntu8.9\nVulnerability CVE-2026-18374\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-18374](https://avd.aquasec.com/nvd/cve-2026-18374)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libc6@2.39-0ubuntu8.9"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-89092",
+          "ruleIndex": 3,
+          "level": "warning",
+          "message": {
+            "text": "Package: libc6\nInstalled Version: 2.39-0ubuntu8.9\nVulnerability CVE-2026-89092\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-89092](https://avd.aquasec.com/nvd/cve-2026-89092)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libc6@2.39-0ubuntu8.9"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-67693",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Package: libgnutls30t64\nInstalled Version: 3.8.3-1.1ubuntu3.6\nVulnerability CVE-2026-67693\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-67693](https://avd.aquasec.com/nvd/cve-2026-67693)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libgnutls30t64@3.8.3-1.1ubuntu3.6"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-88647",
+          "ruleIndex": 5,
+          "level": "warning",
+          "message": {
+            "text": "Package: libgnutls30t64\nInstalled Version: 3.8.3-1.1ubuntu3.6\nVulnerability CVE-2026-88647\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-88647](https://avd.aquasec.com/nvd/cve-2026-88647)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libgnutls30t64@3.8.3-1.1ubuntu3.6"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-88648",
+          "ruleIndex": 6,
+          "level": "warning",
+          "message": {
+            "text": "Package: libgnutls30t64\nInstalled Version: 3.8.3-1.1ubuntu3.6\nVulnerability CVE-2026-88648\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-88648](https://avd.aquasec.com/nvd/cve-2026-88648)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libgnutls30t64@3.8.3-1.1ubuntu3.6"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-95184",
+          "ruleIndex": 7,
+          "level": "warning",
+          "message": {
+            "text": "Package: libgnutls30t64\nInstalled Version: 3.8.3-1.1ubuntu3.6\nVulnerability CVE-2026-95184\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-95184](https://avd.aquasec.com/nvd/cve-2026-95184)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libgnutls30t64@3.8.3-1.1ubuntu3.6"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-95209",
+          "ruleIndex": 8,
+          "level": "warning",
+          "message": {
+            "text": "Package: libgnutls30t64\nInstalled Version: 3.8.3-1.1ubuntu3.6\nVulnerability CVE-2026-95209\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-95209](https://avd.aquasec.com/nvd/cve-2026-95209)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libgnutls30t64@3.8.3-1.1ubuntu3.6"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-95210",
+          "ruleIndex": 9,
+          "level": "warning",
+          "message": {
+            "text": "Package: libgnutls30t64\nInstalled Version: 3.8.3-1.1ubuntu3.6\nVulnerability CVE-2026-95210\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-95210](https://avd.aquasec.com/nvd/cve-2026-95210)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libgnutls30t64@3.8.3-1.1ubuntu3.6"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2025-5222",
+          "ruleIndex": 10,
+          "level": "note",
+          "message": {
+            "text": "Package: libicu74\nInstalled Version: 74.2-1ubuntu3.1\nVulnerability CVE-2025-5222\nSeverity: LOW\nFixed Version: \nLink: [CVE-2025-5222](https://avd.aquasec.com/nvd/cve-2025-5222)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libicu74@74.2-1ubuntu3.1"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-103111",
+          "ruleIndex": 11,
+          "level": "warning",
+          "message": {
+            "text": "Package: libpcre2-8-0\nInstalled Version: 10.42-4ubuntu2.1\nVulnerability CVE-2026-103111\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-103111](https://avd.aquasec.com/nvd/cve-2026-103111)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libpcre2-8-0@10.42-4ubuntu2.1"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-86145",
+          "ruleIndex": 12,
+          "level": "warning",
+          "message": {
+            "text": "Package: libpcre2-8-0\nInstalled Version: 10.42-4ubuntu2.1\nVulnerability CVE-2026-86145\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-86145](https://avd.aquasec.com/nvd/cve-2026-86145)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libpcre2-8-0@10.42-4ubuntu2.1"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-89156",
+          "ruleIndex": 13,
+          "level": "warning",
+          "message": {
+            "text": "Package: libpcre2-8-0\nInstalled Version: 10.42-4ubuntu2.1\nVulnerability CVE-2026-89156\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-89156](https://avd.aquasec.com/nvd/cve-2026-89156)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libpcre2-8-0@10.42-4ubuntu2.1"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-89157",
+          "ruleIndex": 14,
+          "level": "warning",
+          "message": {
+            "text": "Package: libpcre2-8-0\nInstalled Version: 10.42-4ubuntu2.1\nVulnerability CVE-2026-89157\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-89157](https://avd.aquasec.com/nvd/cve-2026-89157)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libpcre2-8-0@10.42-4ubuntu2.1"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-89158",
+          "ruleIndex": 15,
+          "level": "warning",
+          "message": {
+            "text": "Package: libpcre2-8-0\nInstalled Version: 10.42-4ubuntu2.1\nVulnerability CVE-2026-89158\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-89158](https://avd.aquasec.com/nvd/cve-2026-89158)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libpcre2-8-0@10.42-4ubuntu2.1"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-89160",
+          "ruleIndex": 16,
+          "level": "warning",
+          "message": {
+            "text": "Package: libpcre2-8-0\nInstalled Version: 10.42-4ubuntu2.1\nVulnerability CVE-2026-89160\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-89160](https://avd.aquasec.com/nvd/cve-2026-89160)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libpcre2-8-0@10.42-4ubuntu2.1"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-89161",
+          "ruleIndex": 17,
+          "level": "warning",
+          "message": {
+            "text": "Package: libpcre2-8-0\nInstalled Version: 10.42-4ubuntu2.1\nVulnerability CVE-2026-89161\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-89161](https://avd.aquasec.com/nvd/cve-2026-89161)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libpcre2-8-0@10.42-4ubuntu2.1"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-40228",
+          "ruleIndex": 18,
+          "level": "note",
+          "message": {
+            "text": "Package: libsystemd0\nInstalled Version: 255.4-1ubuntu8.18\nVulnerability CVE-2026-40228\nSeverity: LOW\nFixed Version: \nLink: [CVE-2026-40228](https://avd.aquasec.com/nvd/cve-2026-40228)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libsystemd0@255.4-1ubuntu8.18"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-40228",
+          "ruleIndex": 18,
+          "level": "note",
+          "message": {
+            "text": "Package: libudev1\nInstalled Version: 255.4-1ubuntu8.18\nVulnerability CVE-2026-40228\nSeverity: LOW\nFixed Version: \nLink: [CVE-2026-40228](https://avd.aquasec.com/nvd/cve-2026-40228)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libudev1@255.4-1ubuntu8.18"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2024-56433",
+          "ruleIndex": 19,
+          "level": "note",
+          "message": {
+            "text": "Package: login\nInstalled Version: 1:4.13+dfsg1-4ubuntu3.2\nVulnerability CVE-2024-56433\nSeverity: LOW\nFixed Version: \nLink: [CVE-2024-56433](https://avd.aquasec.com/nvd/cve-2024-56433)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: login@1:4.13+dfsg1-4ubuntu3.2"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2024-56433",
+          "ruleIndex": 19,
+          "level": "note",
+          "message": {
+            "text": "Package: passwd\nInstalled Version: 1:4.13+dfsg1-4ubuntu3.2\nVulnerability CVE-2024-56433\nSeverity: LOW\nFixed Version: \nLink: [CVE-2024-56433](https://avd.aquasec.com/nvd/cve-2024-56433)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: passwd@1:4.13+dfsg1-4ubuntu3.2"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-18477",
+          "ruleIndex": 20,
+          "level": "warning",
+          "message": {
+            "text": "Package: tar\nInstalled Version: 1.35+dfsg-3ubuntu0.4\nVulnerability CVE-2026-18477\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-18477](https://avd.aquasec.com/nvd/cve-2026-18477)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: tar@1.35+dfsg-3ubuntu0.4"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-18508",
+          "ruleIndex": 21,
+          "level": "warning",
+          "message": {
+            "text": "Package: tar\nInstalled Version: 1.35+dfsg-3ubuntu0.4\nVulnerability CVE-2026-18508\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-18508](https://avd.aquasec.com/nvd/cve-2026-18508)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: tar@1.35+dfsg-3ubuntu0.4"
+              }
+            }
+          ]
+        }
+      ],
+      "columnKind": "utf16CodeUnits",
+      "properties": {
+        "imageID": "sha256:0fc30d287e138d9daad5fb1dd4a330700c9c12ffaef60ddd16dfc37b0e929d62",
+        "imageName": "resourcehub-api:ci",
+        "repoDigests": null,
+        "repoTags": [
+          "resourcehub-api:ci"
+        ]
+      }
+    }
+  ]
+}

@@ -79,6 +79,10 @@ Commit labels: `AI AGENT BUILD:` (agent code), `HUMAN MOD:` (my hand edits), `DO
 | `0c091eb` | 11-01 12:47 | HUMAN MOD: dispose test factories | HealthEndpointTests.cs | HUMAN MOD |
 | `05589ec` | 11-01 12:52 | PA1 final pipeline run log | evidence/pipeline-run-pa1-final.txt | Evidence (CI log) |
 | `08357e9` | 11-01 13:21 | DOCS: code_AI_history.md and Claude Code transcripts | code_AI_history.md, ai-history/ (2 files) | Docs (chat-assistant drafted, reviewed by me) + exported agent history |
+| `9d691db` | 11-01 13:26 | DOCS: header rule in CLAUDE.md, commit labels in code_AI_history | CLAUDE.md, code_AI_history.md | Docs |
+| `4cfd182` | 11-01 13:37 | DOCS: Prompt_test_log.md | Prompt_test_log.md | Docs (chat-assistant assembled, reviewed by me) |
+| `5a5d635` | 11-01 13:57 | DOCS: AI usage logs, Prompt_test_log fixes | spec.md, Agent_environment.md, Prompt_test_log.md | Docs: AI Usage Logs added to spec.md and Agent_environment.md (drafted by the chat assistant, reviewed by me); Prompt_test_log fixes by chat assistant |
+| (later) | 11-01 | DOCS: … | .md files and `evidence/` only | Any commit after `5a5d635` up to the `pa1` tag changes documentation or evidence only, no code. See `git log` |
 
 ## Files without a header
 

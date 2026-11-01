@@ -1,0 +1,6 @@
+organization=essieanawalt
+projectKey=essieanawalt_cs763-resource-hub
+serverUrl=https://sonarcloud.io
+dashboardUrl=https://sonarcloud.io/dashboard?id=essieanawalt_cs763-resource-hub&branch=main
+ceTaskId=AaGYOqvOcL3MZz6g6FSj
+ceTaskUrl=https://sonarcloud.io/api/ce/task?id=AaGYOqvOcL3MZz6g6FSj

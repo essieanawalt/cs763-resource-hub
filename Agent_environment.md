@@ -7,7 +7,7 @@
 | Conceptual AI contribution | ~70% AI / ~30% me |
 | My part | Gathered and verified the full configuration myself (versions, `/status`, `/config`, `/mcp`, `settings.json`); set the model explicitly instead of "Default"; decided to disable the caveman plugin so later phases are repeatable; confirmed which settings and MCP servers were relevant; reviewed and corrected the draft |
 | AI part (Claude chat assistant) | Organized the facts into sections and wrote the text; flagged the caveman plugin and the "Default" model setting as reproducibility issues |
-| Design-aid prompts | TODO: link to chat or appendix (pending facilitator reply) |
+| Design-aid prompts | See `AI_usage_appendix.md` |
 
 Configuration of the autonomous AI developer agent used to build this service (PA1).
 Recorded 2026-10-31.
