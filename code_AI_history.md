@@ -58,7 +58,7 @@ Times are local (Toronto).
 
 ## All commits
 
-The `AI AGENT BUILD:` / `HUMAN MOD:` labels were introduced on 2026-11-01 (commit `29c340a` onward). Earlier commits are not rewritten; this table records what every commit contains. Checked against `git log --name-status`.
+Commit labels: `AI AGENT BUILD:` (agent code), `HUMAN MOD:` (my hand edits), `DOCS:` (documentation, my own convention; the course labels cover code only). The `AI AGENT BUILD:` / `HUMAN MOD:` labels were introduced on 2026-11-01 (commit `29c340a` onward). Earlier commits are not rewritten; this table records what every commit contains. Checked against `git log --name-status`.
 
 | Commit | Date | Message | Files | Category |
 |---|---|---|---|---|
@@ -78,6 +78,7 @@ The `AI AGENT BUILD:` / `HUMAN MOD:` labels were introduced on 2026-11-01 (commi
 | `5bfa2d2` | 11-01 12:47 | HUMAN MOD: use RunAsync (SonarQube finding) | Program.cs | HUMAN MOD |
 | `0c091eb` | 11-01 12:47 | HUMAN MOD: dispose test factories | HealthEndpointTests.cs | HUMAN MOD |
 | `05589ec` | 11-01 12:52 | PA1 final pipeline run log | evidence/pipeline-run-pa1-final.txt | Evidence (CI log) |
+| `08357e9` | 11-01 13:21 | DOCS: code_AI_history.md and Claude Code transcripts | code_AI_history.md, ai-history/ (2 files) | Docs (chat-assistant drafted, reviewed by me) + exported agent history |
 
 ## Files without a header
 
