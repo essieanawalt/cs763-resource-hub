@@ -1,5 +1,14 @@
 # spec.md — Resource Allocation & Help Desk Hub (Domain 2)
 
+## AI Usage Log
+
+| Item | Detail |
+|---|---|
+| Conceptual AI contribution | ~75% AI / ~25% me |
+| My part | Weighed the four domains and chose Domain 2; chose the stack and the help desk scope (simple tickets). Directed the spec through reviews: asked whether it met the PA1 requirements (led to the architecture section) and requested two full reviews (led to the business rules, schemas and fixes). Made the design calls on approval matching (same type + exact name), audit log covering requests, `400` for missing/unknown `X-User-Id`, and the health check verifying the database. Approved the roles, the "tracking parameters" interpretation and the initial design defaults |
+| AI part (Claude chat assistant) | Proposed the roles, the "tracking parameters" interpretation and the initial design defaults (asset types, request/approve flow, team ownership, statuses, voucher value); identified gaps during the reviews I requested; drafted most of the documentation text, schemas, diagrams and the architecture section |
+| Design-aid prompts | TODO: link to chat or appendix (pending facilitator reply) |
+
 Items marked **[Assumption]** are design decisions where the project description leaves room for interpretation.
 
 ## 1. Overview
