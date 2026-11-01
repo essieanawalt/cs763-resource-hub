@@ -1,4 +1,4 @@
-// AI Contribution Weight: [100%] AI Generated / [0%] Human Refactored
+// AI Contribution Weight: [95%] AI Generated / [5%] Human Refactored
 using Microsoft.EntityFrameworkCore;
 using ResourceHub.Api.Data;
 
@@ -26,4 +26,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();
