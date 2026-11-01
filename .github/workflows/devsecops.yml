@@ -103,8 +103,9 @@ jobs:
             /o:"essieanawalt" \
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" \
-            /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx"
+            /d:sonar.exclusions="evidence/**" \
+            /d:sonar.cs.opencover.reportsPaths="tests/**/TestResults/**/coverage.opencover.xml" \
+            /d:sonar.cs.vstest.reportsPaths="tests/**/TestResults/*.trx"
 
       - name: Build
         run: dotnet build ResourceHub.slnx --configuration Release --no-restore
@@ -155,7 +156,7 @@ jobs:
             -v trivy-cache:/root/.cache \
             "$TRIVY_IMAGE" fs /src \
               --scanners vuln \
-              --skip-dirs '**/bin' --skip-dirs '**/obj' --skip-dirs 'reports' --skip-dirs '.sonarqube' \
+              --skip-dirs '**/bin' --skip-dirs '**/obj' --skip-dirs 'reports' --skip-dirs '.sonarqube' --skip-dirs 'evidence' \
               --list-all-pkgs \
               --exit-code 0 \
               --format json --output /out/trivy-deps.json
@@ -215,6 +216,7 @@ jobs:
             -w /src \
             "$SEMGREP_IMAGE" semgrep scan \
               --config p/csharp \
+              --exclude 'evidence' \
               --metrics=off \
               --sarif-output=reports/semgrep/semgrep.sarif \
               --json-output=reports/semgrep/semgrep.json \
