@@ -1,3 +1,4 @@
+// AI Contribution Weight: [100%] AI Generated / [0%] Human Refactored
 using Microsoft.AspNetCore.Mvc;
 using ResourceHub.Api.Data;
 

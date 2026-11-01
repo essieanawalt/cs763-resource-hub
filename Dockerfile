@@ -1,4 +1,5 @@
 # syntax=docker/dockerfile:1
+# AI Contribution Weight: [100%] AI Generated / [0%] Human Refactored
 
 # ---- build stage: .NET SDK ----
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build

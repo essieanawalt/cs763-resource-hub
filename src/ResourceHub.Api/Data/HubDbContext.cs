@@ -1,3 +1,4 @@
+// AI Contribution Weight: [100%] AI Generated / [0%] Human Refactored
 using Microsoft.EntityFrameworkCore;
 
 namespace ResourceHub.Api.Data;

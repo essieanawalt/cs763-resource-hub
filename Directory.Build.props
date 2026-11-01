@@ -1,3 +1,4 @@
+<!-- AI Contribution Weight: [100%] AI Generated / [0%] Human Refactored -->
 <Project>
   <PropertyGroup>
     <!-- packages.lock.json pins every direct and transitive NuGet package; Trivy reads it to find dependencies. -->

@@ -1,3 +1,4 @@
+# AI Contribution Weight: [100%] AI Generated / [0%] Human Refactored
 # DevSecOps pipeline: build + test, Docker image, Trivy, Semgrep, SonarQube Cloud.
 #
 # Only a broken build, a failing test or a failing Docker build fails the run.

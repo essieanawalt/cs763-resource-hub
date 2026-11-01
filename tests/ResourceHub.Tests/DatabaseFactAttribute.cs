@@ -1,3 +1,4 @@
+// AI Contribution Weight: [100%] AI Generated / [0%] Human Refactored
 namespace ResourceHub.Tests;
 
 // Runs only when RESOURCEHUB_TEST_DB holds a connection string to a live PostgreSQL.
