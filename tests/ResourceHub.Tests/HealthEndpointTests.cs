@@ -1,4 +1,4 @@
-// AI Contribution Weight: [100%] AI Generated / [0%] Human Refactored
+// AI Contribution Weight: [85%] AI Generated / [15%] Human Refactored
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
@@ -11,17 +11,17 @@ public class HealthEndpointTests
     // Port 1 on localhost: nothing listens there, so the connection is refused quickly.
     private const string UnreachableDb = "Host=127.0.0.1;Port=1;Database=none;Username=none;Password=none;Timeout=2";
 
-    private static HttpClient CreateClient(string connectionString)
-    {
-        var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
-            builder.UseSetting("ConnectionStrings:HubDb", connectionString));
-        return factory.CreateClient();
-    }
+    private static WebApplicationFactory<Program> CreateFactory(
+    WebApplicationFactory<Program> baseFactory, string connectionString) =>
+    baseFactory.WithWebHostBuilder(builder =>
+        builder.UseSetting("ConnectionStrings:HubDb", connectionString));
 
     [Fact]
     public async Task Health_returns_503_when_database_unreachable()
     {
-        using var client = CreateClient(UnreachableDb);
+        using var baseFactory = new WebApplicationFactory<Program>();
+        using var factory = CreateFactory(baseFactory, UnreachableDb);
+        using var client = factory.CreateClient();
 
         var response = await client.GetAsync("/api/v1/health");
 
@@ -33,8 +33,9 @@ public class HealthEndpointTests
     [Fact]
     public async Task Health_does_not_require_user_header()
     {
-        using var client = CreateClient(UnreachableDb);
-
+        using var baseFactory = new WebApplicationFactory<Program>();
+        using var factory = CreateFactory(baseFactory, UnreachableDb);
+        using var client = factory.CreateClient();
         var response = await client.GetAsync("/api/v1/health");
 
         Assert.NotEqual(HttpStatusCode.BadRequest, response.StatusCode);
@@ -43,7 +44,10 @@ public class HealthEndpointTests
     [DatabaseFact]
     public async Task Health_returns_200_when_database_reachable()
     {
-        using var client = CreateClient(DatabaseFactAttribute.ConnectionString!);
+
+        using var baseFactory = new WebApplicationFactory<Program>();
+        using var factory = CreateFactory(baseFactory, DatabaseFactAttribute.ConnectionString!);
+        using var client = factory.CreateClient();
 
         var response = await client.GetAsync("/api/v1/health");
 
