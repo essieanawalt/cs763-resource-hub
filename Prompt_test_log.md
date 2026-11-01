@@ -266,7 +266,7 @@ jobs:
 
 **Agent's own verification:** ran each step locally with the same images: Trivy found 0 NuGet packages until lock files were enabled, then 55 (0 vulnerabilities); image scan: 26 OS vulnerabilities in the base image (21 medium, 5 low, 0 high/critical); Semgrep `p/csharp`: 27 rules, 3 files, 0 findings; `actionlint`: no errors.
 
-**My verification:** GitHub Actions run `41232766096` succeeded. Log: `evidence/pipeline-run-pa1.txt`; screenshot: `evidence/pipeline-run-pa1.png`; scanner reports: `evidence/scan-reports/`. Final run after prompts 3–4 and my fixes: `evidence/pipeline-run-pa1-final.txt`.
+**My verification:** GitHub Actions run `41232766096` succeeded. Log: `evidence/pipeline-run-pa1.txt`; screenshot: `evidence/pipeline-run-pa1.png`; scanner reports: `evidence/scan-reports/`. Final run after prompts 3–4 and my fixes: `evidence/pipeline-run-pa1-final.txt`. Final run's screenshot and scanner reports: `evidence/pipeline-run-pa1-final.png`, `evidence/scan-reports-final/`.
 
 **Generated pipeline: jobs and steps** (`.github/workflows/devsecops.yml`)
 
