@@ -45,7 +45,7 @@ Claude Code does not expose sampling hyperparameters (temperature, top-p, max to
 | Settings source | User settings only (`~/.claude/settings.json`); no project `.claude/` settings | |
 | `defaultMode` | `default` | Shown as "Manual" in `/config`: ask before acting |
 | `model` | `opus` | Pins the Opus model alias |
-| Plugins | `caveman@caveman` (third-party, github.com/JuliusBrussee/caveman). **Enabled during both PA1 prompts; disabled 2026-10-31 after PA1 prompts** | Makes the agent reply in compressed, terse language to cut output tokens. Per the plugin's description it affects how the agent writes explanations, not the code. Disabled so later phases run on standard Claude Code and results are repeatable |
+| Plugins | `caveman@caveman` (third-party, github.com/JuliusBrussee/caveman). **Enabled during PA1 prompts 1–2 (2026-10-31); disabled 2026-10-31, before prompts 3–4** | Makes the agent reply in compressed, terse language to cut output tokens. Per the plugin's description it affects how the agent writes explanations, not the code. Disabled so later phases run on standard Claude Code and results are repeatable |
 | Theme | auto | Display only |
 
 ## 4. Operating mode
@@ -81,7 +81,7 @@ The agent had no access to my other project notes outside the repo.
 | claude.ai Google Drive | Needs authentication (not available) | No |
 | computer-use (built-in) | Disabled | No |
 
-**Plugins:** `caveman` (see Section 3). Third-party plugin that runs its own hook scripts when a session starts and on each prompt. It had been installed earlier and was still enabled during PA1; disabled on 2026-10-31. From then on, no plugins are enabled.
+**Plugins:** `caveman` (see Section 3). Third-party plugin that runs its own hook scripts when a session starts and on each prompt. It had been installed earlier and was still enabled during PA1 prompts 1–2; disabled on 2026-10-31, before prompts 3–4. From then on, no plugins are enabled.
 
 ## 7. Host environment
 

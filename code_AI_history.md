@@ -2,7 +2,7 @@
 
 Log of every AI interaction that generated or modified code in this repo, and how each result was modified and verified.
 
-> **AI Usage Log for this file:** drafted by the Claude chat assistant (claude.ai, not Claude Code) from my saved prompts, Claude Code's task notes and the exported transcripts; I reviewed and edited it. Conceptual AI contribution: ~80%.
+> **AI Usage Log for this file:** drafted by the Claude chat assistant (claude.ai, not Claude Code) from my saved prompts, Claude Code's task notes and the exported transcripts; I reviewed and edited it. Conceptual AI contribution: ~80%. Design-aid prompts: see `AI_usage_appendix.md`.
 
 ## Setup
 
@@ -10,7 +10,7 @@ Log of every AI interaction that generated or modified code in this repo, and ho
 |---|---|
 | Code agent | Claude Code 2.1.283, model Claude Opus 5.5 (`claude-opus-5-5`), effort Medium, thinking on |
 | Permission mode | Manual (asks before every command and file change) |
-| Plugin active during PA1 | `caveman` (terse replies), disabled after PA1. See Agent_environment.md |
+| Plugin | `caveman` (terse replies) was active for prompts 1–2 (#3–#4) and disabled on 2026-10-31, before prompts 3–4. See Agent_environment.md |
 | Chat assistant | Claude (claude.ai) for planning, spec and docs. It did not write source code. Its contributions are disclosed in each .md file's AI Usage Log |
 | Full prompts | `Prompt_test_log.md` |
 
@@ -58,7 +58,7 @@ Times are local (Toronto).
 
 ## All commits
 
-Commit labels: `AI AGENT BUILD:` (agent code), `HUMAN MOD:` (my hand edits), `DOCS:` (documentation, my own convention; the course labels cover code only). The `AI AGENT BUILD:` / `HUMAN MOD:` labels were introduced on 2026-11-01 (commit `29c340a` onward). Earlier commits are not rewritten; this table records what every commit contains. Checked against `git log --name-status`.
+Commit labels: `AI AGENT BUILD:` (agent code), `HUMAN MOD:` (my hand edits). The labels were introduced on 2026-11-01 (commit `29c340a` onward). From `29c340a` to `cd87a6c` I also used `DOCS:` for documentation commits (my own convention at the time). Per the facilitator (2026-11-02), every commit from then on uses only `AI AGENT BUILD:` or `HUMAN MOD:`. For documents the label follows who made the change: the chat assistant writes the edits from information and decisions I give it, so those commits are `AI AGENT BUILD:`, with the commit body naming the chat assistant. Edits I make by hand, and evidence I add, are `HUMAN MOD:`. Earlier commits are not rewritten, as the facilitator asked; this table records what every commit contains. Checked against `git log --name-status`.
 
 | Commit | Date | Message | Files | Category |
 |---|---|---|---|---|
@@ -82,7 +82,9 @@ Commit labels: `AI AGENT BUILD:` (agent code), `HUMAN MOD:` (my hand edits), `DO
 | `9d691db` | 11-01 13:26 | DOCS: header rule in CLAUDE.md, commit labels in code_AI_history | CLAUDE.md, code_AI_history.md | Docs |
 | `4cfd182` | 11-01 13:37 | DOCS: Prompt_test_log.md | Prompt_test_log.md | Docs (chat-assistant assembled, reviewed by me) |
 | `5a5d635` | 11-01 13:57 | DOCS: AI usage logs, Prompt_test_log fixes | spec.md, Agent_environment.md, Prompt_test_log.md | Docs: AI Usage Logs added to spec.md and Agent_environment.md (drafted by the chat assistant, reviewed by me); Prompt_test_log fixes by chat assistant |
-| (later) | 11-01 | DOCS: … | .md files and `evidence/` only | Any commit after `5a5d635` up to the `pa1` tag changes documentation or evidence only, no code. See `git log` |
+| `1a81bea` | 11-01 14:33 | DOCS: appendix, final scan reports, commit table | AI_usage_appendix.md, code_AI_history.md, spec.md, Agent_environment.md, Prompt_test_log.md, evidence/scan-reports-final/**, evidence/pipeline-run-pa1-final.png; deleted evidence/pipeline-run-pa1.png by mistake | Docs (chat-assistant drafted) + evidence |
+| `cd87a6c` | 11-01 14:35 | DOCS: restore first-run screenshot, reference final evidence | evidence/pipeline-run-pa1.png, Prompt_test_log.md | Evidence restored from `e81a92a` + doc fix (chat assistant) |
+| (next) | 11-02 | `AI AGENT BUILD:` / `HUMAN MOD:` | — | Commits from 2026-11-02 use only the two course labels |
 
 ## Files without a header
 
