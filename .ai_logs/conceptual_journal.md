@@ -12,8 +12,6 @@ Running journal of how I work with AI tools on this project: what they got wrong
 
 ### 2026-11-14 — The assistant's version controls reached past the project
 
-> First draft by the Claude chat assistant from our conversation; to be rewritten by me.
-
 **What happened:** to keep Claude Code's version stable, the chat assistant first had me pin the model and turn off auto-updates in my global settings, and when the version changed anyway it suggested a stricter lock: a fixed install with all updates blocked. Neither suggestion mentioned that these settings apply to all my Claude Code use, not just this project, which has a real impact on work I have outside of this course. I raised it, and we moved the settings into the repo and chose to record the version each session instead of locking it.
 
 **Why it matters:** the assistant optimized for the project's control without weighing the cost to my own machine. Full version control turned out to be hard to get anyway, so a documented, reversible setup was the better trade.
@@ -75,6 +73,9 @@ Running journal of how I work with AI tools on this project: what they got wrong
 **Decision:** I kept the rules and accepted some bleed through search rather than restructuring the repo again, and I check the agent's searches in the transcript.
 
 **Why it matters:** without the test I'd have trusted a clean baseline that wasn't. Keeping logs and notes outside the agent's working folder from the start would avoid this.
+
+
+**Follow-up:** the assistant's fixes for the search gap were a separate build clone or accepting the bleed. Just before moving onto my first prompt with the code agent, I came up with a different approach that seemed much simplier: start Claude Code inside `functional-codebase/` so my logs, the PA1 spec and old scans sit outside its working folder and anything there needs my approval. It closes most of the gap without moving the required `.ai_logs/` folder or similar.
 
 ---
 
