@@ -5,6 +5,8 @@
 
 - [AI Usage Log - PA2 updates](#ai-usage-log---pa2-updates)
 - [9. Update for PA2 (2026-11-13)](#9-update-for-pa2-2026-11-13)
+- [AI Usage Log - section 10](#ai-usage-log---section-10)
+- [10. Update for the PA2 build (2026-11-14)](#10-update-for-the-pa2-build-2026-11-14)
 - [AI Usage Log - PA1 specific / general](#ai-usage-log---pa1-specific--general)
 - [1. Agent](#1-agent)
 - [2. Model](#2-model)
@@ -51,6 +53,50 @@ Notes:
 - Some users report the auto-update setting being ignored, so the version is checked at the start of each session and recorded with each prompt
 - **Not controllable:** sampling settings such as temperature are fixed by Claude Code and not visible 
 
+
+## AI Usage Log - section 10
+
+| Item | Detail |
+|---|---|
+| Conceptual AI contribution (section 10) | ~55% AI / ~45% me |
+| My part | Moved the PA1 app into `functional-codebase/` doing the move and path fixes myself; created the base for a new spec file and updated references; decided to restrict the agent's reads and ran the test session; decided to keep the rules and accept some bleed through search; noticed and recorded the version change from `/status` |
+| AI part (Claude chat assistant) | Suggested the read restrictions and the test; analyzed the test output and found the search gap; drafted this section |
+| Design-aid prompts | Logged in `.ai_logs/PA2/2026-11-14_naive-build-log.md` |
+
+## 10. Update for the PA2 build (2026-11-14)
+
+Changes made on the build day, before the first PA2 prompt.
+
+| Setting | Before | PA2 build | Why |
+|---|---|---|---|
+| Spec file source | `spec.md` (my PA1 design) | `spec-domain2.md` (Domain 2 section of the standardized spec) | The standardized spec replaces my PA1 spec as the build source. `spec.md` stays as the PA1 deliverable |
+| Code location | `src/`, `tests/` at the repo root | `functional-codebase/src/`, `functional-codebase/tests/` | PA2 deliverable folder. Paths updated in `ResourceHub.slnx`, `Dockerfile`, `.dockerignore`, `devsecops.yml` and `README.md` |
+| File header rule in `CLAUDE.md` | One line: `AI Contribution Weight: [X%] AI Generated / [Y%] Human Refactored` | Full header: tool, language stack, prompt summary, AI contribution, human modifications, verification, confidence | Updated logging rules. No security wording added |
+| Read restrictions | None | `.claude/settings.json` denies `Read` on `.ai_logs/**`, `evidence/**`, `spec.md`, `Prompt_test_log.md`, `code_AI_history.md`, `Agent_environment.md` | Keep my notes, logs, the PA1 spec and old scan results out of the naive build |
+
+Restriction test (separate throwaway session, not used for the build):
+
+| Request | Result |
+|---|---|
+| Read `spec.md` | Blocked |
+| Read `.ai_logs/conceptual_journal.md` | Blocked |
+| Search the repo for "known" | **Not blocked:** returned lines from `Prompt_test_log.md` and `evidence/`. The agent skipped `.ai_logs/` and `spec.md` on its own because it had just been blocked from them |
+
+Session info at the test (2026-11-14):
+
+| Item | Value |
+|---|---|
+| Claude Code | **2.1.325** (2.1.321 on 2026-11-13) |
+| Interface | Claude desktop app 5.11492.5 |
+| Model / effort | Opus 5.5 · Medium |
+| Permissions | Manual |
+| MCP servers | None |
+| Sandbox | Off |
+
+Notes:
+- **Read restrictions only partly hold:** direct reads are blocked, searches are not reliably blocked. I kept the rules and accept some bleed through search; I review the agent's searches in the transcript and record any leak as a finding. Shell commands (e.g. `cat`, `grep`) could also bypass the rules, but Manual mode asks before running them
+- The deny list is visible to the agent. In the test it inferred why the rules were there
+- **Version changed with auto-updates off:** cause not confirmed. The session runs in the desktop app, so the update may have come with the desktop app rather than through Claude Code's own updater. The version is read from `/status` at the start of each session
 
 ## AI Usage Log - PA1 specific / general
 
