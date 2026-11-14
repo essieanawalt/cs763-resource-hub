@@ -3,6 +3,7 @@
 Log of every AI interaction that generated or modified code in this repo, and how each result was modified and verified.
 
 > **AI Usage Log for this file:** drafted by the Claude chat assistant (claude.ai, not Claude Code) from my saved prompts, Claude Code's task notes and the exported transcripts; I reviewed and edited it. Conceptual AI contribution: ~80%. Design-aid prompts: see `AI_usage_appendix.md`.
+[* update, moved to `.ai_logs/PA1/AI_usage_appendix.md` start of PA2]
 
 ## Setup
 
@@ -17,6 +18,7 @@ Log of every AI interaction that generated or modified code in this repo, and ho
 ## Exported agent history
 
 `/export` was unavailable, so the raw Claude Code session transcripts were copied from `~/.claude/projects/`.
+[* update, moved to `.ai_logs/PA1/` start of PA2]
 
 | File | Session | Contains |
 |---|---|---|
@@ -59,6 +61,7 @@ Times are local (Toronto).
 ## All commits
 
 Commit labels: `AI AGENT BUILD:` (agent code), `HUMAN MOD:` (my hand edits). The labels were introduced on 2026-11-01 (commit `29c340a` onward). From `29c340a` to `cd87a6c` I also used `DOCS:` for documentation commits (my own convention at the time). Per the facilitator (2026-11-02), every commit from then on uses only `AI AGENT BUILD:` or `HUMAN MOD:`. For documents the label follows who made the change: the chat assistant writes the edits from information and decisions I give it, so those commits are `AI AGENT BUILD:`, with the commit body naming the chat assistant. Edits I make by hand, and evidence I add, are `HUMAN MOD:`. Earlier commits are not rewritten, as the facilitator asked; this table records what every commit contains. Checked against `git log --name-status`.
+[* update, from the start of PA2 commits use `AI:` (> 80% AI), `HUMAN:` (< 20% AI) and `HYBRID:` (both)]
 
 | Commit | Date | Message | Files | Category |
 |---|---|---|---|---|
@@ -95,3 +98,5 @@ Commit labels: `AI AGENT BUILD:` (agent code), `HUMAN MOD:` (my hand edits). The
 | `.gitignore` | Microsoft template + 1 line by me, not AI generated |
 | `*.md` | Documents: AI Usage Log on the first page instead |
 | `evidence/**`, `ai-history/**` | Tool output, not source code |
+
+[* update, `ai-history/**` moved to `.ai_logs/PA1/` start of PA2]

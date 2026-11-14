@@ -9,6 +9,8 @@
 | AI part (Claude chat assistant) | Proposed the roles, the "tracking parameters" interpretation and the initial design defaults (asset types, request/approve flow, team ownership, statuses, voucher value); identified gaps during the reviews I requested; drafted most of the documentation text, schemas, diagrams and the architecture section |
 | Design-aid prompts | See `AI_usage_appendix.md` |
 
+[* update, moved to `.ai_logs/PA1/AI_usage_appendix.md` start of PA2] |
+
 Items marked **[Assumption]** are design decisions where the project description leaves room for interpretation.
 
 ## 1. Overview
