@@ -1,13 +1,65 @@
 # Agent_environment.md
 
-## AI Usage Log
+
+**Contents**
+
+- [AI Usage Log - PA2 updates](#ai-usage-log---pa2-updates)
+- [9. Update for PA2 (2026-11-13)](#9-update-for-pa2-2026-11-13)
+- [AI Usage Log - PA1 specific / general](#ai-usage-log---pa1-specific--general)
+- [1. Agent](#1-agent)
+- [2. Model](#2-model)
+- [3. Hyperparameters and configuration](#3-hyperparameters-and-configuration)
+- [4. Operating mode](#4-operating-mode)
+- [5. Context and instructions given to the agent](#5-context-and-instructions-given-to-the-agent)
+- [6. Tools the agent used](#6-tools-the-agent-used)
+- [7. Host environment](#7-host-environment)
+- [8. Reproducibility notes](#8-reproducibility-notes)
+
+## AI Usage Log - PA2 updates
+
+| Item | Detail |
+|---|---|
+| Conceptual AI contribution (section 9) | ~60% AI / ~40% me |
+| My part | Decided to pin the model and turn off auto-updates; edited `~/.claude/settings.json` myself; restarted Claude Code and verified the session info; decided to record PA2 changes in a separate update section instead of changing the PA1 sections; rewrote the section intro, the table and the notes; reorganized the file and added the table of contents structure |
+| AI part (Claude chat assistant) | Pointed out the model alias and auto-update gaps and how to close them; drafted the first version of section 9 (tables and notes); generated the table-of-contents links |
+| Design-aid prompts | Setup only (agent configuration); no design-aid prompts for this section. PA2 design-aid prompts are logged in `.ai_logs/PA2/` |
+
+## 9. Update for PA2 (2026-11-13)
+
+This section records what changed before the PA2 build, so the agent stays the same across PA2 sessions and provides continuity going forward based on the updated requirements. These updates were made based on threads in the M2 discussion as well as the updated project outline.
+
+| Setting | PA1 | PA2 | Why |
+|---|---|---|---|
+| `model` in `~/.claude/settings.json` | `opus` (alias) | `claude-opus-5-5` (full model ID) | An alias can point to a newer model |
+| Auto-updates | On (default) | Off: `"env": {"DISABLE_AUTOUPDATER": "1"}` | Keeps the Claude Code version consistent |
+| Design-aid prompts | `AI_usage_appendix.md` | `.ai_logs/PA1/AI_usage_appendix.md` | To align with updated requirements |
+
+Verified after restart (Session info):
+
+| Item | Value |
+|---|---|
+| Claude Code | 2.1.321 |
+| Interface | Claude desktop app 5.11492.2 |
+| Host OS | macOS 27.2.1 (arm64) |
+| Model / effort | Opus 5.5 · Medium |
+| Permissions | Manual |
+| MCP servers | None |
+| Sandbox | Off |
+
+Notes:
+- PA1 and PA2 run on different Claude Code versions (2.1.283 vs 2.1.321), because the update happened before auto-updates were turned off
+- Some users report the auto-update setting being ignored, so the version is checked at the start of each session and recorded with each prompt
+- **Not controllable:** sampling settings such as temperature are fixed by Claude Code and not visible 
+
+
+## AI Usage Log - PA1 specific / general
 
 | Item | Detail |
 |---|---|
 | Conceptual AI contribution | ~70% AI / ~30% me |
 | My part | Gathered and verified the full configuration myself (versions, `/status`, `/config`, `/mcp`, `settings.json`); set the model explicitly instead of "Default"; decided to disable the caveman plugin so later phases are repeatable; confirmed which settings and MCP servers were relevant; reviewed and corrected the draft |
 | AI part (Claude chat assistant) | Organized the facts into sections and wrote the text; flagged the caveman plugin and the "Default" model setting as reproducibility issues |
-| Design-aid prompts | See `AI_usage_appendix.md` |
+| Design-aid prompts | See `AI_usage_appendix.md` [** see PA2 updates, section 9]|
 
 Configuration of the autonomous AI developer agent used to build this service (PA1).
 Recorded 2026-10-31.
