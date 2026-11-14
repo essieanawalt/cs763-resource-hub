@@ -1,5 +1,17 @@
 ## File headers
-Add this header to every new source file, using that file type's comment syntax: AI Contribution Weight: [100%] AI Generated / [0%] Human Refactored. Skip JSON and lock files.
+Add this header at the top of every new source file, using that file type's comment syntax. Skip JSON, lock files, .md and .gitignore.
+
+```
+// Tool: Claude Code (Claude Opus 5.5)
+// Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
+// Prompt Summary: "<one-line summary of the prompt that produced this file>"
+// AI Contribution: <what you wrote> (~100%)
+// Human Modifications: None yet
+// Verification: <tests or checks you ran that cover this file>
+// Confidence: <Low / Medium / High>
+```
+
+If you change a file that still has the older one-line `AI Contribution Weight` header, replace it with this one.
 
 ## Task notes
 After each task, write a note in the notes folder I've added to this session
