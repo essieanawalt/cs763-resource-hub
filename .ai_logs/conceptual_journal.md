@@ -10,17 +10,69 @@ Running journal of how I work with AI tools on this project: what they got wrong
 
 > First drafts by the chat assistant during our session, rewritten by me during intervals between sub-phase work in this session.
 
-### 2026-11-14 — "Pinned versions" only covered the scanners, not the app's base images
+### 2026-11-14 — Agent comments from PA1 carried the old design into the new build
 
-**What happened:** after moving the PA1 app into `functional-codebase/` to align with the new project structure (no code or dependency changes), the pipeline's Trivy image scan reported 36 OS vulnerabilities (31 medium, 5 low, 0 high/critical). The chat assistant flagged this difference: the PA1 final run had 26. Dependency scan and Semgrep were unchanged at 0.
+> First draft by the Claude chat assistant from our conversation; to be rewritten by me.
 
-**What I found:** in PA1 I noted that Claude Code pinned the GitHub actions and scanners to exact versions on its own, and that is correct (the Trivy and Semgrep images are pinned to a version and a sha256 digest). What I hadn't recorded and was unaware of at the time is that the app's own images are not pinned: the Dockerfile uses `mcr.microsoft.com/dotnet/sdk:10.0` and `aspnet:10.0`, and compose uses `postgres:18`. These are floating tags, so each build can pull a newer image. The image scanned today carries .NET runtime 10.0.15.
+**What happened:** before the build, the chat assistant checked how the existing code overlaps with the new spec. Two comments Claude Code wrote in PA1 point to sections of my old spec, and one says "No X-User-Id needed", the user header from my PA1 design. The agent can't read the old spec, but it can read those comments.
 
-**Not confirmed:** whether the extra 10 findings come from a newer base image, from CVEs published since PA1 against the same packages, or both. I haven't compared the two reports package by package. 
+**Why it matters:** if the PA2 build adds a user header, I couldn't tell whether that was the agent's own choice or a hint from its earlier comments. I'm removing the references myself before the build.
 
-**Why it matters:** without a fixed starting point, a change in the image scan after the naive build could be incorrectly attributed to the agent or another unknown factor. The agent pinned what it was asked to set up (the pipeline) but not the images the app runs on, and the unpinned base images belong in the PA2 security analysis
+---
 
-**Actions:** I'm saving this run as a pre-build baseline so the post-build scan can be compared against it to try and isolate differences
+### 2026-11-14 — The assistant overcorrected and dropped roles the spec names
+
+> First draft by the Claude chat assistant from our conversation; to be rewritten by me.
+
+**What happened:** after I flagged the over-design, the chat assistant swung the other way and stripped things out to keep the experiment clean, including the four roles the spec names. It had mixed up the roles existing with recording who did what. I pushed back on the framing and then on the roles.
+
+**Why it matters:** that's what led to the rule we used for the spec: fill in what the service does, leave how it's built to the agent, and leave security out. I had to correct it in both directions, not just once.
+
+---
+
+### 2026-11-14 — What the spec's "Out of scope" list includes and leaves out
+
+> First draft by the Claude chat assistant from our conversation; to be rewritten by me.
+
+**What happened:** I asked the chat assistant why it chose the items in the spec's out-of-scope list. Calls to other services, notifications and a UI are there to stop scope creep, and expiry dates record a decision from the walkthrough.
+
+**What it left out:** my PA1 list had "real login" and a line saying security would come later. The assistant dropped both because naming security as excluded is a hint either way, and leaving it out means whatever the agent does about access is its own choice.
+
+**Why it matters:** an out-of-scope list steers the agent too, so it's limited to features and says nothing about security.
+
+---
+
+### 2026-11-14 — The chat assistant checked its own output for security wording
+
+**What happened:** after drafting anything the coding agent can read (`CLAUDE.md`, `spec-domain2.md`, the mock data), the chat assistant ran a word scan for terms like security, validation, encryption and auth before calling it done. It also dropped PA1 spec lines and flagged code comments that hinted at security. My notes only covered prompts and `CLAUDE.md`, so it applied the rule wider than I asked.
+
+**Why it matters:** it acted like a net on the baseline, but it checks words, not meaning, so I still read each agent-facing file myself.
+
+---
+
+### 2026-11-14 — Interpreting the requirements without the endpoints led to over-design
+
+**What happened:** I walked through the requirements with the chat assistant first and shared the endpoints second. It filled each gap with a reasonable design, and when the endpoints didn't match it tried to make them fit our decisions instead of the other way around. That's when I caught it.
+
+**Why it matters:** the endpoints settle some of the ambiguity in the requirements, and every design I add to `spec-domain2.md` changes the agent's input. I kept the spec to the standardized text plus short clarifications. Next time I'd give requirements and endpoints together and ask for open questions before any design.
+
+---
+
+### 2026-11-14 — Read restrictions held for reading, not for searching
+
+**What happened:** I added deny rules in `.claude/settings.json` for my logs, the PA1 spec and evidence, and tested them in a throwaway session. Direct reads were blocked, but a search for "known" returned lines from `Prompt_test_log.md` and `evidence/`, both on the deny list. The agent also worked out from the deny list and a commit message that I was keeping it out of my logs "for the assignment".
+
+**Decision:** I kept the rules and accepted some bleed through search rather than restructuring the repo again, and I check the agent's searches in the transcript.
+
+**Why it matters:** without the test I'd have trusted a clean baseline that wasn't. Keeping logs and notes outside the agent's working folder from the start would avoid this.
+
+---
+
+### 2026-11-14 — The agent pinned the pipeline but not the app's own images
+
+**What happened:** in PA1 I noted that Claude Code pinned versions on its own, which held for the GitHub actions and scanners (version plus sha256 digest). Reviewing the Dockerfile and compose file it wrote, the app's images (`dotnet/sdk:10.0`, `aspnet:10.0`, `postgres:18`) use floating tags, so each build can pull a newer image. I caught it when the chat assistant flagged the Trivy image scan jumping from 26 to 36 findings with no code changes.
+
+**Why it matters:** the agent applied a good practice where it was asked to set things up and not where it wasn't, and my PA1 note overstated it. Unpinned images belong in the PA2 security analysis, and I saved a pre-build scan so later changes aren't wrongly blamed on the agent's code.
 
 ---
 
