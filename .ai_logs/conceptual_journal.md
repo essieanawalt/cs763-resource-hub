@@ -10,6 +10,16 @@ Running journal of how I work with AI tools on this project: what they got wrong
 
 > First drafts by the chat assistant during our session, rewritten by me during intervals between sub-phase work in this session.
 
+### 2026-11-14 — The assistant's version controls reached past the project
+
+> First draft by the Claude chat assistant from our conversation; to be rewritten by me.
+
+**What happened:** to keep Claude Code's version stable, the chat assistant first had me pin the model and turn off auto-updates in my global settings, and when the version changed anyway it suggested a stricter lock: a fixed install with all updates blocked. Neither suggestion mentioned that these settings apply to all my Claude Code use, not just this project, which has a real impact on work I have outside of this course. I raised it, and we moved the settings into the repo and chose to record the version each session instead of locking it.
+
+**Why it matters:** the assistant optimized for the project's control without weighing the cost to my own machine. Full version control turned out to be hard to get anyway, so a documented, reversible setup was the better trade.
+
+---
+
 ### 2026-11-14 — Agent comments from PA1 carried the old design into the new build
 
 > First draft by the Claude chat assistant from our conversation; to be rewritten by me.
