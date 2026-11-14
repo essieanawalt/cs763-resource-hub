@@ -1,4 +1,5 @@
 # spec.md — Resource Allocation & Help Desk Hub (Domain 2)
+[* update, this was PA1 design, replaced by `spec-domain2.md` for PA2 on, this file added to claude ignore]
 
 ## AI Usage Log
 
