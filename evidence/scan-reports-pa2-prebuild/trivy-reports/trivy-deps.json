@@ -1,0 +1,1382 @@
+{
+  "SchemaVersion": 2,
+  "Trivy": {
+    "Version": "0.75.0"
+  },
+  "ReportID": "01a1db50-e511-7b0c-84fd-ad381eadcd0b",
+  "CreatedAt": "2026-11-14T18:27:54.25772609Z",
+  "ArtifactID": "sha256:f76ef60f7602baf1568334cba1865ee356e483cccb83ac31aa7ab9ab70c5f8ef",
+  "ArtifactName": "/src",
+  "ArtifactType": "repository",
+  "Metadata": {
+    "RepoURL": "https://github.com/essieanawalt/cs763-resource-hub",
+    "Branch": "main",
+    "Commit": "efef16c7ccd15cce2dab336891bcdabb2b3efe9f",
+    "CommitMsg": "HUMAN: PA2 path fixes for functional-codebase",
+    "Author": "Essie Anawalt \u003c12802881+essieanawalt@users.noreply.github.com\u003e",
+    "Committer": "Essie Anawalt \u003c12802881+essieanawalt@users.noreply.github.com\u003e"
+  },
+  "Results": [
+    {
+      "Target": "functional-codebase/src/ResourceHub.Api/packages.lock.json",
+      "Class": "lang-pkgs",
+      "Type": "nuget",
+      "Packages": [
+        {
+          "ID": "Microsoft.AspNetCore.OpenApi@10.0.14",
+          "Name": "Microsoft.AspNetCore.OpenApi",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.AspNetCore.OpenApi@10.0.14",
+            "UID": "fba49a6a5f97de60"
+          },
+          "Version": "10.0.14",
+          "Relationship": "direct",
+          "DependsOn": [
+            "Microsoft.OpenApi@2.12.2"
+          ],
+          "Locations": [
+            {
+              "StartLine": 5,
+              "EndLine": 13
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Npgsql.EntityFrameworkCore.PostgreSQL@10.0.3",
+          "Name": "Npgsql.EntityFrameworkCore.PostgreSQL",
+          "Identifier": {
+            "PURL": "pkg:nuget/Npgsql.EntityFrameworkCore.PostgreSQL@10.0.3",
+            "UID": "a769e8c7f3888755"
+          },
+          "Version": "10.0.3",
+          "Relationship": "direct",
+          "DependsOn": [
+            "Microsoft.EntityFrameworkCore@10.0.4",
+            "Microsoft.EntityFrameworkCore.Relational@10.0.4",
+            "Npgsql@10.0.3"
+          ],
+          "Locations": [
+            {
+              "StartLine": 14,
+              "EndLine": 24
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.EntityFrameworkCore@10.0.4",
+          "Name": "Microsoft.EntityFrameworkCore",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.EntityFrameworkCore@10.0.4",
+            "UID": "1764d86dce891091"
+          },
+          "Version": "10.0.4",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.EntityFrameworkCore.Abstractions@10.0.4",
+            "Microsoft.EntityFrameworkCore.Analyzers@10.0.4"
+          ],
+          "Locations": [
+            {
+              "StartLine": 25,
+              "EndLine": 33
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.EntityFrameworkCore.Abstractions@10.0.4",
+          "Name": "Microsoft.EntityFrameworkCore.Abstractions",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.EntityFrameworkCore.Abstractions@10.0.4",
+            "UID": "545bdb2b16d3e863"
+          },
+          "Version": "10.0.4",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 34,
+              "EndLine": 38
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.EntityFrameworkCore.Analyzers@10.0.4",
+          "Name": "Microsoft.EntityFrameworkCore.Analyzers",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.EntityFrameworkCore.Analyzers@10.0.4",
+            "UID": "bf48fef6516a8b40"
+          },
+          "Version": "10.0.4",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 39,
+              "EndLine": 43
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.EntityFrameworkCore.Relational@10.0.4",
+          "Name": "Microsoft.EntityFrameworkCore.Relational",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.EntityFrameworkCore.Relational@10.0.4",
+            "UID": "af1d4ab707ca1eb0"
+          },
+          "Version": "10.0.4",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.EntityFrameworkCore@10.0.4"
+          ],
+          "Locations": [
+            {
+              "StartLine": 44,
+              "EndLine": 51
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.OpenApi@2.12.2",
+          "Name": "Microsoft.OpenApi",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.OpenApi@2.12.2",
+            "UID": "888524c82938c002"
+          },
+          "Version": "2.12.2",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 52,
+              "EndLine": 56
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Npgsql@10.0.3",
+          "Name": "Npgsql",
+          "Identifier": {
+            "PURL": "pkg:nuget/Npgsql@10.0.3",
+            "UID": "bed33b3ced600c92"
+          },
+          "Version": "10.0.3",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 57,
+              "EndLine": 61
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        }
+      ]
+    },
+    {
+      "Target": "functional-codebase/tests/ResourceHub.Tests/packages.lock.json",
+      "Class": "lang-pkgs",
+      "Type": "nuget",
+      "Packages": [
+        {
+          "ID": "Microsoft.AspNetCore.Mvc.Testing@10.0.14",
+          "Name": "Microsoft.AspNetCore.Mvc.Testing",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.AspNetCore.Mvc.Testing@10.0.14",
+            "UID": "fd5c7fbc073eef44"
+          },
+          "Version": "10.0.14",
+          "Relationship": "direct",
+          "DependsOn": [
+            "Microsoft.AspNetCore.TestHost@10.0.14",
+            "Microsoft.Extensions.DependencyModel@10.0.14",
+            "Microsoft.Extensions.Hosting@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 11,
+              "EndLine": 21
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.NET.Test.Sdk@17.14.1",
+          "Name": "Microsoft.NET.Test.Sdk",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.NET.Test.Sdk@17.14.1",
+            "UID": "37065309c623af8f"
+          },
+          "Version": "17.14.1",
+          "Relationship": "direct",
+          "DependsOn": [
+            "Microsoft.TestPlatform.TestHost@17.14.1",
+            "Microsoft.CodeCoverage@17.14.1"
+          ],
+          "Locations": [
+            {
+              "StartLine": 22,
+              "EndLine": 31
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "coverlet.collector@6.0.4",
+          "Name": "coverlet.collector",
+          "Identifier": {
+            "PURL": "pkg:nuget/coverlet.collector@6.0.4",
+            "UID": "32093932d414af1"
+          },
+          "Version": "6.0.4",
+          "Relationship": "direct",
+          "Locations": [
+            {
+              "StartLine": 5,
+              "EndLine": 10
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "xunit@2.9.3",
+          "Name": "xunit",
+          "Identifier": {
+            "PURL": "pkg:nuget/xunit@2.9.3",
+            "UID": "6e43c6a44abcd646"
+          },
+          "Version": "2.9.3",
+          "Relationship": "direct",
+          "DependsOn": [
+            "xunit.core@2.9.3",
+            "xunit.analyzers@1.18.0",
+            "xunit.assert@2.9.3"
+          ],
+          "Locations": [
+            {
+              "StartLine": 32,
+              "EndLine": 42
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "xunit.runner.visualstudio@3.1.4",
+          "Name": "xunit.runner.visualstudio",
+          "Identifier": {
+            "PURL": "pkg:nuget/xunit.runner.visualstudio@3.1.4",
+            "UID": "8c29014a793a7670"
+          },
+          "Version": "3.1.4",
+          "Relationship": "direct",
+          "Locations": [
+            {
+              "StartLine": 43,
+              "EndLine": 48
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.AspNetCore.OpenApi@10.0.14",
+          "Name": "Microsoft.AspNetCore.OpenApi",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.AspNetCore.OpenApi@10.0.14",
+            "UID": "7af592eb6b55d75c"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.OpenApi@2.12.2"
+          ],
+          "Locations": [
+            {
+              "StartLine": 49,
+              "EndLine": 56
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.AspNetCore.TestHost@10.0.14",
+          "Name": "Microsoft.AspNetCore.TestHost",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.AspNetCore.TestHost@10.0.14",
+            "UID": "11e69a3d7382c3ee"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 57,
+              "EndLine": 61
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.CodeCoverage@17.14.1",
+          "Name": "Microsoft.CodeCoverage",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.CodeCoverage@17.14.1",
+            "UID": "51df4c4f007f5867"
+          },
+          "Version": "17.14.1",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 62,
+              "EndLine": 66
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.EntityFrameworkCore@10.0.4",
+          "Name": "Microsoft.EntityFrameworkCore",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.EntityFrameworkCore@10.0.4",
+            "UID": "d489c18aea872e56"
+          },
+          "Version": "10.0.4",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.EntityFrameworkCore.Analyzers@10.0.4",
+            "Microsoft.Extensions.Caching.Memory@10.0.4",
+            "Microsoft.Extensions.Logging@10.0.14",
+            "Microsoft.EntityFrameworkCore.Abstractions@10.0.4"
+          ],
+          "Locations": [
+            {
+              "StartLine": 67,
+              "EndLine": 77
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.EntityFrameworkCore.Abstractions@10.0.4",
+          "Name": "Microsoft.EntityFrameworkCore.Abstractions",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.EntityFrameworkCore.Abstractions@10.0.4",
+            "UID": "72f2e5038a308ec0"
+          },
+          "Version": "10.0.4",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 78,
+              "EndLine": 82
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.EntityFrameworkCore.Analyzers@10.0.4",
+          "Name": "Microsoft.EntityFrameworkCore.Analyzers",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.EntityFrameworkCore.Analyzers@10.0.4",
+            "UID": "ff9b56692d38a9ba"
+          },
+          "Version": "10.0.4",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 83,
+              "EndLine": 87
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.EntityFrameworkCore.Relational@10.0.4",
+          "Name": "Microsoft.EntityFrameworkCore.Relational",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.EntityFrameworkCore.Relational@10.0.4",
+            "UID": "80eb78f2d9471081"
+          },
+          "Version": "10.0.4",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.EntityFrameworkCore@10.0.4",
+            "Microsoft.Extensions.Caching.Memory@10.0.4",
+            "Microsoft.Extensions.Configuration.Abstractions@10.0.14",
+            "Microsoft.Extensions.Logging@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 88,
+              "EndLine": 98
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Caching.Abstractions@10.0.4",
+          "Name": "Microsoft.Extensions.Caching.Abstractions",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Caching.Abstractions@10.0.4",
+            "UID": "70bf451c005e374b"
+          },
+          "Version": "10.0.4",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.Primitives@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 99,
+              "EndLine": 106
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Caching.Memory@10.0.4",
+          "Name": "Microsoft.Extensions.Caching.Memory",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Caching.Memory@10.0.4",
+            "UID": "94b74fa1bfec7df9"
+          },
+          "Version": "10.0.4",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.Caching.Abstractions@10.0.4",
+            "Microsoft.Extensions.DependencyInjection.Abstractions@10.0.14",
+            "Microsoft.Extensions.Logging.Abstractions@10.0.14",
+            "Microsoft.Extensions.Options@10.0.14",
+            "Microsoft.Extensions.Primitives@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 107,
+              "EndLine": 118
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Configuration@10.0.14",
+          "Name": "Microsoft.Extensions.Configuration",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Configuration@10.0.14",
+            "UID": "c726f6a5b5be3ee8"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.Configuration.Abstractions@10.0.14",
+            "Microsoft.Extensions.Primitives@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 119,
+              "EndLine": 127
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Configuration.Abstractions@10.0.14",
+          "Name": "Microsoft.Extensions.Configuration.Abstractions",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Configuration.Abstractions@10.0.14",
+            "UID": "c5d10dc37f5eb18f"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.Primitives@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 128,
+              "EndLine": 135
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Configuration.Binder@10.0.14",
+          "Name": "Microsoft.Extensions.Configuration.Binder",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Configuration.Binder@10.0.14",
+            "UID": "70fb336aa1b4f473"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.Configuration@10.0.14",
+            "Microsoft.Extensions.Configuration.Abstractions@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 136,
+              "EndLine": 144
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Configuration.CommandLine@10.0.14",
+          "Name": "Microsoft.Extensions.Configuration.CommandLine",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Configuration.CommandLine@10.0.14",
+            "UID": "27ec27f3821c6dc0"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.Configuration@10.0.14",
+            "Microsoft.Extensions.Configuration.Abstractions@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 145,
+              "EndLine": 153
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Configuration.EnvironmentVariables@10.0.14",
+          "Name": "Microsoft.Extensions.Configuration.EnvironmentVariables",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Configuration.EnvironmentVariables@10.0.14",
+            "UID": "9127176bea4a7ae0"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.Configuration@10.0.14",
+            "Microsoft.Extensions.Configuration.Abstractions@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 154,
+              "EndLine": 162
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Configuration.FileExtensions@10.0.14",
+          "Name": "Microsoft.Extensions.Configuration.FileExtensions",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Configuration.FileExtensions@10.0.14",
+            "UID": "78b623cba8ece47b"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.Configuration@10.0.14",
+            "Microsoft.Extensions.Configuration.Abstractions@10.0.14",
+            "Microsoft.Extensions.FileProviders.Abstractions@10.0.14",
+            "Microsoft.Extensions.FileProviders.Physical@10.0.14",
+            "Microsoft.Extensions.Primitives@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 163,
+              "EndLine": 174
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Configuration.Json@10.0.14",
+          "Name": "Microsoft.Extensions.Configuration.Json",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Configuration.Json@10.0.14",
+            "UID": "ddbc8199c7cc8acc"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.Configuration@10.0.14",
+            "Microsoft.Extensions.Configuration.Abstractions@10.0.14",
+            "Microsoft.Extensions.Configuration.FileExtensions@10.0.14",
+            "Microsoft.Extensions.FileProviders.Abstractions@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 175,
+              "EndLine": 185
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Configuration.UserSecrets@10.0.14",
+          "Name": "Microsoft.Extensions.Configuration.UserSecrets",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Configuration.UserSecrets@10.0.14",
+            "UID": "f90b174eafac35ed"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.Configuration.Json@10.0.14",
+            "Microsoft.Extensions.FileProviders.Abstractions@10.0.14",
+            "Microsoft.Extensions.FileProviders.Physical@10.0.14",
+            "Microsoft.Extensions.Configuration.Abstractions@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 186,
+              "EndLine": 196
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.DependencyInjection@10.0.14",
+          "Name": "Microsoft.Extensions.DependencyInjection",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.DependencyInjection@10.0.14",
+            "UID": "820518494382bcce"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.DependencyInjection.Abstractions@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 197,
+              "EndLine": 204
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.DependencyInjection.Abstractions@10.0.14",
+          "Name": "Microsoft.Extensions.DependencyInjection.Abstractions",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.DependencyInjection.Abstractions@10.0.14",
+            "UID": "886a08bef52233f4"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 205,
+              "EndLine": 209
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.DependencyModel@10.0.14",
+          "Name": "Microsoft.Extensions.DependencyModel",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.DependencyModel@10.0.14",
+            "UID": "4bbc539ba35fa02a"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 210,
+              "EndLine": 214
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Diagnostics@10.0.14",
+          "Name": "Microsoft.Extensions.Diagnostics",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Diagnostics@10.0.14",
+            "UID": "43a3db6e06034b56"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.Configuration@10.0.14",
+            "Microsoft.Extensions.Diagnostics.Abstractions@10.0.14",
+            "Microsoft.Extensions.Options.ConfigurationExtensions@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 215,
+              "EndLine": 224
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Diagnostics.Abstractions@10.0.14",
+          "Name": "Microsoft.Extensions.Diagnostics.Abstractions",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Diagnostics.Abstractions@10.0.14",
+            "UID": "44e81361ac91b4e3"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.DependencyInjection.Abstractions@10.0.14",
+            "Microsoft.Extensions.Options@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 225,
+              "EndLine": 233
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.FileProviders.Abstractions@10.0.14",
+          "Name": "Microsoft.Extensions.FileProviders.Abstractions",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.FileProviders.Abstractions@10.0.14",
+            "UID": "bbe037c2302c8cc3"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.Primitives@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 234,
+              "EndLine": 241
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.FileProviders.Physical@10.0.14",
+          "Name": "Microsoft.Extensions.FileProviders.Physical",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.FileProviders.Physical@10.0.14",
+            "UID": "38c9de33164de435"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.FileProviders.Abstractions@10.0.14",
+            "Microsoft.Extensions.FileSystemGlobbing@10.0.14",
+            "Microsoft.Extensions.Primitives@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 242,
+              "EndLine": 251
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.FileSystemGlobbing@10.0.14",
+          "Name": "Microsoft.Extensions.FileSystemGlobbing",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.FileSystemGlobbing@10.0.14",
+            "UID": "4c2227d0029efc68"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 252,
+              "EndLine": 256
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Hosting@10.0.14",
+          "Name": "Microsoft.Extensions.Hosting",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Hosting@10.0.14",
+            "UID": "f262b511d6210088"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.Configuration.FileExtensions@10.0.14",
+            "Microsoft.Extensions.Configuration.Json@10.0.14",
+            "Microsoft.Extensions.Configuration.UserSecrets@10.0.14",
+            "Microsoft.Extensions.Diagnostics@10.0.14",
+            "Microsoft.Extensions.FileProviders.Abstractions@10.0.14",
+            "Microsoft.Extensions.Logging.EventLog@10.0.14",
+            "Microsoft.Extensions.Logging.EventSource@10.0.14",
+            "Microsoft.Extensions.Configuration.Abstractions@10.0.14",
+            "Microsoft.Extensions.Configuration.CommandLine@10.0.14",
+            "Microsoft.Extensions.DependencyInjection.Abstractions@10.0.14",
+            "Microsoft.Extensions.FileProviders.Physical@10.0.14",
+            "Microsoft.Extensions.Logging.Console@10.0.14",
+            "Microsoft.Extensions.Configuration.Binder@10.0.14",
+            "Microsoft.Extensions.Logging@10.0.14",
+            "Microsoft.Extensions.Logging.Abstractions@10.0.14",
+            "Microsoft.Extensions.Logging.Configuration@10.0.14",
+            "Microsoft.Extensions.Options@10.0.14",
+            "Microsoft.Extensions.Configuration@10.0.14",
+            "Microsoft.Extensions.Configuration.EnvironmentVariables@10.0.14",
+            "Microsoft.Extensions.DependencyInjection@10.0.14",
+            "Microsoft.Extensions.Hosting.Abstractions@10.0.14",
+            "Microsoft.Extensions.Logging.Debug@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 257,
+              "EndLine": 285
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Hosting.Abstractions@10.0.14",
+          "Name": "Microsoft.Extensions.Hosting.Abstractions",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Hosting.Abstractions@10.0.14",
+            "UID": "9786c08a0b662054"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.Configuration.Abstractions@10.0.14",
+            "Microsoft.Extensions.DependencyInjection.Abstractions@10.0.14",
+            "Microsoft.Extensions.Diagnostics.Abstractions@10.0.14",
+            "Microsoft.Extensions.FileProviders.Abstractions@10.0.14",
+            "Microsoft.Extensions.Logging.Abstractions@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 286,
+              "EndLine": 297
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Logging@10.0.14",
+          "Name": "Microsoft.Extensions.Logging",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Logging@10.0.14",
+            "UID": "6f5e4e50cba5b4e4"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.Logging.Abstractions@10.0.14",
+            "Microsoft.Extensions.Options@10.0.14",
+            "Microsoft.Extensions.DependencyInjection@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 298,
+              "EndLine": 307
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Logging.Abstractions@10.0.14",
+          "Name": "Microsoft.Extensions.Logging.Abstractions",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Logging.Abstractions@10.0.14",
+            "UID": "1fc0300bc31b4c05"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.DependencyInjection.Abstractions@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 308,
+              "EndLine": 315
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Logging.Configuration@10.0.14",
+          "Name": "Microsoft.Extensions.Logging.Configuration",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Logging.Configuration@10.0.14",
+            "UID": "234f2091869ebe9a"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.Logging.Abstractions@10.0.14",
+            "Microsoft.Extensions.Options@10.0.14",
+            "Microsoft.Extensions.Options.ConfigurationExtensions@10.0.14",
+            "Microsoft.Extensions.Configuration@10.0.14",
+            "Microsoft.Extensions.Configuration.Abstractions@10.0.14",
+            "Microsoft.Extensions.Configuration.Binder@10.0.14",
+            "Microsoft.Extensions.DependencyInjection.Abstractions@10.0.14",
+            "Microsoft.Extensions.Logging@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 316,
+              "EndLine": 330
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Logging.Console@10.0.14",
+          "Name": "Microsoft.Extensions.Logging.Console",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Logging.Console@10.0.14",
+            "UID": "5cb91fc2e140a9d8"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.Logging.Abstractions@10.0.14",
+            "Microsoft.Extensions.Logging.Configuration@10.0.14",
+            "Microsoft.Extensions.Options@10.0.14",
+            "Microsoft.Extensions.DependencyInjection.Abstractions@10.0.14",
+            "Microsoft.Extensions.Logging@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 331,
+              "EndLine": 342
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Logging.Debug@10.0.14",
+          "Name": "Microsoft.Extensions.Logging.Debug",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Logging.Debug@10.0.14",
+            "UID": "30c752ba07dc131c"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.DependencyInjection.Abstractions@10.0.14",
+            "Microsoft.Extensions.Logging@10.0.14",
+            "Microsoft.Extensions.Logging.Abstractions@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 343,
+              "EndLine": 352
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Logging.EventLog@10.0.14",
+          "Name": "Microsoft.Extensions.Logging.EventLog",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Logging.EventLog@10.0.14",
+            "UID": "14f9dea0b72d5d2"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.DependencyInjection.Abstractions@10.0.14",
+            "Microsoft.Extensions.Logging@10.0.14",
+            "Microsoft.Extensions.Logging.Abstractions@10.0.14",
+            "Microsoft.Extensions.Options@10.0.14",
+            "System.Diagnostics.EventLog@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 353,
+              "EndLine": 364
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Logging.EventSource@10.0.14",
+          "Name": "Microsoft.Extensions.Logging.EventSource",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Logging.EventSource@10.0.14",
+            "UID": "fe8fef74871bbbe8"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.DependencyInjection.Abstractions@10.0.14",
+            "Microsoft.Extensions.Logging@10.0.14",
+            "Microsoft.Extensions.Logging.Abstractions@10.0.14",
+            "Microsoft.Extensions.Options@10.0.14",
+            "Microsoft.Extensions.Primitives@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 365,
+              "EndLine": 376
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Options@10.0.14",
+          "Name": "Microsoft.Extensions.Options",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Options@10.0.14",
+            "UID": "7f4610d25833ef92"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.DependencyInjection.Abstractions@10.0.14",
+            "Microsoft.Extensions.Primitives@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 377,
+              "EndLine": 385
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Options.ConfigurationExtensions@10.0.14",
+          "Name": "Microsoft.Extensions.Options.ConfigurationExtensions",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Options.ConfigurationExtensions@10.0.14",
+            "UID": "4d8818cc61f29612"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.Options@10.0.14",
+            "Microsoft.Extensions.Primitives@10.0.14",
+            "Microsoft.Extensions.Configuration.Abstractions@10.0.14",
+            "Microsoft.Extensions.Configuration.Binder@10.0.14",
+            "Microsoft.Extensions.DependencyInjection.Abstractions@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 386,
+              "EndLine": 397
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.Extensions.Primitives@10.0.14",
+          "Name": "Microsoft.Extensions.Primitives",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.Extensions.Primitives@10.0.14",
+            "UID": "d48a4142d9ebf9c6"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 398,
+              "EndLine": 402
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.OpenApi@2.12.2",
+          "Name": "Microsoft.OpenApi",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.OpenApi@2.12.2",
+            "UID": "65da9e297e264233"
+          },
+          "Version": "2.12.2",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 403,
+              "EndLine": 407
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.TestPlatform.ObjectModel@17.14.1",
+          "Name": "Microsoft.TestPlatform.ObjectModel",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.TestPlatform.ObjectModel@17.14.1",
+            "UID": "f18587b56a46eadb"
+          },
+          "Version": "17.14.1",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 408,
+              "EndLine": 412
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Microsoft.TestPlatform.TestHost@17.14.1",
+          "Name": "Microsoft.TestPlatform.TestHost",
+          "Identifier": {
+            "PURL": "pkg:nuget/Microsoft.TestPlatform.TestHost@17.14.1",
+            "UID": "93f520c4e2fadb85"
+          },
+          "Version": "17.14.1",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.TestPlatform.ObjectModel@17.14.1",
+            "Newtonsoft.Json@13.0.3"
+          ],
+          "Locations": [
+            {
+              "StartLine": 413,
+              "EndLine": 421
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Newtonsoft.Json@13.0.3",
+          "Name": "Newtonsoft.Json",
+          "Identifier": {
+            "PURL": "pkg:nuget/Newtonsoft.Json@13.0.3",
+            "UID": "5974f2643b04290f"
+          },
+          "Version": "13.0.3",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 422,
+              "EndLine": 426
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Npgsql@10.0.3",
+          "Name": "Npgsql",
+          "Identifier": {
+            "PURL": "pkg:nuget/Npgsql@10.0.3",
+            "UID": "358efeb529c6f6da"
+          },
+          "Version": "10.0.3",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.Extensions.Logging.Abstractions@10.0.14"
+          ],
+          "Locations": [
+            {
+              "StartLine": 427,
+              "EndLine": 434
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "Npgsql.EntityFrameworkCore.PostgreSQL@10.0.3",
+          "Name": "Npgsql.EntityFrameworkCore.PostgreSQL",
+          "Identifier": {
+            "PURL": "pkg:nuget/Npgsql.EntityFrameworkCore.PostgreSQL@10.0.3",
+            "UID": "b656a13ec23a3cf4"
+          },
+          "Version": "10.0.3",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "Microsoft.EntityFrameworkCore.Relational@10.0.4",
+            "Npgsql@10.0.3",
+            "Microsoft.EntityFrameworkCore@10.0.4"
+          ],
+          "Locations": [
+            {
+              "StartLine": 435,
+              "EndLine": 444
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "System.Diagnostics.EventLog@10.0.14",
+          "Name": "System.Diagnostics.EventLog",
+          "Identifier": {
+            "PURL": "pkg:nuget/System.Diagnostics.EventLog@10.0.14",
+            "UID": "ac10dd55a21a75e9"
+          },
+          "Version": "10.0.14",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 445,
+              "EndLine": 449
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "xunit.abstractions@2.0.3",
+          "Name": "xunit.abstractions",
+          "Identifier": {
+            "PURL": "pkg:nuget/xunit.abstractions@2.0.3",
+            "UID": "9c1032c1aa811e3b"
+          },
+          "Version": "2.0.3",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 450,
+              "EndLine": 454
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "xunit.analyzers@1.18.0",
+          "Name": "xunit.analyzers",
+          "Identifier": {
+            "PURL": "pkg:nuget/xunit.analyzers@1.18.0",
+            "UID": "2cb97607b6b57dfe"
+          },
+          "Version": "1.18.0",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 455,
+              "EndLine": 459
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "xunit.assert@2.9.3",
+          "Name": "xunit.assert",
+          "Identifier": {
+            "PURL": "pkg:nuget/xunit.assert@2.9.3",
+            "UID": "383609e3a8e2fcdd"
+          },
+          "Version": "2.9.3",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "Locations": [
+            {
+              "StartLine": 460,
+              "EndLine": 464
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "xunit.core@2.9.3",
+          "Name": "xunit.core",
+          "Identifier": {
+            "PURL": "pkg:nuget/xunit.core@2.9.3",
+            "UID": "8f872daeacfcb6ba"
+          },
+          "Version": "2.9.3",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "xunit.extensibility.core@2.9.3",
+            "xunit.extensibility.execution@2.9.3"
+          ],
+          "Locations": [
+            {
+              "StartLine": 465,
+              "EndLine": 473
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "xunit.extensibility.core@2.9.3",
+          "Name": "xunit.extensibility.core",
+          "Identifier": {
+            "PURL": "pkg:nuget/xunit.extensibility.core@2.9.3",
+            "UID": "39c75494547159a7"
+          },
+          "Version": "2.9.3",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "xunit.abstractions@2.0.3"
+          ],
+          "Locations": [
+            {
+              "StartLine": 474,
+              "EndLine": 481
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        },
+        {
+          "ID": "xunit.extensibility.execution@2.9.3",
+          "Name": "xunit.extensibility.execution",
+          "Identifier": {
+            "PURL": "pkg:nuget/xunit.extensibility.execution@2.9.3",
+            "UID": "297fb883e164767e"
+          },
+          "Version": "2.9.3",
+          "Indirect": true,
+          "Relationship": "indirect",
+          "DependsOn": [
+            "xunit.extensibility.core@2.9.3"
+          ],
+          "Locations": [
+            {
+              "StartLine": 482,
+              "EndLine": 489
+            }
+          ],
+          "AnalyzedBy": "nuget"
+        }
+      ]
+    }
+  ]
+}

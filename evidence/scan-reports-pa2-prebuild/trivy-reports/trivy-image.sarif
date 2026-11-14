@@ -1,0 +1,1570 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "fullName": "Trivy Vulnerability Scanner",
+          "informationUri": "https://github.com/aquasecurity/trivy",
+          "name": "Trivy",
+          "rules": [
+            {
+              "id": "CVE-2026-76642",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "util-linux: util-linux: failed external mount helper still runs privileged X-mount post-hooks"
+              },
+              "fullDescription": {
+                "text": "util-linux versions through 2.41.5 and 2.42.2 fail to check mount helper exit status before running post-mount hooks, allowing unprivileged users to execute privileged operations on pre-existing filesystems. Attackers can exploit X-mount.idmap or X-mount.owner hooks to clone filesystems with inherited suid bits or modify target inode permissions after a helper fails, achieving privilege escalation."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-76642",
+              "help": {
+                "text": "Vulnerability CVE-2026-76642\nSeverity: MEDIUM\nPackage: util-linux\nFixed Version: \nLink: [CVE-2026-76642](https://avd.aquasec.com/nvd/cve-2026-76642)\nutil-linux versions through 2.41.5 and 2.42.2 fail to check mount helper exit status before running post-mount hooks, allowing unprivileged users to execute privileged operations on pre-existing filesystems. Attackers can exploit X-mount.idmap or X-mount.owner hooks to clone filesystems with inherited suid bits or modify target inode permissions after a helper fails, achieving privilege escalation.",
+                "markdown": "**Vulnerability CVE-2026-76642**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|util-linux||[CVE-2026-76642](https://avd.aquasec.com/nvd/cve-2026-76642)|\n\nutil-linux versions through 2.41.5 and 2.42.2 fail to check mount helper exit status before running post-mount hooks, allowing unprivileged users to execute privileged operations on pre-existing filesystems. Attackers can exploit X-mount.idmap or X-mount.owner hooks to clone filesystems with inherited suid bits or modify target inode permissions after a helper fails, achieving privilege escalation."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-102473",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "dash: dash: Super-polynomial backtracking in pmatch when libc fnmatch is disabled"
+              },
+              "fullDescription": {
+                "text": "A flaw was found in dash. When built without libc fnmatch, the internal pmatch() matcher implements * by unbounded recursion over candidate positions. A local user who can plant filenames, or otherwise feed that matcher, can make a short multi-star pattern such as *.*.*.*.*.tar.gz consume excessive CPU."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-102473",
+              "help": {
+                "text": "Vulnerability CVE-2026-102473\nSeverity: MEDIUM\nPackage: dash\nFixed Version: \nLink: [CVE-2026-102473](https://avd.aquasec.com/nvd/cve-2026-102473)\nA flaw was found in dash. When built without libc fnmatch, the internal pmatch() matcher implements * by unbounded recursion over candidate positions. A local user who can plant filenames, or otherwise feed that matcher, can make a short multi-star pattern such as *.*.*.*.*.tar.gz consume excessive CPU.",
+                "markdown": "**Vulnerability CVE-2026-102473**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|dash||[CVE-2026-102473](https://avd.aquasec.com/nvd/cve-2026-102473)|\n\nA flaw was found in dash. When built without libc fnmatch, the internal pmatch() matcher implements * by unbounded recursion over candidate positions. A local user who can plant filenames, or otherwise feed that matcher, can make a short multi-star pattern such as *.*.*.*.*.tar.gz consume excessive CPU."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-102474",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "dash: dash: Heap out-of-bounds write in conv_escape via undersized Unicode escape reservation"
+              },
+              "fullDescription": {
+                "text": "A flaw was found in dash. The printf builtin reserves four bytes before converting a Unicode \\u or \\U escape, but the multi-byte token can need five or six bytes. A local user who can supply such an escape to dash printf or echo %b, including through dash -c and a positional argument, can write one or two bytes past that reservation."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-102474",
+              "help": {
+                "text": "Vulnerability CVE-2026-102474\nSeverity: MEDIUM\nPackage: dash\nFixed Version: \nLink: [CVE-2026-102474](https://avd.aquasec.com/nvd/cve-2026-102474)\nA flaw was found in dash. The printf builtin reserves four bytes before converting a Unicode \\u or \\U escape, but the multi-byte token can need five or six bytes. A local user who can supply such an escape to dash printf or echo %b, including through dash -c and a positional argument, can write one or two bytes past that reservation.",
+                "markdown": "**Vulnerability CVE-2026-102474**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|dash||[CVE-2026-102474](https://avd.aquasec.com/nvd/cve-2026-102474)|\n\nA flaw was found in dash. The printf builtin reserves four bytes before converting a Unicode \\u or \\U escape, but the multi-byte token can need five or six bytes. A local user who can supply such an escape to dash printf or echo %b, including through dash -c and a positional argument, can write one or two bytes past that reservation."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-18374",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "glibc: glibc: Heap buffer overflow via attacker-controlled fopen mode string"
+              },
+              "fullDescription": {
+                "text": "Passing an effectively empty string to the `,ccs=` syntax extension of the mode argument in the `fopen` function in the GNU C Library version 2.45 or earlier may result in a heap buffer overflow when the mode string input to the function is attacker controlled.\n\n\n\nThis usage pattern is not seen in applications in common GNU/Linux distributions and applications that process user-supplied values for `ccs` should not pass them through without validation."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-18374",
+              "help": {
+                "text": "Vulnerability CVE-2026-18374\nSeverity: MEDIUM\nPackage: libc6\nFixed Version: 2.39-0ubuntu8.12\nLink: [CVE-2026-18374](https://avd.aquasec.com/nvd/cve-2026-18374)\nPassing an effectively empty string to the `,ccs=` syntax extension of the mode argument in the `fopen` function in the GNU C Library version 2.45 or earlier may result in a heap buffer overflow when the mode string input to the function is attacker controlled.\n\n\n\nThis usage pattern is not seen in applications in common GNU/Linux distributions and applications that process user-supplied values for `ccs` should not pass them through without validation.",
+                "markdown": "**Vulnerability CVE-2026-18374**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libc6|2.39-0ubuntu8.12|[CVE-2026-18374](https://avd.aquasec.com/nvd/cve-2026-18374)|\n\nPassing an effectively empty string to the `,ccs=` syntax extension of the mode argument in the `fopen` function in the GNU C Library version 2.45 or earlier may result in a heap buffer overflow when the mode string input to the function is attacker controlled.\n\n\n\nThis usage pattern is not seen in applications in common GNU/Linux distributions and applications that process user-supplied values for `ccs` should not pass them through without validation."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-84243",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "glibc: glibc: Arbitrary code execution via directory traversal in LANGUAGE environment variable"
+              },
+              "fullDescription": {
+                "text": "The gettext family of functions in the GNU C Library version 2.0 and later accept LANGUAGE environment variable entries that contain '/' or that are equal to \"..\", unless the program is setuid or setgid (AT_SECURE).  An attacker who can set LANGUAGE in the environment of a program that uses gettext can make it load a message catalog (.mo file) from an arbitrary location in the file system.  A crafted .mo file can crash the program through out-of-range offsets, or supply translations whose format directives do not match the arguments passed by the program.  That causes undefined behaviour in the printf family of functions and may allow arbitrary code execution with the privileges of the program.  The safety of message catalogs relies on them being installed in trusted, read-only locations, and the directory traversal bypasses this.\n\nThe fix for CVE-2014-0475 rejects \"..\" path components in locale names passed to setlocale or taken from the LC_ALL, LC_* and LANG environment variables.  gettext reads LANGUAGE directly and appends each colon-separated entry to the message catalog directory, so that fix did not cover LANGUAGE.\n\nLANGUAGE is only used when the LC_MESSAGES locale is not \"C\", \"C.\u003cencoding\u003e\" or \"POSIX\", so the attacker must also be able to select another installed locale, for example through LANG or LC_ALL.  Exploitation also requires that the attacker can place the crafted file in a location readable by the target program, and that the environment crosses a trust boundary without the program running as AT_SECURE.  An example is an SSH server that accepts LANGUAGE and LANG from clients through the AcceptEnv directive and restricts an account to a forced command; the attacker may use this to escape the restriction."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-84243",
+              "help": {
+                "text": "Vulnerability CVE-2026-84243\nSeverity: MEDIUM\nPackage: libc6\nFixed Version: 2.39-0ubuntu8.12\nLink: [CVE-2026-84243](https://avd.aquasec.com/nvd/cve-2026-84243)\nThe gettext family of functions in the GNU C Library version 2.0 and later accept LANGUAGE environment variable entries that contain '/' or that are equal to \"..\", unless the program is setuid or setgid (AT_SECURE).  An attacker who can set LANGUAGE in the environment of a program that uses gettext can make it load a message catalog (.mo file) from an arbitrary location in the file system.  A crafted .mo file can crash the program through out-of-range offsets, or supply translations whose format directives do not match the arguments passed by the program.  That causes undefined behaviour in the printf family of functions and may allow arbitrary code execution with the privileges of the program.  The safety of message catalogs relies on them being installed in trusted, read-only locations, and the directory traversal bypasses this.\n\nThe fix for CVE-2014-0475 rejects \"..\" path components in locale names passed to setlocale or taken from the LC_ALL, LC_* and LANG environment variables.  gettext reads LANGUAGE directly and appends each colon-separated entry to the message catalog directory, so that fix did not cover LANGUAGE.\n\nLANGUAGE is only used when the LC_MESSAGES locale is not \"C\", \"C.\u003cencoding\u003e\" or \"POSIX\", so the attacker must also be able to select another installed locale, for example through LANG or LC_ALL.  Exploitation also requires that the attacker can place the crafted file in a location readable by the target program, and that the environment crosses a trust boundary without the program running as AT_SECURE.  An example is an SSH server that accepts LANGUAGE and LANG from clients through the AcceptEnv directive and restricts an account to a forced command; the attacker may use this to escape the restriction.",
+                "markdown": "**Vulnerability CVE-2026-84243**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libc6|2.39-0ubuntu8.12|[CVE-2026-84243](https://avd.aquasec.com/nvd/cve-2026-84243)|\n\nThe gettext family of functions in the GNU C Library version 2.0 and later accept LANGUAGE environment variable entries that contain '/' or that are equal to \"..\", unless the program is setuid or setgid (AT_SECURE).  An attacker who can set LANGUAGE in the environment of a program that uses gettext can make it load a message catalog (.mo file) from an arbitrary location in the file system.  A crafted .mo file can crash the program through out-of-range offsets, or supply translations whose format directives do not match the arguments passed by the program.  That causes undefined behaviour in the printf family of functions and may allow arbitrary code execution with the privileges of the program.  The safety of message catalogs relies on them being installed in trusted, read-only locations, and the directory traversal bypasses this.\n\nThe fix for CVE-2014-0475 rejects \"..\" path components in locale names passed to setlocale or taken from the LC_ALL, LC_* and LANG environment variables.  gettext reads LANGUAGE directly and appends each colon-separated entry to the message catalog directory, so that fix did not cover LANGUAGE.\n\nLANGUAGE is only used when the LC_MESSAGES locale is not \"C\", \"C.\u003cencoding\u003e\" or \"POSIX\", so the attacker must also be able to select another installed locale, for example through LANG or LC_ALL.  Exploitation also requires that the attacker can place the crafted file in a location readable by the target program, and that the environment crosses a trust boundary without the program running as AT_SECURE.  An example is an SSH server that accepts LANGUAGE and LANG from clients through the AcceptEnv directive and restricts an account to a forced command; the attacker may use this to escape the restriction."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-8674",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "glibc: glibc DNS stub resolver: Denial of Service via long search domain in configuration"
+              },
+              "fullDescription": {
+                "text": "Initializing the DNS stub resolver from an /etc/resolv.conf file, or a LOCALDOMAIN environment variable, whose search list contains a domain of roughly 200 characters or more in the GNU C Library version 2.26 to 2.44 results in an assertion failure which aborts the process.\n\nThe resolver truncates the search list when copying it into the fixed-size _res.defdname buffer, then asserts that the copy is consistent with the full configuration.  The consistency check compared against the wrong size and did not handle a first entry that does not fit, so a correctly truncated list failed the assertion.  Any process that resolves names through the library is affected, including long-running processes that reload /etc/resolv.conf on the next query after it changes.  Search domains are commonly written to /etc/resolv.conf from data received over DHCP or from a VPN server, so an attacker on the local network may be able to trigger this without privileges on the target system, subject to validation by the network configuration software."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-8674",
+              "help": {
+                "text": "Vulnerability CVE-2026-8674\nSeverity: MEDIUM\nPackage: libc6\nFixed Version: 2.39-0ubuntu8.12\nLink: [CVE-2026-8674](https://avd.aquasec.com/nvd/cve-2026-8674)\nInitializing the DNS stub resolver from an /etc/resolv.conf file, or a LOCALDOMAIN environment variable, whose search list contains a domain of roughly 200 characters or more in the GNU C Library version 2.26 to 2.44 results in an assertion failure which aborts the process.\n\nThe resolver truncates the search list when copying it into the fixed-size _res.defdname buffer, then asserts that the copy is consistent with the full configuration.  The consistency check compared against the wrong size and did not handle a first entry that does not fit, so a correctly truncated list failed the assertion.  Any process that resolves names through the library is affected, including long-running processes that reload /etc/resolv.conf on the next query after it changes.  Search domains are commonly written to /etc/resolv.conf from data received over DHCP or from a VPN server, so an attacker on the local network may be able to trigger this without privileges on the target system, subject to validation by the network configuration software.",
+                "markdown": "**Vulnerability CVE-2026-8674**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libc6|2.39-0ubuntu8.12|[CVE-2026-8674](https://avd.aquasec.com/nvd/cve-2026-8674)|\n\nInitializing the DNS stub resolver from an /etc/resolv.conf file, or a LOCALDOMAIN environment variable, whose search list contains a domain of roughly 200 characters or more in the GNU C Library version 2.26 to 2.44 results in an assertion failure which aborts the process.\n\nThe resolver truncates the search list when copying it into the fixed-size _res.defdname buffer, then asserts that the copy is consistent with the full configuration.  The consistency check compared against the wrong size and did not handle a first entry that does not fit, so a correctly truncated list failed the assertion.  Any process that resolves names through the library is affected, including long-running processes that reload /etc/resolv.conf on the next query after it changes.  Search domains are commonly written to /etc/resolv.conf from data received over DHCP or from a VPN server, so an attacker on the local network may be able to trigger this without privileges on the target system, subject to validation by the network configuration software."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-86805",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "glibc: glibc: Privilege escalation and arbitrary code execution via TOCTOU race condition in dynamic loader"
+              },
+              "fullDescription": {
+                "text": "A time-of-check to time-of-use (TOCTOU) race condition in the dynamic loader (ld.so) of the GNU C Library (glibc) versions 2.14 through 2.44 allows a local attacker to escalate privileges. When expanding $ORIGIN in DT_RPATH for setuid/setgid (AT_SECURE) programs, glibc validates the lexically normalized search path against the trusted directories but then opens the raw, un-normalized path. On systems where the Linux fs.protected_hardlinks sysctl is disabled, a local attacker who hard-links such a program into an attacker-controlled directory and wins a race to replace an intermediate path component with a symbolic link can direct the loader outside the trusted directory, causing it to load an attacker-controlled shared object and execute arbitrary code with the elevated privileges of the program.\n\nExploitation requires an installed setuid or setgid binary whose DT_RPATH uses $ORIGIN followed by \"..\" traversal that normalizes into a trusted directory, and the ability to hard-link that binary and win the race by swapping a path component for a symbolic link. Major Linux-based OS distributions ship with fs.protected_hardlinks enabled by default and mitigate the vulnerability."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-86805",
+              "help": {
+                "text": "Vulnerability CVE-2026-86805\nSeverity: MEDIUM\nPackage: libc6\nFixed Version: 2.39-0ubuntu8.12\nLink: [CVE-2026-86805](https://avd.aquasec.com/nvd/cve-2026-86805)\nA time-of-check to time-of-use (TOCTOU) race condition in the dynamic loader (ld.so) of the GNU C Library (glibc) versions 2.14 through 2.44 allows a local attacker to escalate privileges. When expanding $ORIGIN in DT_RPATH for setuid/setgid (AT_SECURE) programs, glibc validates the lexically normalized search path against the trusted directories but then opens the raw, un-normalized path. On systems where the Linux fs.protected_hardlinks sysctl is disabled, a local attacker who hard-links such a program into an attacker-controlled directory and wins a race to replace an intermediate path component with a symbolic link can direct the loader outside the trusted directory, causing it to load an attacker-controlled shared object and execute arbitrary code with the elevated privileges of the program.\n\nExploitation requires an installed setuid or setgid binary whose DT_RPATH uses $ORIGIN followed by \"..\" traversal that normalizes into a trusted directory, and the ability to hard-link that binary and win the race by swapping a path component for a symbolic link. Major Linux-based OS distributions ship with fs.protected_hardlinks enabled by default and mitigate the vulnerability.",
+                "markdown": "**Vulnerability CVE-2026-86805**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libc6|2.39-0ubuntu8.12|[CVE-2026-86805](https://avd.aquasec.com/nvd/cve-2026-86805)|\n\nA time-of-check to time-of-use (TOCTOU) race condition in the dynamic loader (ld.so) of the GNU C Library (glibc) versions 2.14 through 2.44 allows a local attacker to escalate privileges. When expanding $ORIGIN in DT_RPATH for setuid/setgid (AT_SECURE) programs, glibc validates the lexically normalized search path against the trusted directories but then opens the raw, un-normalized path. On systems where the Linux fs.protected_hardlinks sysctl is disabled, a local attacker who hard-links such a program into an attacker-controlled directory and wins a race to replace an intermediate path component with a symbolic link can direct the loader outside the trusted directory, causing it to load an attacker-controlled shared object and execute arbitrary code with the elevated privileges of the program.\n\nExploitation requires an installed setuid or setgid binary whose DT_RPATH uses $ORIGIN followed by \"..\" traversal that normalizes into a trusted directory, and the ability to hard-link that binary and win the race by swapping a path component for a symbolic link. Major Linux-based OS distributions ship with fs.protected_hardlinks enabled by default and mitigate the vulnerability."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-95818",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "glibc: glibc: Local attacker can cause denial of service and information disclosure via stack-based buffer overflow."
+              },
+              "fullDescription": {
+                "text": "A stack-based buffer overflow in the dynamic loader (ld.so) of the GNU C Library (glibc) versions 2.14 through 2.44 allows a local attacker to crash or corrupt the memory of setuid/setgid (AT_SECURE) programs.\n\nWhen such a program's DT_RPATH or DT_RUNPATH begins with $ORIGIN and is followed by NUL or '/' the loader both reads past the end of the path buffer and writes past the end of a stack-allocated internal buffer. The corrupted loader stack can lead to a loader crash (denial of service) and limited disclosure of process memory."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-95818",
+              "help": {
+                "text": "Vulnerability CVE-2026-95818\nSeverity: MEDIUM\nPackage: libc6\nFixed Version: 2.39-0ubuntu8.12\nLink: [CVE-2026-95818](https://avd.aquasec.com/nvd/cve-2026-95818)\nA stack-based buffer overflow in the dynamic loader (ld.so) of the GNU C Library (glibc) versions 2.14 through 2.44 allows a local attacker to crash or corrupt the memory of setuid/setgid (AT_SECURE) programs.\n\nWhen such a program's DT_RPATH or DT_RUNPATH begins with $ORIGIN and is followed by NUL or '/' the loader both reads past the end of the path buffer and writes past the end of a stack-allocated internal buffer. The corrupted loader stack can lead to a loader crash (denial of service) and limited disclosure of process memory.",
+                "markdown": "**Vulnerability CVE-2026-95818**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libc6|2.39-0ubuntu8.12|[CVE-2026-95818](https://avd.aquasec.com/nvd/cve-2026-95818)|\n\nA stack-based buffer overflow in the dynamic loader (ld.so) of the GNU C Library (glibc) versions 2.14 through 2.44 allows a local attacker to crash or corrupt the memory of setuid/setgid (AT_SECURE) programs.\n\nWhen such a program's DT_RPATH or DT_RUNPATH begins with $ORIGIN and is followed by NUL or '/' the loader both reads past the end of the path buffer and writes past the end of a stack-allocated internal buffer. The corrupted loader stack can lead to a loader crash (denial of service) and limited disclosure of process memory."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-97399",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "glibc: glibc: Denial of Service via out-of-bounds read in strncasecmp"
+              },
+              "fullDescription": {
+                "text": "The strncasecmp function in the GNU C Library 2.24 and later optimized for the Power8 architecture may read one byte beyond the input size limit, which may crash a program when that byte is not readable.\n\nThis condition may happen when the input strings to the strncasecmp function are attacker controlled in an application and they match all the way up to the edge of their page and the neighbouring page is either not mapped or is not readable."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-97399",
+              "help": {
+                "text": "Vulnerability CVE-2026-97399\nSeverity: MEDIUM\nPackage: libc6\nFixed Version: 2.39-0ubuntu8.12\nLink: [CVE-2026-97399](https://avd.aquasec.com/nvd/cve-2026-97399)\nThe strncasecmp function in the GNU C Library 2.24 and later optimized for the Power8 architecture may read one byte beyond the input size limit, which may crash a program when that byte is not readable.\n\nThis condition may happen when the input strings to the strncasecmp function are attacker controlled in an application and they match all the way up to the edge of their page and the neighbouring page is either not mapped or is not readable.",
+                "markdown": "**Vulnerability CVE-2026-97399**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libc6|2.39-0ubuntu8.12|[CVE-2026-97399](https://avd.aquasec.com/nvd/cve-2026-97399)|\n\nThe strncasecmp function in the GNU C Library 2.24 and later optimized for the Power8 architecture may read one byte beyond the input size limit, which may crash a program when that byte is not readable.\n\nThis condition may happen when the input strings to the strncasecmp function are attacker controlled in an application and they match all the way up to the edge of their page and the neighbouring page is either not mapped or is not readable."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-67693",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "gnutls: gnutls: Information disclosure via contradictory Key Usage and Extended Key Usage extensions"
+              },
+              "fullDescription": {
+                "text": "GnuTLS v3.8.13 does not reject end-entity X.509 certificates that contain a contradictory combination of Key Usage (KU) and Extended Key Usage (EKU). NOTE: the Supplier does not consider this an actionable security vulnerability because of its \"threat model doesn't consider attacks only possible by modifying anything within the trust boundary (private keys, trusted certificate authorities and their issued certificates including intermediate CAs, etc.)\" policy."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-67693",
+              "help": {
+                "text": "Vulnerability CVE-2026-67693\nSeverity: MEDIUM\nPackage: libgnutls30t64\nFixed Version: \nLink: [CVE-2026-67693](https://avd.aquasec.com/nvd/cve-2026-67693)\nGnuTLS v3.8.13 does not reject end-entity X.509 certificates that contain a contradictory combination of Key Usage (KU) and Extended Key Usage (EKU). NOTE: the Supplier does not consider this an actionable security vulnerability because of its \"threat model doesn't consider attacks only possible by modifying anything within the trust boundary (private keys, trusted certificate authorities and their issued certificates including intermediate CAs, etc.)\" policy.",
+                "markdown": "**Vulnerability CVE-2026-67693**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libgnutls30t64||[CVE-2026-67693](https://avd.aquasec.com/nvd/cve-2026-67693)|\n\nGnuTLS v3.8.13 does not reject end-entity X.509 certificates that contain a contradictory combination of Key Usage (KU) and Extended Key Usage (EKU). NOTE: the Supplier does not consider this an actionable security vulnerability because of its \"threat model doesn't consider attacks only possible by modifying anything within the trust boundary (private keys, trusted certificate authorities and their issued certificates including intermediate CAs, etc.)\" policy."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-88647",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "gnutls: gnutls: Information disclosure via hostname verification bypass"
+              },
+              "fullDescription": {
+                "text": "GnuTLS v3.8.13 can perhaps unexpectedly trust a certificate on the basis of Common Name when Subject Alternative Name has an SRV otherName (1.3.6.1.5.5.7.8.7) whose value is an OCTET STRING. NOTE: the Supplier does not consider this an actionable security vulnerability because of its \"threat model doesn't consider attacks only possible by modifying anything within the trust boundary (private keys, trusted certificate authorities and their issued certificates including intermediate CAs, etc.)\" policy."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-88647",
+              "help": {
+                "text": "Vulnerability CVE-2026-88647\nSeverity: MEDIUM\nPackage: libgnutls30t64\nFixed Version: \nLink: [CVE-2026-88647](https://avd.aquasec.com/nvd/cve-2026-88647)\nGnuTLS v3.8.13 can perhaps unexpectedly trust a certificate on the basis of Common Name when Subject Alternative Name has an SRV otherName (1.3.6.1.5.5.7.8.7) whose value is an OCTET STRING. NOTE: the Supplier does not consider this an actionable security vulnerability because of its \"threat model doesn't consider attacks only possible by modifying anything within the trust boundary (private keys, trusted certificate authorities and their issued certificates including intermediate CAs, etc.)\" policy.",
+                "markdown": "**Vulnerability CVE-2026-88647**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libgnutls30t64||[CVE-2026-88647](https://avd.aquasec.com/nvd/cve-2026-88647)|\n\nGnuTLS v3.8.13 can perhaps unexpectedly trust a certificate on the basis of Common Name when Subject Alternative Name has an SRV otherName (1.3.6.1.5.5.7.8.7) whose value is an OCTET STRING. NOTE: the Supplier does not consider this an actionable security vulnerability because of its \"threat model doesn't consider attacks only possible by modifying anything within the trust boundary (private keys, trusted certificate authorities and their issued certificates including intermediate CAs, etc.)\" policy."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-88648",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "gnutls: gnutls: Cross-domain certificate restriction bypass via incomplete X.509 validation"
+              },
+              "fullDescription": {
+                "text": "In GnuTLS v3.8.13, an excluded msUPN/SRV otherName is never checked. NOTE: the Supplier does not consider this an actionable security vulnerability because of its \"threat model doesn't consider attacks only possible by modifying anything within the trust boundary (private keys, trusted certificate authorities and their issued certificates including intermediate CAs, etc.)\" policy."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-88648",
+              "help": {
+                "text": "Vulnerability CVE-2026-88648\nSeverity: MEDIUM\nPackage: libgnutls30t64\nFixed Version: \nLink: [CVE-2026-88648](https://avd.aquasec.com/nvd/cve-2026-88648)\nIn GnuTLS v3.8.13, an excluded msUPN/SRV otherName is never checked. NOTE: the Supplier does not consider this an actionable security vulnerability because of its \"threat model doesn't consider attacks only possible by modifying anything within the trust boundary (private keys, trusted certificate authorities and their issued certificates including intermediate CAs, etc.)\" policy.",
+                "markdown": "**Vulnerability CVE-2026-88648**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libgnutls30t64||[CVE-2026-88648](https://avd.aquasec.com/nvd/cve-2026-88648)|\n\nIn GnuTLS v3.8.13, an excluded msUPN/SRV otherName is never checked. NOTE: the Supplier does not consider this an actionable security vulnerability because of its \"threat model doesn't consider attacks only possible by modifying anything within the trust boundary (private keys, trusted certificate authorities and their issued certificates including intermediate CAs, etc.)\" policy."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-95184",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "gnutls: gnutls: legitimate user certificates incorrectly rejected causing denial of service"
+              },
+              "fullDescription": {
+                "text": "GnuTLS v3.8.13 does not properly enforce name constraints, as demonstrated by a permitted subtree violation for \"EE O=Evil accepted although outside permitted O=Good.\" NOTE: the Supplier does not consider this an actionable security vulnerability because of its \"threat model doesn't consider attacks only possible by modifying anything within the trust boundary (private keys, trusted certificate authorities and their issued certificates including intermediate CAs, etc.)\" policy."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-95184",
+              "help": {
+                "text": "Vulnerability CVE-2026-95184\nSeverity: MEDIUM\nPackage: libgnutls30t64\nFixed Version: \nLink: [CVE-2026-95184](https://avd.aquasec.com/nvd/cve-2026-95184)\nGnuTLS v3.8.13 does not properly enforce name constraints, as demonstrated by a permitted subtree violation for \"EE O=Evil accepted although outside permitted O=Good.\" NOTE: the Supplier does not consider this an actionable security vulnerability because of its \"threat model doesn't consider attacks only possible by modifying anything within the trust boundary (private keys, trusted certificate authorities and their issued certificates including intermediate CAs, etc.)\" policy.",
+                "markdown": "**Vulnerability CVE-2026-95184**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libgnutls30t64||[CVE-2026-95184](https://avd.aquasec.com/nvd/cve-2026-95184)|\n\nGnuTLS v3.8.13 does not properly enforce name constraints, as demonstrated by a permitted subtree violation for \"EE O=Evil accepted although outside permitted O=Good.\" NOTE: the Supplier does not consider this an actionable security vulnerability because of its \"threat model doesn't consider attacks only possible by modifying anything within the trust boundary (private keys, trusted certificate authorities and their issued certificates including intermediate CAs, etc.)\" policy."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-95210",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "gnutls: gnutls: certificates with invalid extensions incorrectly accepted"
+              },
+              "fullDescription": {
+                "text": "GnuTLS v3.8.13 does not reject a critical keyUsage extension when it cannot be processed, such as when extnValue is an ASN.1 NULL (05 00) instead of a BIT STRING. NOTE: the Supplier does not consider this an actionable security vulnerability because of its \"threat model doesn't consider attacks only possible by modifying anything within the trust boundary (private keys, trusted certificate authorities and their issued certificates including intermediate CAs, etc.)\" policy."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-95210",
+              "help": {
+                "text": "Vulnerability CVE-2026-95210\nSeverity: MEDIUM\nPackage: libgnutls30t64\nFixed Version: \nLink: [CVE-2026-95210](https://avd.aquasec.com/nvd/cve-2026-95210)\nGnuTLS v3.8.13 does not reject a critical keyUsage extension when it cannot be processed, such as when extnValue is an ASN.1 NULL (05 00) instead of a BIT STRING. NOTE: the Supplier does not consider this an actionable security vulnerability because of its \"threat model doesn't consider attacks only possible by modifying anything within the trust boundary (private keys, trusted certificate authorities and their issued certificates including intermediate CAs, etc.)\" policy.",
+                "markdown": "**Vulnerability CVE-2026-95210**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libgnutls30t64||[CVE-2026-95210](https://avd.aquasec.com/nvd/cve-2026-95210)|\n\nGnuTLS v3.8.13 does not reject a critical keyUsage extension when it cannot be processed, such as when extnValue is an ASN.1 NULL (05 00) instead of a BIT STRING. NOTE: the Supplier does not consider this an actionable security vulnerability because of its \"threat model doesn't consider attacks only possible by modifying anything within the trust boundary (private keys, trusted certificate authorities and their issued certificates including intermediate CAs, etc.)\" policy."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2025-5222",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "icu: Stack buffer overflow in the SRBRoot::addTag function"
+              },
+              "fullDescription": {
+                "text": "A stack buffer overflow was found in Internationl components for unicode (ICU ). While running the genrb binary, the 'subtag' struct overflowed at the SRBRoot::addTag function. This issue may lead to memory corruption and local arbitrary code execution."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2025-5222",
+              "help": {
+                "text": "Vulnerability CVE-2025-5222\nSeverity: LOW\nPackage: libicu74\nFixed Version: \nLink: [CVE-2025-5222](https://avd.aquasec.com/nvd/cve-2025-5222)\nA stack buffer overflow was found in Internationl components for unicode (ICU ). While running the genrb binary, the 'subtag' struct overflowed at the SRBRoot::addTag function. This issue may lead to memory corruption and local arbitrary code execution.",
+                "markdown": "**Vulnerability CVE-2025-5222**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|LOW|libicu74||[CVE-2025-5222](https://avd.aquasec.com/nvd/cve-2025-5222)|\n\nA stack buffer overflow was found in Internationl components for unicode (ICU ). While running the genrb binary, the 'subtag' struct overflowed at the SRBRoot::addTag function. This issue may lead to memory corruption and local arbitrary code execution."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "2.0",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "LOW"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-121876",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "sandboxed-containers: kernel: systemd-gpt-auto-generator: Guest Data Leakage in Confidential Computing (Sandboxed Containers)"
+              },
+              "fullDescription": {
+                "text": "A flaw was found in the interaction between systemd-gpt-auto-generator and \nconfidential computing guest VM images in OpenShift Sandboxed Containers \n(confidential peer pods). systemd-gpt-auto-generator automatically discovers \nand mounts GPT partitions by type GUID at boot with no user confirmation. In \nthe confidential computing threat model, where the host/hypervisor is the \nadversary, a malicious host can inject partitions into the guest's virtual \ndisk. Most critically, injecting a swap partition causes the guest kernel to \npage out TEE-encrypted memory to a host-controlled block device, breaking the \nconfidentiality guarantee of the hardware TEE (AMD SEV-SNP, Intel TDX).\n\nThe PodVM images use a GPT-partitioned disk with dm-verity on the root \npartition. However, the roothash= kernel parameter only disables root \nauto-discovery — non-root partitions (swap, /home, /var, /srv, /var/tmp) are \nstill auto-discovered and mounted. The generator is shipped unmasked in the \nRHEL systemd-udev subpackage, and no kernel command line parameter in the \nmeasured UKI addon disables it. Additionally, the PodVM measurement script \ncaptures PCRs 3, 9, 11, and 12, but not PCR 5 (GPT partition table), so \npartition table modifications are not detected by remote attestation."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-121876",
+              "help": {
+                "text": "Vulnerability CVE-2026-121876\nSeverity: MEDIUM\nPackage: libudev1\nFixed Version: \nLink: [CVE-2026-121876](https://avd.aquasec.com/nvd/cve-2026-121876)\nA flaw was found in the interaction between systemd-gpt-auto-generator and \nconfidential computing guest VM images in OpenShift Sandboxed Containers \n(confidential peer pods). systemd-gpt-auto-generator automatically discovers \nand mounts GPT partitions by type GUID at boot with no user confirmation. In \nthe confidential computing threat model, where the host/hypervisor is the \nadversary, a malicious host can inject partitions into the guest's virtual \ndisk. Most critically, injecting a swap partition causes the guest kernel to \npage out TEE-encrypted memory to a host-controlled block device, breaking the \nconfidentiality guarantee of the hardware TEE (AMD SEV-SNP, Intel TDX).\n\nThe PodVM images use a GPT-partitioned disk with dm-verity on the root \npartition. However, the roothash= kernel parameter only disables root \nauto-discovery — non-root partitions (swap, /home, /var, /srv, /var/tmp) are \nstill auto-discovered and mounted. The generator is shipped unmasked in the \nRHEL systemd-udev subpackage, and no kernel command line parameter in the \nmeasured UKI addon disables it. Additionally, the PodVM measurement script \ncaptures PCRs 3, 9, 11, and 12, but not PCR 5 (GPT partition table), so \npartition table modifications are not detected by remote attestation.",
+                "markdown": "**Vulnerability CVE-2026-121876**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|libudev1||[CVE-2026-121876](https://avd.aquasec.com/nvd/cve-2026-121876)|\n\nA flaw was found in the interaction between systemd-gpt-auto-generator and \nconfidential computing guest VM images in OpenShift Sandboxed Containers \n(confidential peer pods). systemd-gpt-auto-generator automatically discovers \nand mounts GPT partitions by type GUID at boot with no user confirmation. In \nthe confidential computing threat model, where the host/hypervisor is the \nadversary, a malicious host can inject partitions into the guest's virtual \ndisk. Most critically, injecting a swap partition causes the guest kernel to \npage out TEE-encrypted memory to a host-controlled block device, breaking the \nconfidentiality guarantee of the hardware TEE (AMD SEV-SNP, Intel TDX).\n\nThe PodVM images use a GPT-partitioned disk with dm-verity on the root \npartition. However, the roothash= kernel parameter only disables root \nauto-discovery — non-root partitions (swap, /home, /var, /srv, /var/tmp) are \nstill auto-discovered and mounted. The generator is shipped unmasked in the \nRHEL systemd-udev subpackage, and no kernel command line parameter in the \nmeasured UKI addon disables it. Additionally, the PodVM measurement script \ncaptures PCRs 3, 9, 11, and 12, but not PCR 5 (GPT partition table), so \npartition table modifications are not detected by remote attestation."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-40228",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "systemd: systemd-journald: Unintended output to user terminals via logger command"
+              },
+              "fullDescription": {
+                "text": "In systemd 259, systemd-journald can send ANSI escape sequences to the terminals of arbitrary users when a \"logger -p emerg\" command is executed, if ForwardToWall=yes is set."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-40228",
+              "help": {
+                "text": "Vulnerability CVE-2026-40228\nSeverity: LOW\nPackage: libudev1\nFixed Version: \nLink: [CVE-2026-40228](https://avd.aquasec.com/nvd/cve-2026-40228)\nIn systemd 259, systemd-journald can send ANSI escape sequences to the terminals of arbitrary users when a \"logger -p emerg\" command is executed, if ForwardToWall=yes is set.",
+                "markdown": "**Vulnerability CVE-2026-40228**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|LOW|libudev1||[CVE-2026-40228](https://avd.aquasec.com/nvd/cve-2026-40228)|\n\nIn systemd 259, systemd-journald can send ANSI escape sequences to the terminals of arbitrary users when a \"logger -p emerg\" command is executed, if ForwardToWall=yes is set."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "2.0",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "LOW"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2024-56433",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "shadow-utils: Default subordinate ID configuration in /etc/login.defs could lead to compromise"
+              },
+              "fullDescription": {
+                "text": "shadow-utils (aka shadow) 4.4 through 4.17.0 establishes a default /etc/subuid behavior (e.g., uid 100000 through 165535 for the first user account) that can realistically conflict with the uids of users defined on locally administered networks, potentially leading to account takeover, e.g., by leveraging newuidmap for access to an NFS home directory (or same-host resources in the case of remote logins by these local network users). NOTE: it may also be argued that system administrators should not have assigned uids, within local networks, that are within the range that can occur in /etc/subuid."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2024-56433",
+              "help": {
+                "text": "Vulnerability CVE-2024-56433\nSeverity: LOW\nPackage: passwd\nFixed Version: \nLink: [CVE-2024-56433](https://avd.aquasec.com/nvd/cve-2024-56433)\nshadow-utils (aka shadow) 4.4 through 4.17.0 establishes a default /etc/subuid behavior (e.g., uid 100000 through 165535 for the first user account) that can realistically conflict with the uids of users defined on locally administered networks, potentially leading to account takeover, e.g., by leveraging newuidmap for access to an NFS home directory (or same-host resources in the case of remote logins by these local network users). NOTE: it may also be argued that system administrators should not have assigned uids, within local networks, that are within the range that can occur in /etc/subuid.",
+                "markdown": "**Vulnerability CVE-2024-56433**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|LOW|passwd||[CVE-2024-56433](https://avd.aquasec.com/nvd/cve-2024-56433)|\n\nshadow-utils (aka shadow) 4.4 through 4.17.0 establishes a default /etc/subuid behavior (e.g., uid 100000 through 165535 for the first user account) that can realistically conflict with the uids of users defined on locally administered networks, potentially leading to account takeover, e.g., by leveraging newuidmap for access to an NFS home directory (or same-host resources in the case of remote logins by these local network users). NOTE: it may also be argued that system administrators should not have assigned uids, within local networks, that are within the range that can occur in /etc/subuid."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "2.0",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "LOW"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-82560",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "Pod::Text versions before 6.1.1 for Perl allow CPU and memory exhausti ..."
+              },
+              "fullDescription": {
+                "text": "Pod::Text versions before 6.1.1 for Perl allow CPU and memory exhaustion formatting a POD document whose =over nesting drives the margin to the output width.\n\nEach =over adds its indent to the margin, which wrap() subtracts from the output width to get the space available for text. When that space reaches zero, the line-splitting substitution matches the empty string, and the loop consumes no input while appending the margin padding on every pass.\n\nFormatting an attacker-supplied POD document never returns, and the output grows until memory is exhausted."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-82560",
+              "help": {
+                "text": "Vulnerability CVE-2026-82560\nSeverity: MEDIUM\nPackage: perl-base\nFixed Version: 5.38.2-3.2ubuntu0.7\nLink: [CVE-2026-82560](https://avd.aquasec.com/nvd/cve-2026-82560)\nPod::Text versions before 6.1.1 for Perl allow CPU and memory exhaustion formatting a POD document whose =over nesting drives the margin to the output width.\n\nEach =over adds its indent to the margin, which wrap() subtracts from the output width to get the space available for text. When that space reaches zero, the line-splitting substitution matches the empty string, and the loop consumes no input while appending the margin padding on every pass.\n\nFormatting an attacker-supplied POD document never returns, and the output grows until memory is exhausted.",
+                "markdown": "**Vulnerability CVE-2026-82560**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|perl-base|5.38.2-3.2ubuntu0.7|[CVE-2026-82560](https://avd.aquasec.com/nvd/cve-2026-82560)|\n\nPod::Text versions before 6.1.1 for Perl allow CPU and memory exhaustion formatting a POD document whose =over nesting drives the margin to the output width.\n\nEach =over adds its indent to the margin, which wrap() subtracts from the output width to get the space available for text. When that space reaches zero, the line-splitting substitution matches the empty string, and the loop consumes no input while appending the margin padding on every pass.\n\nFormatting an attacker-supplied POD document never returns, and the output grows until memory is exhausted."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-18477",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "tar: tar: TOCTOU in incremental dumpdir 'X' rename handling allows restore path escape"
+              },
+              "fullDescription": {
+                "text": "A TOCTOU (Time-of-Check Time-of-Use) vulnerability in GNU tar's incremental dumpdir 'X' rename handling allows a local attacker with write access to a directory being backed up to influence the restore process if the attacker has access to the system where the restore is being performed. During restoration, files or directories may be created, renamed or overwritten outside the intended extraction directory. This could lead to unauthorized file modification or, in some cases, privilege escalation. Exploitation does not require the attacker to modify or craft the archive, and standard backup and restore workflows—including extracting into a newly created directory without using the -P option do not mitigate the issue."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-18477",
+              "help": {
+                "text": "Vulnerability CVE-2026-18477\nSeverity: MEDIUM\nPackage: tar\nFixed Version: \nLink: [CVE-2026-18477](https://avd.aquasec.com/nvd/cve-2026-18477)\nA TOCTOU (Time-of-Check Time-of-Use) vulnerability in GNU tar's incremental dumpdir 'X' rename handling allows a local attacker with write access to a directory being backed up to influence the restore process if the attacker has access to the system where the restore is being performed. During restoration, files or directories may be created, renamed or overwritten outside the intended extraction directory. This could lead to unauthorized file modification or, in some cases, privilege escalation. Exploitation does not require the attacker to modify or craft the archive, and standard backup and restore workflows—including extracting into a newly created directory without using the -P option do not mitigate the issue.",
+                "markdown": "**Vulnerability CVE-2026-18477**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|tar||[CVE-2026-18477](https://avd.aquasec.com/nvd/cve-2026-18477)|\n\nA TOCTOU (Time-of-Check Time-of-Use) vulnerability in GNU tar's incremental dumpdir 'X' rename handling allows a local attacker with write access to a directory being backed up to influence the restore process if the attacker has access to the system where the restore is being performed. During restoration, files or directories may be created, renamed or overwritten outside the intended extraction directory. This could lead to unauthorized file modification or, in some cases, privilege escalation. Exploitation does not require the attacker to modify or craft the archive, and standard backup and restore workflows—including extracting into a newly created directory without using the -P option do not mitigate the issue."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2026-18508",
+              "name": "OsPackageVulnerability",
+              "shortDescription": {
+                "text": "tar: tar: --one-top-level hardlink targets not confined to top-level directory enabling arbitrary file overwrite"
+              },
+              "fullDescription": {
+                "text": "A flaw was found in GNU tar. When extracting an archive with the --one-top-level option, hardlink targets are not confined to the designated top-level directory and may resolve relative to the extraction working directory. A crafted archive can create hardlinks that escape the intended boundary and, when combined with a preexisting symbolic link under the working directory, may allow writing outside that boundary during a single extraction."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2026-18508",
+              "help": {
+                "text": "Vulnerability CVE-2026-18508\nSeverity: MEDIUM\nPackage: tar\nFixed Version: \nLink: [CVE-2026-18508](https://avd.aquasec.com/nvd/cve-2026-18508)\nA flaw was found in GNU tar. When extracting an archive with the --one-top-level option, hardlink targets are not confined to the designated top-level directory and may resolve relative to the extraction working directory. A crafted archive can create hardlinks that escape the intended boundary and, when combined with a preexisting symbolic link under the working directory, may allow writing outside that boundary during a single extraction.",
+                "markdown": "**Vulnerability CVE-2026-18508**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|tar||[CVE-2026-18508](https://avd.aquasec.com/nvd/cve-2026-18508)|\n\nA flaw was found in GNU tar. When extracting an archive with the --one-top-level option, hardlink targets are not confined to the designated top-level directory and may resolve relative to the extraction working directory. A crafted archive can create hardlinks that escape the intended boundary and, when combined with a preexisting symbolic link under the working directory, may allow writing outside that boundary during a single extraction."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            }
+          ],
+          "version": "0.75.0"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "CVE-2026-76642",
+          "ruleIndex": 0,
+          "level": "warning",
+          "message": {
+            "text": "Package: bsdutils\nInstalled Version: 1:2.39.3-9ubuntu6.6\nVulnerability CVE-2026-76642\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-76642](https://avd.aquasec.com/nvd/cve-2026-76642)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: bsdutils@1:2.39.3-9ubuntu6.6"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-102473",
+          "ruleIndex": 1,
+          "level": "warning",
+          "message": {
+            "text": "Package: dash\nInstalled Version: 0.5.12-6ubuntu5\nVulnerability CVE-2026-102473\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-102473](https://avd.aquasec.com/nvd/cve-2026-102473)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: dash@0.5.12-6ubuntu5"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-102474",
+          "ruleIndex": 2,
+          "level": "warning",
+          "message": {
+            "text": "Package: dash\nInstalled Version: 0.5.12-6ubuntu5\nVulnerability CVE-2026-102474\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-102474](https://avd.aquasec.com/nvd/cve-2026-102474)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: dash@0.5.12-6ubuntu5"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-76642",
+          "ruleIndex": 0,
+          "level": "warning",
+          "message": {
+            "text": "Package: libblkid1\nInstalled Version: 2.39.3-9ubuntu6.6\nVulnerability CVE-2026-76642\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-76642](https://avd.aquasec.com/nvd/cve-2026-76642)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libblkid1@2.39.3-9ubuntu6.6"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-18374",
+          "ruleIndex": 3,
+          "level": "warning",
+          "message": {
+            "text": "Package: libc-bin\nInstalled Version: 2.39-0ubuntu8.9\nVulnerability CVE-2026-18374\nSeverity: MEDIUM\nFixed Version: 2.39-0ubuntu8.12\nLink: [CVE-2026-18374](https://avd.aquasec.com/nvd/cve-2026-18374)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libc-bin@2.39-0ubuntu8.9"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-84243",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Package: libc-bin\nInstalled Version: 2.39-0ubuntu8.9\nVulnerability CVE-2026-84243\nSeverity: MEDIUM\nFixed Version: 2.39-0ubuntu8.12\nLink: [CVE-2026-84243](https://avd.aquasec.com/nvd/cve-2026-84243)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libc-bin@2.39-0ubuntu8.9"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-8674",
+          "ruleIndex": 5,
+          "level": "warning",
+          "message": {
+            "text": "Package: libc-bin\nInstalled Version: 2.39-0ubuntu8.9\nVulnerability CVE-2026-8674\nSeverity: MEDIUM\nFixed Version: 2.39-0ubuntu8.12\nLink: [CVE-2026-8674](https://avd.aquasec.com/nvd/cve-2026-8674)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libc-bin@2.39-0ubuntu8.9"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-86805",
+          "ruleIndex": 6,
+          "level": "warning",
+          "message": {
+            "text": "Package: libc-bin\nInstalled Version: 2.39-0ubuntu8.9\nVulnerability CVE-2026-86805\nSeverity: MEDIUM\nFixed Version: 2.39-0ubuntu8.12\nLink: [CVE-2026-86805](https://avd.aquasec.com/nvd/cve-2026-86805)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libc-bin@2.39-0ubuntu8.9"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-95818",
+          "ruleIndex": 7,
+          "level": "warning",
+          "message": {
+            "text": "Package: libc-bin\nInstalled Version: 2.39-0ubuntu8.9\nVulnerability CVE-2026-95818\nSeverity: MEDIUM\nFixed Version: 2.39-0ubuntu8.12\nLink: [CVE-2026-95818](https://avd.aquasec.com/nvd/cve-2026-95818)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libc-bin@2.39-0ubuntu8.9"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-97399",
+          "ruleIndex": 8,
+          "level": "warning",
+          "message": {
+            "text": "Package: libc-bin\nInstalled Version: 2.39-0ubuntu8.9\nVulnerability CVE-2026-97399\nSeverity: MEDIUM\nFixed Version: 2.39-0ubuntu8.12\nLink: [CVE-2026-97399](https://avd.aquasec.com/nvd/cve-2026-97399)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libc-bin@2.39-0ubuntu8.9"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-18374",
+          "ruleIndex": 3,
+          "level": "warning",
+          "message": {
+            "text": "Package: libc6\nInstalled Version: 2.39-0ubuntu8.9\nVulnerability CVE-2026-18374\nSeverity: MEDIUM\nFixed Version: 2.39-0ubuntu8.12\nLink: [CVE-2026-18374](https://avd.aquasec.com/nvd/cve-2026-18374)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libc6@2.39-0ubuntu8.9"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-84243",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Package: libc6\nInstalled Version: 2.39-0ubuntu8.9\nVulnerability CVE-2026-84243\nSeverity: MEDIUM\nFixed Version: 2.39-0ubuntu8.12\nLink: [CVE-2026-84243](https://avd.aquasec.com/nvd/cve-2026-84243)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libc6@2.39-0ubuntu8.9"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-8674",
+          "ruleIndex": 5,
+          "level": "warning",
+          "message": {
+            "text": "Package: libc6\nInstalled Version: 2.39-0ubuntu8.9\nVulnerability CVE-2026-8674\nSeverity: MEDIUM\nFixed Version: 2.39-0ubuntu8.12\nLink: [CVE-2026-8674](https://avd.aquasec.com/nvd/cve-2026-8674)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libc6@2.39-0ubuntu8.9"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-86805",
+          "ruleIndex": 6,
+          "level": "warning",
+          "message": {
+            "text": "Package: libc6\nInstalled Version: 2.39-0ubuntu8.9\nVulnerability CVE-2026-86805\nSeverity: MEDIUM\nFixed Version: 2.39-0ubuntu8.12\nLink: [CVE-2026-86805](https://avd.aquasec.com/nvd/cve-2026-86805)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libc6@2.39-0ubuntu8.9"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-95818",
+          "ruleIndex": 7,
+          "level": "warning",
+          "message": {
+            "text": "Package: libc6\nInstalled Version: 2.39-0ubuntu8.9\nVulnerability CVE-2026-95818\nSeverity: MEDIUM\nFixed Version: 2.39-0ubuntu8.12\nLink: [CVE-2026-95818](https://avd.aquasec.com/nvd/cve-2026-95818)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libc6@2.39-0ubuntu8.9"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-97399",
+          "ruleIndex": 8,
+          "level": "warning",
+          "message": {
+            "text": "Package: libc6\nInstalled Version: 2.39-0ubuntu8.9\nVulnerability CVE-2026-97399\nSeverity: MEDIUM\nFixed Version: 2.39-0ubuntu8.12\nLink: [CVE-2026-97399](https://avd.aquasec.com/nvd/cve-2026-97399)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libc6@2.39-0ubuntu8.9"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-67693",
+          "ruleIndex": 9,
+          "level": "warning",
+          "message": {
+            "text": "Package: libgnutls30t64\nInstalled Version: 3.8.3-1.1ubuntu3.6\nVulnerability CVE-2026-67693\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-67693](https://avd.aquasec.com/nvd/cve-2026-67693)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libgnutls30t64@3.8.3-1.1ubuntu3.6"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-88647",
+          "ruleIndex": 10,
+          "level": "warning",
+          "message": {
+            "text": "Package: libgnutls30t64\nInstalled Version: 3.8.3-1.1ubuntu3.6\nVulnerability CVE-2026-88647\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-88647](https://avd.aquasec.com/nvd/cve-2026-88647)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libgnutls30t64@3.8.3-1.1ubuntu3.6"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-88648",
+          "ruleIndex": 11,
+          "level": "warning",
+          "message": {
+            "text": "Package: libgnutls30t64\nInstalled Version: 3.8.3-1.1ubuntu3.6\nVulnerability CVE-2026-88648\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-88648](https://avd.aquasec.com/nvd/cve-2026-88648)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libgnutls30t64@3.8.3-1.1ubuntu3.6"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-95184",
+          "ruleIndex": 12,
+          "level": "warning",
+          "message": {
+            "text": "Package: libgnutls30t64\nInstalled Version: 3.8.3-1.1ubuntu3.6\nVulnerability CVE-2026-95184\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-95184](https://avd.aquasec.com/nvd/cve-2026-95184)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libgnutls30t64@3.8.3-1.1ubuntu3.6"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-95210",
+          "ruleIndex": 13,
+          "level": "warning",
+          "message": {
+            "text": "Package: libgnutls30t64\nInstalled Version: 3.8.3-1.1ubuntu3.6\nVulnerability CVE-2026-95210\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-95210](https://avd.aquasec.com/nvd/cve-2026-95210)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libgnutls30t64@3.8.3-1.1ubuntu3.6"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2025-5222",
+          "ruleIndex": 14,
+          "level": "note",
+          "message": {
+            "text": "Package: libicu74\nInstalled Version: 74.2-1ubuntu3.1\nVulnerability CVE-2025-5222\nSeverity: LOW\nFixed Version: \nLink: [CVE-2025-5222](https://avd.aquasec.com/nvd/cve-2025-5222)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libicu74@74.2-1ubuntu3.1"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-76642",
+          "ruleIndex": 0,
+          "level": "warning",
+          "message": {
+            "text": "Package: libmount1\nInstalled Version: 2.39.3-9ubuntu6.6\nVulnerability CVE-2026-76642\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-76642](https://avd.aquasec.com/nvd/cve-2026-76642)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libmount1@2.39.3-9ubuntu6.6"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-76642",
+          "ruleIndex": 0,
+          "level": "warning",
+          "message": {
+            "text": "Package: libsmartcols1\nInstalled Version: 2.39.3-9ubuntu6.6\nVulnerability CVE-2026-76642\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-76642](https://avd.aquasec.com/nvd/cve-2026-76642)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libsmartcols1@2.39.3-9ubuntu6.6"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-121876",
+          "ruleIndex": 15,
+          "level": "warning",
+          "message": {
+            "text": "Package: libsystemd0\nInstalled Version: 255.4-1ubuntu8.18\nVulnerability CVE-2026-121876\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-121876](https://avd.aquasec.com/nvd/cve-2026-121876)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libsystemd0@255.4-1ubuntu8.18"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-40228",
+          "ruleIndex": 16,
+          "level": "note",
+          "message": {
+            "text": "Package: libsystemd0\nInstalled Version: 255.4-1ubuntu8.18\nVulnerability CVE-2026-40228\nSeverity: LOW\nFixed Version: \nLink: [CVE-2026-40228](https://avd.aquasec.com/nvd/cve-2026-40228)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libsystemd0@255.4-1ubuntu8.18"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-121876",
+          "ruleIndex": 15,
+          "level": "warning",
+          "message": {
+            "text": "Package: libudev1\nInstalled Version: 255.4-1ubuntu8.18\nVulnerability CVE-2026-121876\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-121876](https://avd.aquasec.com/nvd/cve-2026-121876)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libudev1@255.4-1ubuntu8.18"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-40228",
+          "ruleIndex": 16,
+          "level": "note",
+          "message": {
+            "text": "Package: libudev1\nInstalled Version: 255.4-1ubuntu8.18\nVulnerability CVE-2026-40228\nSeverity: LOW\nFixed Version: \nLink: [CVE-2026-40228](https://avd.aquasec.com/nvd/cve-2026-40228)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libudev1@255.4-1ubuntu8.18"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-76642",
+          "ruleIndex": 0,
+          "level": "warning",
+          "message": {
+            "text": "Package: libuuid1\nInstalled Version: 2.39.3-9ubuntu6.6\nVulnerability CVE-2026-76642\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-76642](https://avd.aquasec.com/nvd/cve-2026-76642)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: libuuid1@2.39.3-9ubuntu6.6"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2024-56433",
+          "ruleIndex": 17,
+          "level": "note",
+          "message": {
+            "text": "Package: login\nInstalled Version: 1:4.13+dfsg1-4ubuntu3.2\nVulnerability CVE-2024-56433\nSeverity: LOW\nFixed Version: \nLink: [CVE-2024-56433](https://avd.aquasec.com/nvd/cve-2024-56433)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: login@1:4.13+dfsg1-4ubuntu3.2"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-76642",
+          "ruleIndex": 0,
+          "level": "warning",
+          "message": {
+            "text": "Package: mount\nInstalled Version: 2.39.3-9ubuntu6.6\nVulnerability CVE-2026-76642\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-76642](https://avd.aquasec.com/nvd/cve-2026-76642)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: mount@2.39.3-9ubuntu6.6"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2024-56433",
+          "ruleIndex": 17,
+          "level": "note",
+          "message": {
+            "text": "Package: passwd\nInstalled Version: 1:4.13+dfsg1-4ubuntu3.2\nVulnerability CVE-2024-56433\nSeverity: LOW\nFixed Version: \nLink: [CVE-2024-56433](https://avd.aquasec.com/nvd/cve-2024-56433)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: passwd@1:4.13+dfsg1-4ubuntu3.2"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-82560",
+          "ruleIndex": 18,
+          "level": "warning",
+          "message": {
+            "text": "Package: perl-base\nInstalled Version: 5.38.2-3.2ubuntu0.6\nVulnerability CVE-2026-82560\nSeverity: MEDIUM\nFixed Version: 5.38.2-3.2ubuntu0.7\nLink: [CVE-2026-82560](https://avd.aquasec.com/nvd/cve-2026-82560)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: perl-base@5.38.2-3.2ubuntu0.6"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-18477",
+          "ruleIndex": 19,
+          "level": "warning",
+          "message": {
+            "text": "Package: tar\nInstalled Version: 1.35+dfsg-3ubuntu0.4\nVulnerability CVE-2026-18477\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-18477](https://avd.aquasec.com/nvd/cve-2026-18477)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: tar@1.35+dfsg-3ubuntu0.4"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-18508",
+          "ruleIndex": 20,
+          "level": "warning",
+          "message": {
+            "text": "Package: tar\nInstalled Version: 1.35+dfsg-3ubuntu0.4\nVulnerability CVE-2026-18508\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-18508](https://avd.aquasec.com/nvd/cve-2026-18508)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: tar@1.35+dfsg-3ubuntu0.4"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2026-76642",
+          "ruleIndex": 0,
+          "level": "warning",
+          "message": {
+            "text": "Package: util-linux\nInstalled Version: 2.39.3-9ubuntu6.6\nVulnerability CVE-2026-76642\nSeverity: MEDIUM\nFixed Version: \nLink: [CVE-2026-76642](https://avd.aquasec.com/nvd/cve-2026-76642)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "library/resourcehub-api",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "library/resourcehub-api: util-linux@2.39.3-9ubuntu6.6"
+              }
+            }
+          ]
+        }
+      ],
+      "columnKind": "utf16CodeUnits",
+      "properties": {
+        "imageID": "sha256:5d0c04bfc186a781bcb130887b2f5ee4ce5f6bd8db0c539749a95cc1617381ac",
+        "imageName": "resourcehub-api:ci",
+        "repoDigests": [
+          "resourcehub-api@sha256:5d0c04bfc186a781bcb130887b2f5ee4ce5f6bd8db0c539749a95cc1617381ac"
+        ],
+        "repoTags": [
+          "resourcehub-api:ci"
+        ]
+      }
+    }
+  ]
+}
