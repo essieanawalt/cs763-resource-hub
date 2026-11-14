@@ -1,6 +1,6 @@
 # Resource Allocation & Help Desk Hub
 
-ASP.NET Core Web API (.NET 10) + PostgreSQL 18. See [spec.md](spec.md) for the full design.
+ASP.NET Core Web API (.NET 10) + PostgreSQL 18. See [spec-domain2.md](spec-domain2.md) for the full design.
 
 **Current state: barebones.** Only `GET /api/v1/health` exists. It checks the PostgreSQL
 connection through an EF Core `DbContext` (no tables yet).
@@ -14,8 +14,8 @@ Directory.Build.props        # turns on NuGet lock files (packages.lock.json)
 Dockerfile                   # multi-stage: SDK build -> ASP.NET runtime
 docker-compose.yml           # api (:8080) + db (PostgreSQL 18, :5432)
 ResourceHub.slnx
-src/ResourceHub.Api/         # Web API (Controllers/, Data/, Program.cs)
-tests/ResourceHub.Tests/     # xUnit integration tests (WebApplicationFactory)
+functional-codebase/src/ResourceHub.Api/         # Web API (Controllers/, Data/, Program.cs)
+functional-codebase/tests/ResourceHub.Tests/     # xUnit integration tests (WebApplicationFactory)
 ```
 
 ## Prerequisites
@@ -74,11 +74,11 @@ docker compose up -d db
 ```
 
 ```bash
-dotnet run --project src/ResourceHub.Api
+dotnet run --project functional-codebase/src/ResourceHub.Api
 ```
 
 Local runs use the `Development` environment, which reads the connection string from
-`src/ResourceHub.Api/appsettings.Development.json` (`localhost:5432`). The URL is printed on
+`functional-codebase/src/ResourceHub.Api/appsettings.Development.json` (`localhost:5432`). The URL is printed on
 start-up (default `http://localhost:5184/api/v1/health`).
 
 ## Test
