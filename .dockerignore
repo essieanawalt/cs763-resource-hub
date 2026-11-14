@@ -6,7 +6,7 @@
 **/*.user
 .git/
 .github/
-tests/
+functional-codebase/tests/
 docker-compose.yml
 Dockerfile
 README.md

@@ -7,10 +7,10 @@ WORKDIR /src
 
 # Restore first so the package layer is cached between code changes.
 COPY global.json Directory.Build.props ./
-COPY src/ResourceHub.Api/ResourceHub.Api.csproj src/ResourceHub.Api/packages.lock.json src/ResourceHub.Api/
+COPY functional-codebase/src/ResourceHub.Api/ResourceHub.Api.csproj functional-codebase/src/ResourceHub.Api/packages.lock.json src/ResourceHub.Api/
 RUN dotnet restore src/ResourceHub.Api/ResourceHub.Api.csproj --locked-mode
 
-COPY src/ src/
+COPY functional-codebase/src/ src/
 RUN dotnet publish src/ResourceHub.Api/ResourceHub.Api.csproj \
     --configuration Release --no-restore --output /app/publish /p:UseAppHost=false
 

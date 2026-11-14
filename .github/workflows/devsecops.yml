@@ -104,8 +104,8 @@ jobs:
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.exclusions="evidence/**" \
-            /d:sonar.cs.opencover.reportsPaths="tests/**/TestResults/**/coverage.opencover.xml" \
-            /d:sonar.cs.vstest.reportsPaths="tests/**/TestResults/*.trx"
+            /d:sonar.cs.opencover.reportsPaths="functional-codebase/tests/**/TestResults/**/coverage.opencover.xml" \
+            /d:sonar.cs.vstest.reportsPaths="functional-codebase/tests/**/TestResults/*.trx"
 
       - name: Build
         run: dotnet build ResourceHub.slnx --configuration Release --no-restore
@@ -128,7 +128,7 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: test-results
-          path: tests/**/TestResults/
+          path: functional-codebase/tests/**/TestResults/
           if-no-files-found: ignore
 
       - name: Upload SonarQube report task
