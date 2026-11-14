@@ -59,7 +59,7 @@ Notes:
 | Item | Detail |
 |---|---|
 | Conceptual AI contribution (section 10) | ~55% AI / ~45% me |
-| My part | Moved the PA1 app into `functional-codebase/` doing the move and path fixes myself; created the base for a new spec file and updated references; decided to restrict the agent's reads and ran the test session; decided to keep the rules and accept some bleed through search; noticed and recorded the version change from `/status` |
+| My part | Moved the PA1 app into `functional-codebase/` doing the move and path fixes myself; created the base for a new spec file and updated references; decided to restrict the agent's reads and ran the test session; decided to keep the rules and accept some bleed through search; noticed and recorded the version change from `/status`; decided to move the model and update settings into the repo, record the version each session instead of locking it, and stay on the desktop app |
 | AI part (Claude chat assistant) | Suggested the read restrictions and the test; analyzed the test output and found the search gap; drafted this section |
 | Design-aid prompts | Logged in `.ai_logs/PA2/2026-11-14_naive-build-log.md` |
 
@@ -73,6 +73,8 @@ Changes made on the build day, before the first PA2 prompt.
 | Code location | `src/`, `tests/` at the repo root | `functional-codebase/src/`, `functional-codebase/tests/` | PA2 deliverable folder. Paths updated in `ResourceHub.slnx`, `Dockerfile`, `.dockerignore`, `devsecops.yml` and `README.md` |
 | File header rule in `CLAUDE.md` | One line: `AI Contribution Weight: [X%] AI Generated / [Y%] Human Refactored` | Full header: tool, language stack, prompt summary, AI contribution, human modifications, verification, confidence | Updated logging rules. No security wording added |
 | Read restrictions | None | `.claude/settings.json` denies `Read` on `.ai_logs/**`, `evidence/**`, `spec.md`, `Prompt_test_log.md`, `code_AI_history.md`, `Agent_environment.md` | Keep my notes, logs, the PA1 spec and old scan results out of the naive build |
+| Where the model pin and auto-update setting live | `~/.claude/settings.json` (global, set 2026-11-13, section 9) | Repo `.claude/settings.json`: `"model": "claude-opus-5-5"`, `"env": {"DISABLE_AUTOUPDATER": "1"}` | The global file applied to all my Claude Code use, not just this project. In the repo they only apply to sessions started there |
+| Version control | Auto-updates turned off | Not locked. The version is read from `/status` at the start of each session and recorded | The version changed anyway (2.1.321 → 2.1.325). A fixed install with every update blocked was considered and not done, because it would affect other work on this machine |
 
 Restriction test (separate throwaway session, not used for the build):
 
@@ -96,7 +98,7 @@ Session info at the test (2026-11-14):
 Notes:
 - **Read restrictions only partly hold:** direct reads are blocked, searches are not reliably blocked. I kept the rules and accept some bleed through search; I review the agent's searches in the transcript and record any leak as a finding. Shell commands (e.g. `cat`, `grep`) could also bypass the rules, but Manual mode asks before running them
 - The deny list is visible to the agent. In the test it inferred why the rules were there
-- **Version changed with auto-updates off:** cause not confirmed. The session runs in the desktop app, so the update may have come with the desktop app rather than through Claude Code's own updater. The version is read from `/status` at the start of each session
+- **Version changed with auto-updates off:** cause not confirmed. The session runs in the desktop app, so the update may have come with the desktop app rather than through Claude Code's own updater. The version is read from `/status` at the start of each session. Interface stays the Claude desktop app, as in PA1
 
 ## AI Usage Log - PA1 specific / general
 
