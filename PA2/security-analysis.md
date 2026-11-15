@@ -237,11 +237,142 @@ Status values: **Met (tested)**, **Met (review)** (read in the code, not yet run
 
 ## 3. Abuse cases
 
-_Malicious-user scenarios (AC1…): actor, goal, how, which requirement it breaks._
+Each case is told from the attacker's side, using the findings in section 1 and the requirements in section 2. I kept the seven strongest: they use different attackers (an outsider, a legitimate requester, a trusted administrator, someone with log access, anyone who can reach the database port) and together they break every requirement group except input handling, which held up in testing. "Shown" records what I demonstrated: **Demonstrated** (run end to end), **Partly demonstrated** (steps shown separately) or **Not demonstrated**.
 
-**Candidates noted so far:**
-- **Fake device return:** the allocations listing shows device tokens, and a token is all `/return` needs. Acting as an administrator through V1, an attacker copies a token from the listing and marks a device returned while it is still out, which raises the stock count and hides a missing device. Touches SR9, SR12, SR13, SR15
-- **Hoarding (insider misuse):** a legitimate instructor or advisor, or a group of them in one department program, uses the normal request flow to tie up stock others need. Variants: maximum quantities (20 items, up to 1000 each), maximum loans (365 days, then never returning, since overdue devices can't be written off), draining license keys (issued keys never return to the pool) or the voucher balance. Nothing limits one requester's or one department's share; the IT director's approval is the only gate, and it can be worn down by volume or skipped through V1. Breaks availability for everyone else (CWE-770). Covered by SR7. Shown in testing: a request for 1000 kits against a stock of 10 on a 365-day loan was accepted (`evidence/sr-validation-2-2026-11-15.txt`)
+### AC1 — Steal license keys
+- **Attacker:** an outsider on the network with no account
+- **Goal:** working license keys to use or sell
+- **Preconditions:** network access to port 8080 (or 5432 for the database route)
+- **Steps:**
+  1. Call any protected route; the 401 says which header to send (M8)
+  2. Read any ticket with no header and copy the administrator's id from its events (V2)
+  3. Send that id as `X-User-Id` and read the allocations listing (V1)
+  4. Take the license keys from the response, in plain text (V3)
+  5. Or skip the API: log in to PostgreSQL with the fallback password and read `license_keys` as superuser (V6)
+- **Weaknesses used:** V1, V2, V3, V6, M8 (M7 if the traffic is read on the network)
+- **Requirements broken:** SR12, SR13, SR14, SR15, SR16, SR21; SR17 if the traffic is read on the network; SR23 and SR24 on the database route
+- **Impact:** paid licenses lost, and there's no way to revoke or replace an issued key (gaps note in section 2), so they stay lost
+- **Risk:** High
+- **Shown:** demonstrated through the API. The administrator's id came from an open ticket read (triage evidence, step 4), and acting as the administrator, the allocations listing returned the license key and a device token in plain text (`evidence/abuse-case-checks-2026-11-15.txt`, check 1). The database route is shown in parts: the superuser login from outside the compose network (V6) and the keys readable in the database (V3, step 5)
+
+### AC2 — Approve your own request
+- **Attacker:** a legitimate course instructor or lab advisor
+- **Goal:** get their own ticket approved and allocated without the IT director's sign-off
+- **Preconditions:** a real requester role, and the IT director's and administrator's ids (from a ticket's events, V2)
+- **Steps:**
+  1. Submit a ticket normally
+  2. Send the approval with the IT director's id as `X-User-Id` (V1)
+  3. Send the allocate with the administrator's id (V1)
+  4. Collect the keys, credit or devices
+- **Weaknesses used:** V1, V2
+- **Requirements broken:** SR2, SR11, SR12, SR14, SR16
+- **Impact:** the sign-off the whole spec is built around stops meaning anything, and the event log names the IT director and the administrator as the ones who did it
+- **Risk:** High
+- **Shown:** demonstrated. The triage evidence is this attack end to end: Dr. Chen submits (step 1), I send the approval with the IT director's id (step 2) and the allocate with the administrator's id (step 3), and the event log names them, not me (step 4). The server can't tell those requests from the real people's
+
+### AC3 — Cover your tracks
+- **Attacker:** an insider or outsider who has already done something they don't want traced
+- **Goal:** remove or falsify the record of what happened
+- **Preconditions:** a pending ticket to delete, or access to port 5432
+- **Steps:**
+  1. Probe first: refused requests aren't written to the application log (SR22), so trying things leaves nothing behind
+  2. Act under someone else's id (V1), so the event log names the wrong person
+  3. Delete the pending ticket through the API, which deletes its events with it (V4)
+  4. Or delete event rows directly in the database as superuser (V6)
+- **Weaknesses used:** V1, V4, V6
+- **Requirements broken:** SR11, SR12, SR22, SR24
+- **Impact:** no trustworthy answer to "who did this", which weakens every other finding after the fact
+- **Risk:** High
+- **Shown:** partly demonstrated; each step was shown separately, but I didn't delete someone else's ticket while acting as them. Deleting a pending ticket left 0 events (V4), deleting 6 events through the database succeeded before the rollback (`evidence/sr-validation-2-2026-11-15.txt`), the log records the impersonated actor (triage evidence, step 4), and refused requests don't appear in the application log (SR22)
+
+### AC4 — Fake a device return
+- **Attacker:** an outsider acting as the administrator, or someone with read access to the application logs
+- **Goal:** make a device that is still out look returned, to hide a missing device or free the stock
+- **Preconditions:** a device token, and the administrator's id (V2)
+- **Steps:**
+  1. Get a token: from the allocations listing while acting as the administrator (V1), or from the application log, which holds every returned token in full (V5)
+  2. Send it to `/return` as the administrator (V1); the token is all the route needs
+  3. The stock count goes up and the device drops off the overdue list while it is still out
+- **Weaknesses used:** V1, V2, V5
+- **Requirements broken:** SR9 (the return is accepted once, as designed, but nothing checks the device came back), SR12, SR13, SR15, SR22
+- **Impact:** inventory that doesn't match reality, and a lost or stolen device that never shows as overdue
+- **Risk:** Medium
+- **Shown:** partly demonstrated. The allocations listing returns device tokens (`evidence/abuse-case-checks-2026-11-15.txt`, check 1), the token is in the log (V5), and a token returns with a 200 (`evidence/sr-validation-2026-11-15.txt`, SR8); I didn't return a device I knew was still out
+
+### AC5 — Rewrite inventory directly
+- **Attacker:** anyone who can reach port 5432 on the host
+- **Goal:** change stock, balances or records without going through the API
+- **Preconditions:** network access to the host; nothing else, since the password is the committed fallback
+- **Steps:**
+  1. Log in to PostgreSQL with `resourcehub_dev` (V6)
+  2. Update stock in `assets` or the voucher balance directly
+  3. Every rule the API enforces (SR3, SR4, SR5, SR8, SR10) lives in the application, so none of them apply. The database's check constraints still keep stock and balances in range (`Data/HubDbContext.cs` L72–75), but a superuser can drop them
+- **Weaknesses used:** V6
+- **Requirements broken:** SR4, SR5, SR11, SR23, SR24
+- **Impact:** inventory and balances can't be trusted, and nothing records the change
+- **Risk:** High
+- **Shown:** demonstrated. The superuser login from outside the compose network (V6), then through the same login an update setting the Raspberry Pi kit's remaining stock to 0 succeeded (`UPDATE 1`) before it was rolled back (`evidence/abuse-case-checks-2026-11-15.txt`, check 2)
+
+### AC6 — Hoard stock (insider misuse)
+- **Attacker:** a legitimate instructor or advisor, or a group of them in one department program
+- **Goal:** tie up stock other courses and labs need, through the normal request flow
+- **Preconditions:** a real requester role; nothing else
+- **Steps:**
+  1. Request the maximum: 20 items, up to 1000 each, on a 365-day loan
+  2. Keep several tickets open at once; nothing limits one requester's or one department's share
+  3. Rely on volume to wear down the IT director's approval, the only gate (or skip it through V1)
+  4. Never return the devices, since an overdue device can't be written off; or drain the license keys or the voucher balance
+- **Weaknesses used:** no limit per requester or department (SR7; CWE-770)
+- **Requirements broken:** SR7
+- **Impact:** availability for everyone else, through something no one would call an attack
+- **Risk:** Medium
+- **Shown:** demonstrated. A request for 1000 kits against a stock of 10, on a 365-day loan, plus all three license keys, was accepted with a 201 while the same requester had other tickets pending (`evidence/sr-validation-2-2026-11-15.txt`)
+
+### AC7 — Misuse a real administrator role (privileged insider)
+- **Attacker:** a real administrator, using only the access the role gives; no V1 needed
+- **Goal:** take resources for themselves or a friend, and make it look like routine work
+- **Preconditions:** the administrator role
+- **Steps:**
+  1. Allocate an approved ticket; the allocate response hands the administrator every key and device token issued (SR15 allows it: the role needs to run allocate)
+  2. Keep a device and mark it returned with its token; the return route checks only the token, so stock goes up and the device is never overdue (as in AC4, but with no impersonation)
+  3. Delete other requesters' pending tickets they don't want filled; an administrator can delete any pending ticket, and its history goes with it (V4)
+  4. Change total stock through `PUT /api/v1/assets/{id}` to make the numbers fit
+- **Weaknesses used:** V4; no separation of duties or second approval for allocation, returns or deletes (gaps note in section 2); the event log is the only check and it can be emptied (SR11)
+- **Requirements broken:** SR9 (a return is accepted on the token alone), SR11
+- **Impact:** a trusted role can take stock and remove the trail with no other person involved, so the controls that hold against outsiders (SR1, SR3, SR10) don't help here
+- **Risk:** Medium: it needs a trusted role, but nothing in the system would catch it
+- **Shown:** partly demonstrated. The administrator received the keys and tokens on allocate and returned a device with its token (`evidence/sr-validation-2026-11-15.txt`, SR3 and SR8); the code lets an administrator delete any pending ticket (`Endpoints/TicketEndpoints.cs` L192); deleting a pending ticket removed its events (V4). I didn't delete another requester's ticket as the administrator
+
+**Left out:** flooding the API (G5) and a poisoned base image (M6). Both are real, but they're generic to any service rather than shaped by this one, and the second is from review only. They stay as findings and are picked up in the STRIDE matrix.
+
+### 3.1 Coverage check
+
+| Finding | Abuse cases |
+|---|---|
+| V1 | AC1, AC2, AC3, AC4 |
+| V2 | AC1, AC2, AC4 |
+| V3 | AC1 |
+| V4 | AC3, AC7 |
+| V5 | AC4 |
+| V6 | AC1, AC3, AC5 |
+| M7, M8 | AC1 |
+| M6, G5 | none (left out above) |
+
+Every High-risk finding (V1, V2, V3, V6) appears in at least one case.
+
+| Requirement group | Broken by |
+|---|---|
+| A1 Requests and approval | AC2 (SR2) |
+| A2 Allocation | AC5 (SR4, SR5), AC6 (SR7) |
+| A3 Devices and returns | AC4, AC7 (SR9) |
+| A4 Catalog and records | AC2, AC3, AC5, AC7 (SR11) |
+| B1 Identity and access | AC1, AC2, AC3, AC4 |
+| B2 Protecting data | AC1, AC2, AC4 |
+| B3 Input | none; held up in testing |
+| B4 Errors and logging | AC1 (SR21), AC3, AC4 (SR22) |
+| B5 Platform | AC1, AC3, AC5 (SR23, SR24) |
+
+**What this shows:** the requirements that tested as met (SR1, SR3–SR6, SR8–SR10, SR19, SR20) aren't broken by any case through the API, but AC5's database route goes around all of them, because they live in the application and V6 skips the application.
 
 ## 4. Attack trees
 
