@@ -10,6 +10,14 @@ Running journal of how I work with AI tools on this project: what they got wrong
 
 > First drafts by the chat assistant during our session, rewritten by me during intervals between sub-phase work in this session.
 
+### 2026-11-15 — Asking the assistant about one thing usually turned up two or three more
+
+**What happened:** most every security question I've asked has come back with 2 or 3 additional findings. Asking if requirements were sound came back with additional ideas. Asking it to check the db part of the event log found that events can be deleted directly. It's review of my STRIDE matrix added additional, missed data flows and the log rotation issue, and asking about the attack sruface map added the db volume and CI secret. 
+
+**Why it matters:** most of these were real, and some became the strongest findings for the analysis, but the scope grew with every question, and so did the document, past 13,000 words. The assistant doesn't weigh whether a new finding is worth the space; it just reports it. Deciding what stays in, what becomes a Low candidate and what gets left out was my job, and I had to do it on purpose rather than accept each addition as it came. 
+
+---
+
 ### 2026-11-15 — The assistant overstated its own part in the record
 
 **What happened:** I noticed the assistant sometimes writes up the work as if it did or decided more than it did. In the initial journal entry about the event log, it wrote that it "recommended widening SR11", when I had found the gap and laid out both options and it only agreed with one. The first version of that entry was also about the requirement rather than about our collaboration, which left out that the assistant had missed the gap in two reviews. It also summarizes steps as "updated X" when I chose what X should be and it only wrote it down.
