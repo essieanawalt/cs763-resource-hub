@@ -27,3 +27,12 @@ $ docker run --rm -v cs763-resource-hub_db-data:/data:ro alpine grep -rl 'JBIDE-
 /data/18/docker/base/16384/16574
 
 Result: the key appears in two table data files and in the write-ahead log (pg_wal).
+
+4) G8: the api container's log configuration on this host. ~22:39 UTC
+
+$ docker inspect $(docker compose ps -q api) --format '{{json .HostConfig.LogConfig}}'
+{"Type":"local","Config":{}}
+
+Result: Docker Desktop uses the "local" logging driver with no options set, so its defaults
+apply (Docker documents them as 20 MB per file and 5 files, about 100 MB per container,
+oldest file removed on rotation). The log is bounded on this host, and old lines are dropped.
