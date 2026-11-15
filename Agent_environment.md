@@ -24,7 +24,7 @@
 | Conceptual AI contribution (section 9) | ~60% AI / ~40% me |
 | My part | Decided to pin the model and turn off auto-updates; edited `~/.claude/settings.json` myself; restarted Claude Code and verified the session info; decided to record PA2 changes in a separate update section instead of changing the PA1 sections; rewrote the section intro, the table and the notes; reorganized the file and added the table of contents structure |
 | AI part (Claude chat assistant) | Pointed out the model alias and auto-update gaps and how to close them; drafted the first version of section 9 (tables and notes); generated the table-of-contents links |
-| Design-aid prompts | Setup only (agent configuration); no design-aid prompts for this section. PA2 design-aid prompts are logged in `.ai_logs/PA2/` |
+| Design-aid prompts | Setup only (agent configuration); no design-aid prompts for this section. PA2 design-aid prompts are logged in `PA2/.ai_logs/` |
 
 ## 9. Update for PA2 (2026-11-13)
 
@@ -61,7 +61,7 @@ Notes:
 | Conceptual AI contribution (section 10) | ~55% AI / ~45% me |
 | My part | Moved the PA1 app into `functional-codebase/` doing the move and path fixes myself; created the base for a new spec file and updated references; decided to restrict the agent's reads and ran the test session; decided to keep the rules and accept some bleed through search; noticed and recorded the version change from `/status`; decided to move the model and update settings into the repo, record the version each session instead of locking it, and stay on the desktop app |
 | AI part (Claude chat assistant) | Suggested the read restrictions and the test; analyzed the test output and found the search gap; drafted this section |
-| Design-aid prompts | Logged in `.ai_logs/PA2/2026-11-14_naive-build-log.md` |
+| Design-aid prompts | Logged in `PA2/.ai_logs/2026-11-14_naive-build-log.md`, `2026-11-14_spec-walkthrough-log.md` and `2026-11-14_agent-build-log.md` |
 
 ## 10. Update for the PA2 build (2026-11-14)
 
@@ -76,6 +76,10 @@ Changes made on the build day, before the first PA2 prompt.
 | Where the model pin and auto-update setting live | `~/.claude/settings.json` (global, set 2026-11-13, section 9) | Repo `.claude/settings.json`: `"model": "claude-opus-5-5"`, `"env": {"DISABLE_AUTOUPDATER": "1"}` | The global file applied to all my Claude Code use, not just this project. In the repo they only apply to sessions started there |
 | Version control | Auto-updates turned off | Not locked. The version is read from `/status` at the start of each session and recorded | The version changed anyway (2.1.321 → 2.1.325). A fixed install with every update blocked was considered and not done, because it would affect other work on this machine |
 | Working folder for the build session | Repo root (`cs763-resource-hub/`) | `functional-codebase/`, plus `/add-dir ../../MyAI/PA2` for task notes. Files at the repo root (`spec-domain2.md`, `README.md`, solution, Docker and build files) are read or changed only after I approve each request | The read restrictions blocked direct reads but not searches, and my logs must stay in `.ai_logs/` at the repo root. Starting one folder down keeps the logs, the PA1 spec and old scan results outside the agent's working folder, so reaching them needs my approval, and each approval shows in the transcript. Whether the repo's `.claude/settings.json` (model pin, auto-update setting, read restrictions) still loads from the subfolder is checked at the start of the session with `/status`, `/permissions` and `/memory` |
+| Repository layout (from 2026-11-14, evening) | One `.ai_logs/` and one `functional-codebase/` at the repo root | `PA1/` and `PA2/`, each with its own `.ai_logs/` and `functional-codebase/`. Build files, pipeline, specs and deliverable docs stay at the root and point at `PA2/functional-codebase/`. The conceptual journal is split into `PA1/.ai_logs/` and `PA2/.ai_logs/` | Phase folders as directed in class. The pipeline excludes `PA1/` from Semgrep, Trivy and SonarQube so the PA1 copy isn't scanned twice |
+| Build approach | Code first, tests after (attempt 1) | Test first (TDD). Attempt 1 is kept on the branch `pa2-attempt1-code-first`, with its transcript and task note; `PA2/functional-codebase/` starts empty, as directed in class; the root build files stay and `spec-domain2.md` names the project paths they expect | TDD was mentioned in class; it isn't in the written project description or spec, so attempt 1 was built code first |
+| Working folder for the TDD build | `functional-codebase/` (attempt 1) | `PA2/functional-codebase/`, plus `/add-dir ../../../MyAI/PA2` | Same reason as the row above; the other phase and all logs stay outside the working folder |
+| Read restriction paths | `./…` (relative to the current folder) | `/…` (relative to the repo root, where the settings file is): `/PA1/**`, `/PA2/.ai_logs/**`, `/evidence/**`, `/spec.md`, `/Prompt_test_log.md`, `/code_AI_history.md`, `/Agent_environment.md` | A `./` rule is relative to the folder Claude Code starts in, so once it started in a subfolder the old rules no longer pointed at the root files. Attempt 1 relied on the working folder and my approvals instead |
 
 Restriction test (separate throwaway session, not used for the build):
 
