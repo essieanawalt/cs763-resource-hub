@@ -10,6 +10,38 @@ Running journal of how I work with AI tools on this project: what they got wrong
 
 > First drafts by the chat assistant during our session, rewritten by me during intervals between sub-phase work in this session.
 
+### 2026-11-15 — I brought the theory, the assistant built the test, and it went both ways
+
+**What happened:** while writing the requirements I left myself a note that deleting a pending ticket probably deletes its events too, because they're set to cascade. I asked the assistant to check what it could from notes I had left in my draft, and it wrote a test which confirmed it, which then became V4. The same thing happened with hoarding: I asked what it would look like, it should someone could request an obscene number and have it accepted. It also went the other way. My guesses that a requester could submit for any course, that vouchers might skip the stock locking, and that asset responses had null checks missing were all disproved by the code and the tests.
+
+**Why it matters:** the useful split was me deciding what to suspect and the assistant turning that into something runnable, and then me reading the result. Disproving my own guesses mattered as much as confirming them, because it kept findings out of the analysis that would have been wrong
+
+---
+
+### 2026-11-15 — Reading the code wasn't the same as running it
+
+**What happened:** after the review, most requirements were marked "Met (review)" from reading the code, and most of them held when tested. But the runs found things the reading hadn't: a refused approval leaves no event and no log line, ticket history can be deleted, and the database accepts edits and deletes to the event log from outside the API.
+
+**Why it matters:** I kept "Met (review)" and "Met (tested)" as separate labels so the analysis says how each claim was checked. A requirement that only reads as met is still a guess until it's run
+
+---
+
+### 2026-11-15 — Three minor settings added up to the worst finding
+
+**What happened:** a fallback password, a database port open on all interfaces and an app user that's a superuser were each a medium or low candidate on their own. Together they let a separate container log in from outside the compose network as superuser and change stock directly (V6). Two of the three came from the PA1 compose file, not the PA2 build.
+
+**Why it matters:** rating findings one at a time hid the chain, and so did assuming the risk was in the generated code. The worst finding was mostly in configuration
+
+---
+
+### 2026-11-15 — Mistakes in the assistant's own output that I caught
+
+**What happened:** reviewing the analysis, I found a requirement citing an unfilled placeholder (`{E2}`) instead of an evidence file, a scope line that still listed only V1–V3, and a CWE still marked "(check)". The assistant also caught one of its own: it had described the allocation protection as "conditional updates" in both documents, when the code locks the rows and then checks.
+
+**Why it matters:** the assistant edits a lot of text quickly, and small stale or broken references slip through even when the analysis itself is right. Rereading its edits against the evidence is part of the work, not an extra
+
+---
+
 ### 2026-11-15 — The scanners passed code I could take over with one header
 
 **What happened:** after the parse fix, Semgrep and SonarQube covered the whole source and reported 0 security findings, 0 hotspots, and a passed quality gate. I was able to use `curl`  to send the admin id in the header and obtained a license key, read a ticket's user with no header at all, and accessed the keys stored as plain text in the db
