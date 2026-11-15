@@ -1,0 +1,120 @@
+Run on 2026-11-15 21:14 UTC, repo commit bcb6999
+
+========================================================================
+SR15 / SR17: malformed input (expect 400 or 415, never 500, no stack trace)
+========================================================================
+
+[broken JSON] -> 400
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.1","title":"Bad Request","status":400,"traceId":"00-2f5ac65139ce2449500136f373c0dcb5-3da82cc84fda213f-00"}
+stack-trace lines: 0
+
+[wrong type (quantity as text)] -> 400
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.1","title":"Bad Request","status":400,"traceId":"00-ef44786da0f20ad590cead6ca50fd593-a81ef811645bc85f-00"}
+stack-trace lines: 0
+
+[negative quantity] -> 400
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.1","title":"One or more validation errors occurred.","status":400,"errors":{"items[0].quantity":["Must be between 1 and 1000."]},"traceId":"00-710628b3bc51bc678daab63f7aa9c37d-5bbaca164b34887c-00"}
+stack-trace lines: 0
+
+[notes of 3000 characters] -> 400
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.1","title":"One or more validation errors occurred.","status":400,"errors":{"notes":["At most 2000 characters."]},"traceId":"00-2a72dcf0c518051b51e059deaf915504-1c2d7681062cc485-00"}
+stack-trace lines: 0
+
+[unknown status value] -> 400
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.1","title":"Bad Request","status":400,"traceId":"00-971e013d5dc56a3a7c2f4800dcab9a08-cb69cd513c0adc78-00"}
+stack-trace lines: 0
+
+[empty body] -> 400
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.1","title":"Bad Request","status":400,"traceId":"00-a681c8265c2597aac338335fef705c9a-438112197dd32432-00"}
+stack-trace lines: 0
+
+[text/plain body] -> 415
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.16","title":"Unsupported Media Type","status":415,"traceId":"00-ef2eaf3c34371f5e3bf37deb152a3e6b-0229ae26d4786ef9-00"}
+stack-trace lines: 0
+
+[route id not a GUID] -> 404
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.5","title":"Not Found","status":404,"traceId":"00-f7499abebb54f1694ec36b6847631927-6ac36fd4da41fd99-00"}
+stack-trace lines: 0
+
+[X-User-Id not a GUID] -> 401
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unknown caller.","status":401,"detail":"Send the id of a known user in the X-User-Id header.","traceId":"00-32cb23d4b72ab98b39693684d3928c94-1f655702732314ab-00"}
+stack-trace lines: 0
+
+========================================================================
+Search wildcards and SQL-like text (expect the same count as a plain search, or 0; never every asset)
+========================================================================
+search=Laptop -> "total":1
+search=%25 -> "total":0
+search=_ -> "total":0
+search=%27%20OR%201%3D1-- -> "total":0
+
+========================================================================
+M8: the 401 message (no header)
+========================================================================
+
+[allocate with no header] -> 401
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unknown caller.","status":401,"detail":"Send the id of a known user in the X-User-Id header.","traceId":"00-fa94fe88bffd3520aa95fbd052a0bf7c-f42c31811b3a900f-00"}
+stack-trace lines: 0
+
+========================================================================
+SR24: every read route with no header (which ones answer?)
+========================================================================
+GET health                 200
+GET assets                 200
+GET assets/{id}            200
+GET tickets                200
+GET tickets/{id}           200
+GET allocations?courseId   401
+
+========================================================================
+SR23: user ids handed out with no header (ticket list and one ticket's detail)
+========================================================================
+distinct requester ids in the ticket list:
+"requesterId":"40000000-0000-4000-8000-000000000001"
+distinct actor ids in one ticket's events:
+"actorId":"40000000-0000-4000-8000-000000000001"
+"actorId":"40000000-0000-4000-8000-000000000005"
+"actorId":"40000000-0000-4000-8000-000000000006"
+
+========================================================================
+SR25: response headers on the allocations listing (returns license keys and device tokens)
+========================================================================
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Date: Sun, 15 Nov 2026 21:14:47 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+
+
+========================================================================
+SR10 in the database: through V6, change and delete events, then roll back (expect UPDATE/DELETE to succeed)
+========================================================================
+BEGIN
+ events_before 
+---------------
+            15
+(1 row)
+
+UPDATE 0
+DELETE 6
+ events_inside_transaction 
+---------------------------
+                         9
+(1 row)
+
+ROLLBACK
+ events_after_rollback 
+-----------------------
+                    15
+(1 row)
+
+
+========================================================================
+Hoarding probe: Dr. Chen asks for 1000 Pi kits (stock 10) on a 365-day loan plus every license key; is it accepted?
+========================================================================
+status: 201
+ticket: 6875a23f-f5cc-411f-b4a1-8733c8fa9966
+Dr. Chen's pending tickets now: 3
+cleanup, delete the probe ticket: 204
+
+Done.

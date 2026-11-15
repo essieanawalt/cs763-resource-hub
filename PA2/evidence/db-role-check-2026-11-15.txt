@@ -1,0 +1,29 @@
+Database role check — 2026-11-15
+Stack: local docker compose (db service, postgres:18), built from 4d39740
+Purpose: confirm G2 / SR20 (the API's database user is a superuser)
+
+[REDACTED: shell prompt] docker compose exec db psql -U resourcehub -c '\du'
+                              List of roles
+  Role name  |                         Attributes
+-------------+------------------------------------------------------------
+ resourcehub | Superuser, Create role, Create DB, Replication, Bypass RLS
+
+Result: resourcehub, the user the API connects as, has Superuser, Create role,
+Create DB, Replication and Bypass RLS.
+
+------------------------------------------------------------------------
+Network login with the fallback password (M4 + G4 + G2), 2026-11-15 ~21:06 UTC
+No .env file exists, so compose uses the fallback POSTGRES_PASSWORD (resourcehub_dev).
+A separate throwaway container, outside the compose network, connects to the
+host's published port 5432 with that password:
+
+[REDACTED: shell prompt] docker run --rm -e PGPASSWORD=resourcehub_dev postgres:18 psql -h host.docker.internal -U resourcehub -d resourcehub -c 'SELECT current_user, usesuper FROM pg_user WHERE usename = current_user;'
+ current_user | usesuper
+--------------+----------
+ resourcehub  | t
+(1 row)
+
+Result: login accepted from outside the compose network with the committed
+fallback password, as a superuser. Limit: this reached the port through the
+host itself (host.docker.internal); a login from a second machine on the
+network was not tried, though the port is bound on all host interfaces.

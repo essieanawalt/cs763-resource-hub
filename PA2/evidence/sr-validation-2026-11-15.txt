@@ -1,0 +1,233 @@
+Run on 2026-11-15 20:57 UTC, repo commit bcb6999
+
+$ curl http://localhost:8080/api/v1/health
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{"status":"healthy","database":"reachable"}
+
+
+========================================================================
+SR1: Dr. Chen submits a ticket for EE580, a course she doesn't teach (expect 403)
+========================================================================
+
+$ curl -X POST http://localhost:8080/api/v1/assets/tickets -H X-User-Id: 40000000-0000-4000-8000-000000000001 -H Content-Type: application/json -d {"courseId":"10000000-0000-4000-8000-000000000002","items":[{"assetId":"50000000-0000-4000-8000-000000000002","quantity":1}]}
+HTTP/1.1 403 Forbidden
+Content-Type: application/problem+json
+
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.4","title":"Not allowed.","status":403,"detail":"Course instructors request for their own course and lab advisors for their own research lab.","traceId":"00-41ca41a5ad08a59341620bb773f21b6d-0e6d4af25666402a-00"}
+
+
+========================================================================
+SR2 setup: T1 = 2 laptops, approved
+========================================================================
+T1=37694f38-4d81-4603-8dc4-2a0903f8d674
+approve 37694f38-4d81-4603-8dc4-2a0903f8d674: 200
+
+========================================================================
+SR2: Dr. Chen edits the contents of approved T1 (expect 409)
+========================================================================
+
+$ curl -X PUT http://localhost:8080/api/v1/assets/tickets/37694f38-4d81-4603-8dc4-2a0903f8d674 -H X-User-Id: 40000000-0000-4000-8000-000000000001 -H Content-Type: application/json -d {"courseId":"10000000-0000-4000-8000-000000000001","notes":"changed after approval","items":[{"assetId":"50000000-0000-4000-8000-000000000002","quantity":5}]}
+HTTP/1.1 409 Conflict
+Content-Type: application/problem+json
+
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.10","title":"Only pending tickets can be changed.","status":409,"detail":"The ticket is approved.","traceId":"00-a199f284ccf2e9cc38dda313ff075628-2fc42cee4a601fd8-00"}
+
+
+========================================================================
+SR2: refused transition. T2 pending; Dr. Chen (wrong role) tries to approve it (expect 403), then is the refusal recorded?
+========================================================================
+T2=6b6c620a-39e6-4ff5-a269-3bf05a512c3b
+
+$ curl -X PUT http://localhost:8080/api/v1/assets/tickets/6b6c620a-39e6-4ff5-a269-3bf05a512c3b -H X-User-Id: 40000000-0000-4000-8000-000000000001 -H Content-Type: application/json -d {"status":"approved"}
+HTTP/1.1 403 Forbidden
+Content-Type: application/problem+json
+
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.4","title":"Not allowed.","status":403,"detail":"Moving a ticket to approved needs the ItDirector role.","traceId":"00-685ff3b6f6c05b5be16997cf063bae3f-637a6799a279c937-00"}
+
+$ psql: SELECT "Type", "ActorId", "Detail" FROM ticket_events WHERE "TicketId" = '6b6c620a-39e6-4ff5-a269-3bf05a512c3b' ORDER BY 1;
+   Type    |               ActorId                |        Detail        
+-----------+--------------------------------------+----------------------
+ Submitted | 40000000-0000-4000-8000-000000000001 | 1 asset(s) requested
+(1 row)
+
+
+========================================================================
+SR3: allocate T1 (expect 200), then allocate T1 again (expect 409)
+========================================================================
+{"ticketId":"37694f38-4d81-4603-8dc4-2a0903f8d674","status":"allocated","allocatedAt":"2026-11-15T20:57:59.6393567+00:00","allocations":[{"id":"195a0bce-aba6-49a6-b9e8-cc4190046f9b","ticketId":"37694f38-4d81-4603-8dc4-2a0903f8d674","assetId":"50000000-0000-4000-8000-000000000002","assetName":"Dell Latitude 7450 laptop","assetType":"physical","category":"Laptop","allocatedAt":"2026-11-15T20:57:59.6393567+00:00","quantity":2,"devices":[{"token":"HW-F7A805F3FC1D0B850608","checkedOutAt":"2026-11-15T20:57:59.6393567+00:00","dueAt":"2026-12-15T20:57:59.6393567+00:00","status":"checkedout"},{"token":"HW-5AA06BA1752E05D8C5F0","checkedOutAt":"2026-11-15T20:57:59.6393567+00:00","dueAt":"2026-12-15T20:57:59.6393567+00:00","status":"checkedout"}]}]}
+TOKEN=HW-F7A805F3FC1D0B850608
+
+$ curl -X POST http://localhost:8080/api/v1/assets/tickets/37694f38-4d81-4603-8dc4-2a0903f8d674/allocate -H X-User-Id: 40000000-0000-4000-8000-000000000006
+HTTP/1.1 409 Conflict
+Content-Type: application/problem+json
+
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.10","title":"Only approved tickets can be allocated.","status":409,"detail":"The ticket is allocated.","traceId":"00-8f94a750fea4a2b2634644e90e36e9aa-de2a3832f1b929c2-00"}
+
+
+========================================================================
+SR5: lower laptop total stock to 1 while devices are out (expect 409)
+========================================================================
+
+$ curl -X PUT http://localhost:8080/api/v1/assets/50000000-0000-4000-8000-000000000002 -H X-User-Id: 40000000-0000-4000-8000-000000000006 -H Content-Type: application/json -d {"name":"Dell Latitude 7450 laptop","type":"physical","category":"Laptop","departmentProgram":"Computer Science","units":1,"defaultLoanDays":30}
+HTTP/1.1 409 Conflict
+Content-Type: application/problem+json
+
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.10","title":"Total stock below units already handed out.","status":409,"detail":"2 units are checked out; total stock cannot go below that.","traceId":"00-a0218ce3e7564f8248a9281e3fe7e8db-e9d28c3f19824c9f-00"}
+
+
+========================================================================
+SR7 / SR16: update the laptop with extra fields remainingStock=999 and status=overdue (expect remaining stock unchanged)
+========================================================================
+
+$ curl http://localhost:8080/api/v1/assets/50000000-0000-4000-8000-000000000002
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{"id":"50000000-0000-4000-8000-000000000002","name":"Dell Latitude 7450 laptop","type":"physical","category":"Laptop","departmentProgram":"Computer Science","totalStock":5,"remainingStock":3,"defaultLoanDays":30,"availability":{"isAvailable":true,"available":3,"reserved":0,"checkedout":2,"overdue":0},"createdAt":"2026-11-01T00:01:00+00:00","updatedAt":"2026-11-15T20:57:59.639356+00:00"}
+
+
+$ curl -X PUT http://localhost:8080/api/v1/assets/50000000-0000-4000-8000-000000000002 -H X-User-Id: 40000000-0000-4000-8000-000000000006 -H Content-Type: application/json -d {"name":"Dell Latitude 7450 laptop","type":"physical","category":"Laptop","departmentProgram":"Computer Science","units":5,"defaultLoanDays":30,"remainingStock":999,"remainingUnits":999,"status":"overdue"}
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{"id":"50000000-0000-4000-8000-000000000002","name":"Dell Latitude 7450 laptop","type":"physical","category":"Laptop","departmentProgram":"Computer Science","totalStock":5,"remainingStock":3,"defaultLoanDays":30,"availability":{"isAvailable":true,"available":3,"reserved":0,"checkedout":2,"overdue":0},"createdAt":"2026-11-01T00:01:00+00:00","updatedAt":"2026-11-15T20:57:59.7379528+00:00"}
+
+
+========================================================================
+SR16: Dr. Chen submits a ticket with requesterId set to the administrator (expect requesterId = Dr. Chen)
+========================================================================
+
+$ curl -X POST http://localhost:8080/api/v1/assets/tickets -H X-User-Id: 40000000-0000-4000-8000-000000000001 -H Content-Type: application/json -d {"courseId":"10000000-0000-4000-8000-000000000001","requesterId":"40000000-0000-4000-8000-000000000006","items":[{"assetId":"50000000-0000-4000-8000-000000000002","quantity":1}]}
+HTTP/1.1 201 Created
+Content-Type: application/json; charset=utf-8
+Location: /api/v1/assets/tickets/063c6fd5-a312-46f6-aa13-59a5691dcc5a
+
+{"id":"063c6fd5-a312-46f6-aa13-59a5691dcc5a","status":"pending","requesterId":"40000000-0000-4000-8000-000000000001","courseId":"10000000-0000-4000-8000-000000000001","items":[{"assetId":"50000000-0000-4000-8000-000000000002","assetName":"Dell Latitude 7450 laptop","assetType":"physical","category":"Laptop","quantity":1}],"createdAt":"2026-11-15T20:57:59.748673+00:00","updatedAt":"2026-11-15T20:57:59.748673+00:00"}
+
+
+========================================================================
+SR8: return TOKEN (expect 200), return it again (expect 409), return a made-up token (expect 404)
+========================================================================
+
+$ curl -X POST http://localhost:8080/api/v1/assets/50000000-0000-4000-8000-000000000002/return -H X-User-Id: 40000000-0000-4000-8000-000000000006 -H Content-Type: application/json -d {"token":"HW-F7A805F3FC1D0B850608"}
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{"token":"HW-F7A805F3FC1D0B850608","assetId":"50000000-0000-4000-8000-000000000002","ticketId":"37694f38-4d81-4603-8dc4-2a0903f8d674","checkedOutAt":"2026-11-15T20:57:59.639356+00:00","dueAt":"2026-12-15T20:57:59.639356+00:00","returnedAt":"2026-11-15T20:57:59.7636591+00:00","checkoutDurationHours":0,"wasOverdue":false,"remainingStock":4}
+
+
+$ curl -X POST http://localhost:8080/api/v1/assets/50000000-0000-4000-8000-000000000002/return -H X-User-Id: 40000000-0000-4000-8000-000000000006 -H Content-Type: application/json -d {"token":"HW-F7A805F3FC1D0B850608"}
+HTTP/1.1 409 Conflict
+Content-Type: application/problem+json
+
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.10","title":"Device already returned.","status":409,"detail":"It was returned at 2026-11-15T20:57:59.7636590+00:00.","traceId":"00-ef11b040cd02da371e3130309b41250c-417c8a2d3410a12f-00"}
+
+
+$ curl -X POST http://localhost:8080/api/v1/assets/50000000-0000-4000-8000-000000000002/return -H X-User-Id: 40000000-0000-4000-8000-000000000006 -H Content-Type: application/json -d {"token":"MADE-UP-TOKEN-0000"}
+HTTP/1.1 404 Not Found
+Content-Type: application/problem+json
+
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.5","title":"No device with this token was checked out from this asset.","status":404,"traceId":"00-eb1635a8673a6f73c3d56e5096dda78e-eba5677f1b35a600-00"}
+
+
+========================================================================
+SR4: two voucher allocations at once that together exceed the balance (expect one 200, one 409, balance never below 0)
+========================================================================
+balance before=5000.00, each ticket asks for 3000.00
+V1=4a2dd014-4d3e-4618-aca4-32d698dac40a V2=8950d5bf-70fe-47ef-af1b-c77b1df90cf3
+approve 4a2dd014-4d3e-4618-aca4-32d698dac40a: 200
+approve 8950d5bf-70fe-47ef-af1b-c77b1df90cf3: 200
+allocate V1: 200
+allocate V2: 409
+{"ticketId":"4a2dd014-4d3e-4618-aca4-32d698dac40a","status":"allocated","allocatedAt":"2026-11-15T20:57:59.9326989+00:00","allocations":[{"id":"b21a0a84-7bf8-450d-9b14-800a85f23db1","ticketId":"4a2dd014-4d3e-4618-aca4-32d698dac40a","assetId":"50000000-0000-4000-8000-000000000004","assetName":"Cloud credit pool","assetType":"voucher","category":"Cloud credits","allocatedAt":"2026-11-15T20:57:59.9326989+00:00","amount":3000.00}]}
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.10","title":"Not enough stock to allocate this ticket.","status":409,"detail":"Nothing was allocated; the ticket stays approved and allocation can be run again later.","shortages":[{"assetId":"50000000-0000-4000-8000-000000000004","assetName":"Cloud credit pool","requested":3000.00,"available":2000.00}],"traceId":"00-d23cdfe34a37a502a7f142ac88bfdcb6-a26eb8a5f8676c27-00"}
+$ psql: SELECT "Balance", "TotalBalance" FROM assets WHERE "Id" = '50000000-0000-4000-8000-000000000004';
+ Balance | TotalBalance 
+---------+--------------
+ 2000.00 |      5000.00
+(1 row)
+
+
+========================================================================
+SR3 / SR6: each license key issued at most once, with ticket and time; devices recorded with ticket and check-out time
+========================================================================
+$ psql: SELECT "Key", "IssuedTicketId", "AllocationId", "IssuedAt" FROM license_keys ORDER BY 1;
+       Key       |            IssuedTicketId            |             AllocationId             |           IssuedAt            
+-----------------+--------------------------------------+--------------------------------------+-------------------------------
+ JBIDE-3PLR-8WVN |                                      |                                      | 
+ JBIDE-7K2M-Q9XA | bd7d262c-7530-47a7-a1c8-385585516122 | 2faa8433-1e67-4679-b4f2-2b7337e9512d | 2026-11-15 17:28:11.506733+00
+ JBIDE-M4TD-2HCE |                                      |                                      | 
+(3 rows)
+
+$ psql: SELECT "Token", "TicketId", "CheckedOutAt", "ReturnedAt" FROM device_assignments ORDER BY "CheckedOutAt";
+          Token          |               TicketId               |         CheckedOutAt          |          ReturnedAt           
+-------------------------+--------------------------------------+-------------------------------+-------------------------------
+ HW-5AA06BA1752E05D8C5F0 | 37694f38-4d81-4603-8dc4-2a0903f8d674 | 2026-11-15 20:57:59.639356+00 | 
+ HW-F7A805F3FC1D0B850608 | 37694f38-4d81-4603-8dc4-2a0903f8d674 | 2026-11-15 20:57:59.639356+00 | 2026-11-15 20:57:59.763659+00
+(2 rows)
+
+
+========================================================================
+SR9: delete the laptop, which is in use (expect 409); create an unused asset and delete it (expect 204)
+========================================================================
+
+$ curl -X DELETE http://localhost:8080/api/v1/assets/50000000-0000-4000-8000-000000000002 -H X-User-Id: 40000000-0000-4000-8000-000000000006
+HTTP/1.1 409 Conflict
+Content-Type: application/problem+json
+
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.10","title":"Asset is in use.","status":409,"detail":"Tickets or allocations refer to this asset, so it cannot be deleted.","traceId":"00-22e506e2621273964bbbcf58854c968f-7588cd2eda1963ca-00"}
+
+A=89a14aa3-3bd5-48dc-ba85-f31d567f9240
+
+$ curl -X DELETE http://localhost:8080/api/v1/assets/89a14aa3-3bd5-48dc-ba85-f31d567f9240 -H X-User-Id: 40000000-0000-4000-8000-000000000006
+HTTP/1.1 204 No Content
+
+
+
+========================================================================
+SR10: submit T3, read its events, delete it as the requester, then check the events table directly
+========================================================================
+T3=189ee508-b51c-409f-8d81-d671f05f0e81
+$ psql: SELECT "Type", "ActorId" FROM ticket_events WHERE "TicketId" = '189ee508-b51c-409f-8d81-d671f05f0e81';
+   Type    |               ActorId                
+-----------+--------------------------------------
+ Submitted | 40000000-0000-4000-8000-000000000001
+(1 row)
+
+
+$ curl -X DELETE http://localhost:8080/api/v1/assets/tickets/189ee508-b51c-409f-8d81-d671f05f0e81 -H X-User-Id: 40000000-0000-4000-8000-000000000001
+HTTP/1.1 204 No Content
+
+
+$ psql: SELECT count(*) AS events_left FROM ticket_events WHERE "TicketId" = '189ee508-b51c-409f-8d81-d671f05f0e81';
+ events_left 
+-------------
+           0
+(1 row)
+
+
+========================================================================
+SR18: is the returned token in the application log? Are the refused requests above logged?
+========================================================================
+lines containing TOKEN:
+1
+api-1  |       Device HW-F7A805F3FC1D0B850608 of asset 50000000-0000-4000-8000-000000000002 returned by 40000000-0000-4000-8000-000000000006 (overdue: False)
+lines mentioning refusals (401/403/forbidden/unknown caller):
+0
+
+========================================================================
+SR22: page size above the cap, then 60 fast requests (any 429?)
+========================================================================
+
+  60 200
+
+Done.
+
+========================================================================
+Follow-up (SR22 page size), run by hand 2026-11-15 21:00 UTC; the script's
+page-size grep printed nothing because the API answers with a 400, not a page
+========================================================================
+$ curl -s "http://localhost:8080/api/v1/assets?pageSize=500" | tail -c 200
+section-15.5.1","title":"One or more validation errors occurred.","status":400,"errors":{"pageSize":["Must be between 1 and 100."]},"traceId":"00-da89a8740fea83759e9875b1b5abf9f6-eaf87aa381d755da-00"}
