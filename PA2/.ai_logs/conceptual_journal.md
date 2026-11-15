@@ -10,6 +10,26 @@ Running journal of how I work with AI tools on this project: what they got wrong
 
 > First drafts by the chat assistant during our session, rewritten by me during intervals between sub-phase work in this session.
 
+### 2026-11-15 — The scanners passed code I could take over with one header
+
+**What happened:** after the parse fix, Semgrep and SonarQube covered the whole source and reported 0 security findings, 0 hotspots, and a passed quality gate. I was able to use `curl`  to send the admin id in the header and obtained a license key, read a ticket's user with no header at all, and accessed the keys stored as plain text in the db
+
+**Why it matters:** a clean scan and a passed gate said nothing about the three most serious problems, because they're design gaps, not code patterns a scanner recognizes. I spotted the first one by reading the code ("roles can be spoofed") and confirmed all three by testing them directly
+
+---
+
+### 2026-11-15 — The agent's code was partly unreadable to its own pipeline's scanner
+
+**What happened:** the first pipeline run on the TDD build had 0 findings, but the report showed three files were only partly parsed. This same issue happened in PA1, and it's because of the constructor. `AllocationService.cs` holds the allocation logic, so part of the most important file was never scanned. The agent ran the tests and reported a clean build, but never checked whether the scanner could read its code. The core difference from PA1 is that this agent didn't catch this error on its own.
+
+**How I caught it:** checking the `errors` section and parsed-lines figure (my PA1 lesson). I asked the facilitator whether I could change generated code; the answer was that testability fixes are fine if they're logged and attributed, and security fixes wait for PA3.
+
+**Fix:** I told the agent exactly what Semgrep couldn't parse and asked for only those changes. It rewrote the constructors, kept behaviour and tests the same, and confirmed with a local Semgrep run: 0 parse errors, and still 0 findings.
+
+**Why it matters:** "0 findings" looked clean before the fix but wasn't a full scan. Now the 0 actually covers the whole of the source
+
+---
+
 ### 2026-11-14 — Same agent, same spec, different protections between runs
 
 **What happened:** attempt 1 (code first) required the `X-User-Id` header on every route except health and never returned unissued license keys. Attempt 2's plan (test first, otherwise the same setup) said all GET routes would need no header and didn't mention the keys. The finished attempt 2 code moved partway back: the allocations listing, which shows issued keys, requires the header and checks the caller's course or lab, and unissued keys are hidden, but listing and reading assets and tickets is open to anyone.
@@ -39,35 +59,11 @@ Running journal of how I work with AI tools on this project: what they got wrong
 
 ---
 
-### 2026-11-14 — Agent comments from PA1 carried the old design into the new build
-
-> First draft by the Claude chat assistant from our conversation; to be rewritten by me.
-
-**What happened:** before the build, the chat assistant checked how the existing code overlaps with the new spec. Two comments Claude Code wrote in PA1 point to sections of my old spec, and one says "No X-User-Id needed", the user header from my PA1 design. The agent can't read the old spec, but it can read those comments.
-
-**Why it matters:** if the PA2 build adds a user header, I couldn't tell whether that was the agent's own choice or a hint from its earlier comments. I removed the references before the build, and once PA2 restarted from an empty folder the old code wasn't in the agent's folder at all.
-
----
-
 ### 2026-11-14 — The assistant overcorrected and dropped roles the spec names
 
-> First draft by the Claude chat assistant from our conversation; to be rewritten by me.
-
-**What happened:** after I flagged the over-design, the chat assistant swung the other way and stripped things out to keep the experiment clean, including the four roles the spec names. It had mixed up the roles existing with recording who did what. I pushed back on the framing and then on the roles.
+**What happened:** after I flagged the initial over-design from the chat assistant, it swung the other direction and focused on stripping things out for the sake of "keeping the experiment clean", including the four roles with spec names because they sounded security-ish.
 
 **Why it matters:** that's what led to the rule we used for the spec: fill in what the service does, leave how it's built to the agent, and leave security out. I had to correct it in both directions, not just once.
-
----
-
-### 2026-11-14 — What the spec's "Out of scope" list includes and leaves out
-
-> First draft by the Claude chat assistant from our conversation; to be rewritten by me.
-
-**What happened:** I asked the chat assistant why it chose the items in the spec's out-of-scope list. Calls to other services, notifications and a UI are there to stop scope creep, and expiry dates record a decision from the walkthrough.
-
-**What it left out:** my PA1 list had "real login" and a line saying security would come later. The assistant dropped both because naming security as excluded is a hint either way, and leaving it out means whatever the agent does about access is its own choice.
-
-**Why it matters:** an out-of-scope list steers the agent too, so it's limited to features and says nothing about security.
 
 ---
 
