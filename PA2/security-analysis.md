@@ -5,15 +5,18 @@
 | Item | Detail |
 |---|---|
 | Conceptual AI contribution | AI: _%_ / HUMAN: _%_ (to set once sections 3–7 are written) |
-| My part | Wrote the security requirements from the spec's business rules, including the review gaps, and chose to judge each on its own logic; checked every CWE against MITRE CWE 5.0; ran every test and check against the stack (`\du`, the network login, the requirement runs, the abuse case checks); decided which findings were confirmed and promoted (V4, V5, V6) and asked for M9 to be closed; asked for risk ratings and for data minimization, deny by default, the event log in the database and response headers to be explored; raised hoarding and asked to add it; decided on the renumbering; wrote AC1–AC6 and the coverage tables, and asked for AC7; caught the SR9 contradiction and proposed the fix; wrote the attack trees; found the SR11 scope gap and set out the two options, then chose to widen it; revised the attack surface map and ran the database volume check; caught stale and broken references and the assistant overstating its part |
-| AI part (Claude chat assistant) | Section skeleton; carried in the triage findings and protections; attack-surface routes read from the code; reviews of the requirements, abuse cases and attack trees against the code and evidence; test scripts and check commands; status updates from the results; V4–V6 write-ups (suggested testing the V6 chain); risk-rating scale and ratings; drafts of SR14, SR16, SR18 and SR7 (fair share); AC7 draft; renumbering; tree layout fixes; SR11 rewrite after she widened it; review of the attack surface map and the volume check command |
+| My part | Wrote the security requirements from the spec's business rules, including the review gaps, and chose to judge each on its own logic; checked every CWE against MITRE CWE 5.0; ran every test and check against the stack (`\du`, the network login, the requirement runs, the abuse case checks); decided which findings were confirmed and promoted (V4, V5, V6) and asked for M9 to be closed; asked for risk ratings and for data minimization, deny by default, the event log in the database and response headers to be explored; raised hoarding and asked to add it; decided on the renumbering; wrote AC1–AC6 and the coverage tables, and asked for AC7; caught the SR9 contradiction and proposed the fix; wrote the attack trees; found the SR11 scope gap and set out the two options, then chose to widen it; revised the attack surface map and ran the database volume check; drew the DFD and wrote the STRIDE matrix, raised the log integrity threat (G7), chose the host access scope rule, corrected G8's CWE and ran the log configuration check; caught stale and broken references and the assistant overstating its part |
+| AI part (Claude chat assistant) | Section skeleton; carried in the triage findings and protections; attack-surface routes read from the code; reviews of the requirements, abuse cases and attack trees against the code and evidence; test scripts and check commands; status updates from the results; V4–V6 write-ups (suggested testing the V6 chain); risk-rating scale and ratings; drafts of SR14, SR16, SR18 and SR7 (fair share); AC7 draft; renumbering; tree layout fixes; SR11 rewrite after she widened it; review of the attack surface map and the volume check command; review of the DFD and STRIDE matrix (two missing flows, host rule options, G8 draft and its correction after her check) |
 | Design-aid prompts | `.ai_logs/2026-11-15_security-analysis-log.md` (in this folder) |
 
 ## 1. Scope
 
 - **System analyzed:** the Domain 2 Resource Allocation & Help Desk Hub in `PA2/functional-codebase/` (C#/.NET 10 minimal API, EF Core, PostgreSQL 18, Docker Compose). Code as scanned at `4d39740`; later commits change file headers and line breaks only
 - **Inputs:** `spec-domain2.md`; `sast-triage-report.md` (scan results, validated vulnerabilities V1–V6, candidates, existing protections P1–P10); evidence in `evidence/`: `manual-validation-2026-11-15.txt`, `sr-validation-2026-11-15.txt`, `sr-validation-2-2026-11-15.txt`, `db-role-check-2026-11-15.txt`
-- _In and out of scope: to fill_
+- **Host access:** anyone with access to the host (its files, the database volume, the container logs, `docker` itself) is out of scope for prevention, since the application can't stop them. It stays in scope wherever the application could limit the damage: secrets readable in host files (DF7-I) and records that can be edited there (DS3-T). Threats that only a host-level control could address are marked "out of scope (host)" in the STRIDE matrix
+- **In scope:** the API and its PostgreSQL database as `docker-compose.yml` runs them on one host, the image build, and the CI pipeline configuration
+- **Out of scope:** what `spec-domain2.md` section 8 leaves out (calls to other Project Portal services, notifications, a user interface, expiry dates for keys and vouchers). No code is changed here; section 7 proposes changes
+- **Deployment assumption:** the API and the database share one host, so their traffic stays on the compose network (DF2). If the database moves to another machine, DF2 needs encryption
 
 ### 1.1 Confirmed vulnerabilities
 
@@ -44,6 +47,8 @@ From the triage review and my design-time notes. CWE ids checked against MITRE C
 | M8 | 401 message tells the caller how to get through ("Send the id of a known user in the X-User-Id header.") | `Services/Actors.cs` L31 | CWE-210 | Low |
 | G3 | Asset list and detail open to anyone (counts only, no keys) | `Endpoints/AssetEndpoints.cs` | CWE-862 (low) | Low |
 | G5 | No rate limiting: nothing in the source configures a rate limiter, and 60 fast requests all got 200 (carried from my PA1 notes, confirmed 2026-11-15, `evidence/sr-validation-2026-11-15.txt`, SR22) | all endpoints | CWE-770 | Medium |
+| G7 | Application log has no integrity protection: anyone with host access can edit or remove lines, and it's the only record of returns and asset changes (from the STRIDE review, not tested) | container log (DS3) | no clean CWE fit; nearest is CWE-221 (Class). The attack pattern is CAPEC-268, Audit Log Manipulation | Low |
+| G8 | Application log keeps only what the host's log settings allow: `docker-compose.yml` sets nothing, so the host decides. On this host (Docker Desktop) it's the `local` driver with its defaults, about 100 MB per container, oldest lines dropped first; a flood of requests (G5) can push out the only record of returns and asset changes (SR11). On a Docker Engine host with the `json-file` default and no limits, it would instead grow without bound (`evidence/abuse-case-checks-2026-11-15.txt`, check 4) | `docker-compose.yml`, container log (DS3) | CWE-779 (Logging of Excessive Data) | Low |
 
 **Reviewed, not a finding:** G1, `AllowedHosts: "*"` in `appsettings.json`. It's the ASP.NET template default, and nothing in the code reads the Host header or builds a link or redirect from it, so there's nothing to exploit here.
 
@@ -514,7 +519,7 @@ Common to all routes:
 |---|---|---|---|---|
 | PostgreSQL | Port 5432 published on all host interfaces; the stack uses the fallback password `resourcehub_dev`; the app's user is a superuser. Anyone who reaches it bypasses the API, and with it every rule in group A except the database's own check constraints, which a superuser can drop | V6, V3 | AC1, AC3, AC5 | High |
 | Configuration | `appsettings.json`; `appsettings.Development.json`, committed with the database password; compose environment with the fallback password | V6 (CWE-260 for the config file copy) | AC5 | Medium |
-| Logs | Application log receives the full device token on every return; returns and asset changes are recorded only here, not in the event log; refused attempts aren't recorded at all | V5; SR11, SR22 | AC3, AC4 | Medium |
+| Logs | Application log receives the full device token on every return; returns and asset changes are recorded only here, not in the event log; refused attempts aren't recorded at all | V5, G7, G8; SR11, SR22 | AC3, AC4 | Medium |
 | Database volume | The data lives in a named volume on the host (`docker-compose.yml` L11, L31). Needs access to the host's files; anyone with that can read the license keys there in plain text without going through the port. Shown: a known key was found in two table data files and in the write-ahead log (`evidence/abuse-case-checks-2026-11-15.txt`, check 3) | V3 | | Medium |
 | Container images and CI | Floating base image and runner tags; the CI pipeline builds and scans the code, using `SONAR_TOKEN` from GitHub secrets (`devsecops.yml` L50), a scanner token rather than app data | M6 | | Medium |
 | Startup | Migrations applied by the app at startup, using the superuser connection | V6 | | Medium |
@@ -523,13 +528,93 @@ Common to all routes:
 
 ### 6.1 Data flow diagram
 
-_Diagram and trust boundaries: to draw._
+Built from the code, `docker-compose.yml` and the attack surface map in section 5. Elements are split only where their threats differ: the identity check is its own process because V1 lives there, and the event log is its own store, though it sits in PostgreSQL, because that's where repudiation lives (V4, SR11).
 
-Elements identified so far, from the code and compose file:
-- **External entity:** API caller (any HTTP client; the role is whatever `X-User-Id` claims)
-- **Processes:** API endpoints → services (identity stand-in `Actors`, validation, allocation, ticket transitions) → EF Core
-- **Data stores:** PostgreSQL (users, assets, license keys, devices, tickets, ticket events, allocations); application log
-- **Supporting:** container images, CI pipeline (build, tests, Semgrep, SonarQube, Trivy)
+```mermaid
+flowchart TB
+  EE1["EE1 API caller<br/>(any role, or none)"]
+
+  subgraph TB4["TB4 Supply chain"]
+    EE3["EE3 CI and image registries"]
+  end
+
+  subgraph TB3["TB3 Host (files, logs, volume)"]
+    EE2["EE2 Host operator"]
+    DS3[("DS3 Application log")]
+    DS4[("DS4 Config and secrets")]
+    subgraph TB1["TB1 Containers (published ports 8080, 5432)"]
+      PS1(["PS1 API endpoints<br/>and validation"])
+      PS2(["PS2 Identity check<br/>(Actors.cs)"])
+      PS3(["PS3 Ticket logic"])
+      PS4(["PS4 Allocation service"])
+      PS5(["PS5 Startup migrations"])
+      subgraph TB2["TB2 db container"]
+        DS1[("DS1 PostgreSQL<br/>assets, tickets, keys, devices")]
+        DS2[("DS2 Event log<br/>ticket_events")]
+      end
+    end
+  end
+
+  EE1 -- "DF1 HTTP 8080, plain, X-User-Id" --> PS1
+  PS1 -- "claimed user id" --> PS2
+  PS1 -- "ticket requests" --> PS3
+  PS1 -- "allocate and return" --> PS4
+  PS2 -- "DF2 user lookup" --> DS1
+  PS1 -- "DF2 asset create, update, delete (no event)" --> DS1
+  PS3 -- "DF2 tickets" --> DS1
+  PS3 -- "DF2 events" --> DS2
+  PS4 -- "DF2 stock, keys, devices" --> DS1
+  PS4 -- "DF2 allocation events" --> DS2
+  PS5 -- "DF2 schema changes, superuser" --> DS1
+  EE1 -. "DF3 port 5432, superuser (V6)" .-> DS1
+  PS1 -- "DF4 log lines, device token (V5)" --> DS3
+  DS4 -- "DF5 connection string at startup" --> PS1
+  DS4 -- "DF5 connection string at startup" --> PS5
+  EE3 -. "DF6 base images and build (M6)" .-> PS1
+  EE2 -- "DF7 host access" --> DS3
+  EE2 -- "DF7 host access" --> DS4
+  EE2 -- "DF7 host access (volume)" --> DS1
+
+  style TB1 stroke-dasharray: 5 5
+  style TB2 stroke-dasharray: 5 5
+  style TB3 stroke-dasharray: 5 5
+  style TB4 stroke-dasharray: 5 5
+```
+
+Shapes: rectangles are external entities, rounded boxes are processes, cylinders are data stores, labelled arrows are data flows, and dashed boxes are trust boundaries. Ids use new prefixes (EE, PS, DS, DF, TB) so they don't clash with the protections P1–P10.
+
+DF3 is the flow that shouldn't exist: it crosses TB1 and reaches the database without passing through any process, which is V6 drawn as a line. The arrows between PS1 and PS2–PS4 stay inside one container and one trust zone, so they aren't numbered flows and don't get their own matrix rows.
+
+| Id | Element | Notes |
+|---|---|---|
+| **External entities** | | |
+| EE1 | API caller | Any HTTP client; its role is whatever `X-User-Id` claims (V1). Also reaches port 5432 (DF3) |
+| EE2 | Host operator | Anyone with access to the host: `docker` commands, the log, the volume, the config files |
+| EE3 | CI and image registries | GitHub Actions and the registries the base images come from |
+| **Processes** | | |
+| PS1 | API endpoints and validation | `Endpoints/*.cs`, `Services/Validation.cs`; Kestrel |
+| PS2 | Identity check | `Services/Actors.cs`; every caller rule depends on it |
+| PS3 | Ticket logic | Submission, edits, transitions, deletes (`Endpoints/TicketEndpoints.cs`, `Services/TicketContent.cs`) |
+| PS4 | Allocation service | Allocate and return (`Services/AllocationService.cs`, `Endpoints/AssetEndpoints.cs`) |
+| PS5 | Startup migrations | `Program.cs`, run with the superuser connection |
+| **Data stores** | | |
+| DS1 | PostgreSQL | Assets, tickets, license keys, devices, allocations; on disk in the named volume (`docker-compose.yml` L11, L31) |
+| DS2 | Event log | `ticket_events`; logically separate, physically in DS1 |
+| DS3 | Application log | Container stdout, read with `docker logs` |
+| DS4 | Config and secrets | `appsettings.json`, `appsettings.Development.json`, compose environment |
+| **Data flows** | | |
+| DF1 | Caller ↔ API | Plain HTTP on 8080 in both directions: requests in, and responses out carrying ids, license keys and device tokens; crosses TB1 |
+| DF2 | API ↔ PostgreSQL | Compose network, crosses TB2 |
+| DF3 | Host network → PostgreSQL | Port 5432 published on all interfaces, crosses TB1 straight to the store |
+| DF4 | API → application log | Includes the device token on return (V5) |
+| DF5 | Config → API at startup | Connection string with the fallback password |
+| DF6 | Registries → build → running images | Floating tags (M6), crosses TB4 |
+| DF7 | Host operator → host files | Log, volume, config files, crosses TB3 |
+| **Trust boundaries** | | |
+| TB1 | Network ↔ containers | Everything that can reach the published ports |
+| TB2 | API ↔ database | The compose network between the two containers |
+| TB3 | Host | Files, logs, the volume and `docker` itself |
+| TB4 | Supply chain | Where the images and the pipeline's tools come from |
 
 ### 6.1a Existing controls (from the triage)
 
@@ -550,7 +635,48 @@ Added by the agent without being asked; full table in `sast-triage-report.md` §
 
 ### 6.2 STRIDE matrix
 
-_Every DFD element against S, T, R, I, D, E._
+Every element in 6.1 against the six threat types, STRIDE per element.
+
+**Legend:**
+- Only the types that apply to each element type are assessed: external entities for S and R; processes for all six; data stores for T, R, I and D; data flows for T, I and D. **An empty cell means the type doesn't apply to that element type**
+- Each assessed cell holds the ids of what threatens it (V, M, G or SR ids, or a named gap from section 2), plus the protection that already covers it, if any (Pn)
+- **—** means the type applies and nothing is open. It's from reading the code unless the cell says tested; a protection that covers it is listed in brackets, for example "— (P4, P7)"
+- **out of scope (host)** means the threat needs host access and the application can't limit it (scope, section 1)
+- Threats are referred to by element and letter (for example PS2-S), so section 7 can trace every mitigation back to a cell
+
+| Element | S | T | R | I | D | E |
+|---|---|---|---|---|---|---|
+| **EE1** API caller | V1 |  | V1, SR11, SR22 |  |  |  |
+| **EE2** Host operator | out of scope (host) |  | out of scope (host) |  |  |  |
+| **EE3** CI and image registries | M6 |  | M6 |  |  |  |
+| **PS1** API endpoints and validation | M7 | — (P4, P7; tested) | SR11, SR22 | V2, V3, G3, M8, SR18 (P6, P9) | G5 (P8) | V1, SR14 |
+| **PS2** Identity check | V1 | — | V1, SR22 | M8 | — | V1 |
+| **PS3** Ticket logic | V1 | V1 (P1; SR2 holds as written) | V4, SR22 | V2, SR16 | SR7 | V1 |
+| **PS4** Allocation service | V1 | token-only return gap (P7) | SR11 | V3, V5 (P3, P6) | SR7 | V1 |
+| **PS5** Startup migrations | — | V6, M6 | — | — | — | V6 |
+| **DS1** PostgreSQL |  | V6 | V6, SR11 | V3, V6 | V6 (P10) |  |
+| **DS2** Event log |  | V4, V6 | V1, SR11 | V2 | — |  |
+| **DS3** Application log |  | G7 | SR22 | V5 | G8 |  |
+| **DS4** Config and secrets |  | out of scope (host) | — | V6 | — |  |
+| **DF1** Caller ↔ API |  | M7 |  | M7, V3, SR18 | G5 |  |
+| **DF2** API ↔ PostgreSQL |  | — |  | — | — |  |
+| **DF3** Host network → PostgreSQL |  | V6 |  | V6 | V6 |  |
+| **DF4** API → application log |  | — |  | V5 | — |  |
+| **DF5** Config → API at startup |  | — |  | V6 | — |  |
+| **DF6** Registries → build → images |  | M6 |  | — | — |  |
+| **DF7** Host operator → host files |  | out of scope (host) |  | V3, V5, V6 | — |  |
+
+**Notes on cells that need a word:**
+- **PS1-S:** with plain HTTP there's no certificate, so something on the network could pose as the API to its callers (M7)
+- **PS3-T:** the state machine holds as written (SR2, tested); the tampering threat is acting under someone else's role through V1. The ownership checks (P1) rest on it
+- **PS4-T:** the return trusts the token alone, so a device can be marked returned while it's still out (AC4, AC7; the token-only return gap in section 2). Concurrent allocation is covered by P7
+- **DS1-D:** a superuser can delete or truncate any table (V6). Through the API, asset deletes are refused while in use (P10)
+- **DS3-T, DS3-D:** new from STRIDE (G7, G8). The application log has no integrity protection, so anyone with host access (EE2) could edit or remove lines. Its size is left to the host: on this host it rotates at about 100 MB, so a flood of requests (G5) can push older lines out. Both are Low, but it's the only record of returns and asset changes (SR11)
+- **DF2:** traffic between the API and PostgreSQL isn't encrypted, but it stays on the compose network inside the host. I marked it — for this deployment; it becomes a threat if the database ever moves to another machine
+- **DF6-I:** the pipeline holds `SONAR_TOKEN` in GitHub secrets; a scanner token, not app data, and nothing found exposing it
+- **EE2-S, EE2-R, DS4-T, DF7-T:** someone with host access can act as the operator or change the config and host files, and nothing in the application can prevent or limit that, so these are out of scope (host). DF7-I and DS3-T stay in scope because the application could limit the damage: keys could be encrypted at rest, and events kept somewhere host access alone can't edit
+
+**What STRIDE added beyond the abuse cases:** API impersonation over plain HTTP (PS1-S), a spoofed base image (EE3-S, M6), migrations running as superuser (PS5-E), the unprotected application log and its rotation (DS3-T, G7; DS3-D, G8), and the host-file route to keys, tokens and the password (DF7-I).
 
 ## 7. Proposed mitigations
 
