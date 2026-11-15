@@ -10,16 +10,25 @@ Running journal of how I work with AI tools on this project: what they got wrong
 
 > First drafts by the chat assistant during our session, rewritten by me during intervals between sub-phase work in this session.
 
+### 2026-11-14 — Same agent, same spec, different protections between runs
+
+**What happened:** attempt 1 (code first) required the `X-User-Id` header on every route except health and never returned unissued license keys. Attempt 2's plan (test first, otherwise the same setup) said all GET routes would need no header and didn't mention the keys. The finished attempt 2 code moved partway back: the allocations listing, which shows issued keys, requires the header and checks the caller's course or lab, and unissued keys are hidden, but listing and reading assets and tickets is open to anyone.
+
+**Why it matters:** the agent's unprompted protections changed between runs and even between its own plan and its code, so neither one run nor the agent's plan is a reliable record of what it built. The security analysis has to come from reading the final code.
+
+**My hypothesis (not confirmed):** asking for TDD may have pulled the agent's limited reasoning at Medium effort toward the test process and away from protections nobody asked for. Temperature variations and the empty starting folder may also explain it, but would need to rerun the same TDD prompt to see for additional comparison.
+
+---
+
 ### 2026-11-14 — The agent built a user check it labelled as not real authentication
 
-> First draft by the Claude chat assistant from our conversation; to be rewritten by me.
 
-**What happened:** my build prompt said nothing about users or access, but Claude Code added a `UserHeaderAuthentication` scheme: the caller names a mock user in an `X-User-Id` header, and role rules decide who can submit, approve or allocate. Its own comment says it's a stand-in, not real authentication, and that the caller "is trusted to be that user" until a signed token from an identity provider replaces it.
+**What happened:** my build prompt said nothing about users or access, but Claude Code added a `UserHeaderAuthentication` scheme (attempt 1; attempt 2 built the same check in `Services/Actors.cs`): the caller names a mock user in an `X-User-Id` header, and role rules decide who can submit, approve or allocate. Its own comment says it's a stand-in, not real authentication, and that the caller "is trusted to be that user" until a signed token from an identity provider replaces it.
 
 **Why it matters:** the agent knew the weakness and documented it, but still shipped a check anyone can pass by changing one header. A scanner is unlikely to flag it because the code works as written, so it's a manual finding for the triage, and it lines up with the gap I predicted in PA1 (`known-gaps.md` #1 and #10).
 
-
 **Where the header name came from:** the attempt 1 transcript shows the agent only read the spec, the files in its folder, the Docker and build files and the README. Its only git commands were `git ls-files` and `git status`, and `X-User-Id` first appears in its own plan. It reused the name from my PA1 design without ever seeing that design, which suggests it's simply the conventional choice.
+
 ---
 
 ### 2026-11-14 — The assistant's version controls reached past the project
@@ -36,7 +45,7 @@ Running journal of how I work with AI tools on this project: what they got wrong
 
 **What happened:** before the build, the chat assistant checked how the existing code overlaps with the new spec. Two comments Claude Code wrote in PA1 point to sections of my old spec, and one says "No X-User-Id needed", the user header from my PA1 design. The agent can't read the old spec, but it can read those comments.
 
-**Why it matters:** if the PA2 build adds a user header, I couldn't tell whether that was the agent's own choice or a hint from its earlier comments. I'm removing the references myself before the build.
+**Why it matters:** if the PA2 build adds a user header, I couldn't tell whether that was the agent's own choice or a hint from its earlier comments. I removed the references before the build, and once PA2 restarted from an empty folder the old code wasn't in the agent's folder at all.
 
 ---
 
@@ -86,8 +95,7 @@ Running journal of how I work with AI tools on this project: what they got wrong
 
 **Why it matters:** without the test I'd have trusted a clean baseline that wasn't. Keeping logs and notes outside the agent's working folder from the start would avoid this.
 
-
-**Follow-up:** the assistant's fixes for the search gap were a separate build clone or accepting the bleed. Just before moving onto my first prompt with the code agent, I came up with a different approach that seemed much simplier: start Claude Code inside `functional-codebase/` so my logs, the PA1 spec and old scans sit outside its working folder and anything there needs my approval. It closes most of the gap without moving the required `.ai_logs/` folder or similar.
+**Follow-up:** the assistant's fixes for the search gap were a separate build clone or accepting the bleed. Just before moving onto my first prompt with the code agent, I came up with a different approach that seemed much simplier: start Claude Code inside `functional-codebase/` so my logs, the PA1 spec and old scans sit outside its working folder and anything there needs my approval. It closes most of the gap without moving the required `.ai_logs/` folder or similar. Testing it also showed the deny rules used `./` paths, which are relative to wherever Claude Code starts, so they had stopped pointing at the root files; they now use `/` paths anchored to the repo root.
 
 ---
 

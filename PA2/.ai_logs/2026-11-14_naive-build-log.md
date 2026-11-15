@@ -8,7 +8,7 @@ Manual log of my prompts to the Claude chat assistant (claude.ai, Claude Opus 5.
 - **Questions about my own logging and working notes** (how commit labels are given to me, updates to my private working notes): record-keeping, not deliverable content
 - **Personal details** (shell prompt, local paths): masked as `[REDACTED: …]`
 
-**Result of this session (repo):** PA1 app moved into `functional-codebase/` with path fixes; `CLAUDE.md` header rule updated; pre-build pipeline baseline saved in `evidence/`; `.claude/settings.json` read restrictions added and tested; README updated; `Agent_environment.md` section 10; journal entries drafted. Spec work continues in `2026-11-14_spec-walkthrough-log.md`.
+**Result of this session (repo):** PA1 app moved into `functional-codebase/` with path fixes; `CLAUDE.md` header rule updated; pre-build pipeline baseline saved in `evidence/`; `.claude/settings.json` read restrictions added and tested; README updated; `Agent_environment.md` section 10; journal entries drafted. Spec work continues in `2026-11-14_spec-walkthrough-log.md`. [Later the same day the repo moved to phase folders and PA2 restarted from empty; see `2026-11-14_agent-build-log.md`.]
 
 ---
 
