@@ -107,7 +107,7 @@ Confirmed on 2026-11-15 against the local compose stack built from `4d39740`. Co
 
 ### V4 — Ticket event history deleted with the ticket (found in requirement testing)
 - Layer: Audit / database
-- CWE: CWE-221 (Information Loss or Omission) (check)
+- CWE: CWE-221 (Information Loss or Omission). It's a Class, which MITRE allows with careful review; its nearest Base child, CWE-223 (Omission of Security-relevant Information), covers not recording an event, not deleting one already recorded, so the Class is the closer fit
 - Location: Data/HubDbContext.cs L114 (events cascade-delete with their ticket); Endpoints/TicketEndpoints.cs (`DeleteAsync`, pending tickets only)
 - Root cause: ticket events are stored as children of the ticket and set to delete with it, so the event log is not append-only
 - How I confirmed it: submitted a ticket, saw its submission event in `ticket_events`, deleted the ticket as the requester (204), then queried the table: 0 events left (`sr-validation`, step SR10)

@@ -12,7 +12,7 @@
 ## 1. Scope
 
 - **System analyzed:** the Domain 2 Resource Allocation & Help Desk Hub in `PA2/functional-codebase/` (C#/.NET 10 minimal API, EF Core, PostgreSQL 18, Docker Compose). Code as scanned at `4d39740`; later commits change file headers and line breaks only
-- **Inputs:** `spec-domain2.md`; `sast-triage-report.md` (scan results, validated vulnerabilities V1–V3, candidates M1–M9, existing protections P1–P9); `evidence/manual-validation-2026-11-15.txt`
+- **Inputs:** `spec-domain2.md`; `sast-triage-report.md` (scan results, validated vulnerabilities V1–V6, candidates, existing protections P1–P10); evidence in `evidence/`: `manual-validation-2026-11-15.txt`, `sr-validation-2026-11-15.txt`, `sr-validation-2-2026-11-15.txt`, `db-role-check-2026-11-15.txt`
 - _In and out of scope: to fill_
 
 ### 1.1 Confirmed vulnerabilities
@@ -24,7 +24,7 @@ Validated on 2026-11-15 against the running compose stack. V1–V3 are carried i
 | V1 | Caller identity is the `X-User-Id` header, accepted as given: anyone who knows a user id can act as that user, and the event log records the impersonated user as the actor | Authentication | CWE-290 | High |
 | V2 | Ticket list and detail are open to anyone and return requester ids, notes and event actor ids, which supply the ids V1 needs; together V1 and V2 give anyone administrator access | Authorization / data exposure | CWE-862 | High |
 | V3 | License keys stored in plain text and returned as-is by allocate and the allocations listing | Data storage | CWE-312 | High |
-| V4 | Ticket event history deleted with the ticket: deleting a pending ticket through the API removed its submission event (0 left), because events cascade-delete with their ticket (`Data/HubDbContext.cs` L114). Combined with V1, anyone can erase the record that a request was made (was G6; SR11) | Audit / database | CWE-221 (check) | Medium |
+| V4 | Ticket event history deleted with the ticket: deleting a pending ticket through the API removed its submission event (0 left), because events cascade-delete with their ticket (`Data/HubDbContext.cs` L114). Combined with V1, anyone can erase the record that a request was made (was G6; SR11) | Audit / database | CWE-221 (a Class; its nearest Base child, CWE-223, covers not recording an event, not deleting one already recorded) | Medium |
 | V5 | Full device token written to the application log on return (`Endpoints/AssetEndpoints.cs` L77). The token is all `/return` needs, so anyone who can read the logs holds working tokens. SonarQube flagged the same line only for logging performance (CA1873, triage S1), not for the token (was M5; SR22) | Logging | CWE-532 | Medium |
 | V6 | Database open to the network as superuser with the committed password: no `.env` exists, so the stack uses the compose fallback password `resourcehub_dev` (was M4, also committed in `appsettings.Development.json`); port 5432 is published on all host interfaces (was G4); and that user is a superuser (was G2). A separate container outside the compose network logged in with it and got `usesuper = t`. Full control of the data without the API: every license key (V3), the event log (SR11) and stock. Tested through the host, not from a second machine. G2 and G4 come from the PA1 compose file, not the PA2 build | Deployment / database | CWE-1392 (default password), with CWE-1327 (unrestricted bind) and CWE-250 (excess privilege); CWE-260 for the copy in the config file | High |
 
@@ -105,7 +105,7 @@ Status values: **Met (tested)**, **Met (review)** (read in the code, not yet run
 - Source: the hoarding abuse case (section 3). The spec sets no such limits, so the actual numbers are a policy decision; this requirement only says they must exist and be enforced
 - Depends on: SR12 (otherwise a limit per requester means nothing)
 - How to verify: as one instructor, ask for more than the stock on a 365-day loan, and open several tickets; expect a refusal past the limit
-- Status: **Not met** (tested). Dr. Chen's ticket for 1000 Raspberry Pi kits (stock 10) on a 365-day loan plus all three license keys was accepted (201) while she had other tickets pending; the probe ticket was then deleted ({E2}). The only caps are per ticket (20 items, 1000 each, 365 days), not per requester or department
+- Status: **Not met** (tested). Dr. Chen's ticket for 1000 Raspberry Pi kits (stock 10) on a 365-day loan plus all three license keys was accepted (201) while she had other tickets pending; the probe ticket was then deleted (`evidence/sr-validation-2-2026-11-15.txt`). The only caps are per ticket (20 items, 1000 each, 365 days), not per requester or department
 
 #### A3 Devices and returns
 
