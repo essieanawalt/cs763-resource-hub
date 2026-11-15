@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Remove 'public partial class Program;' so Semgrep's C# parser can read the file, if tests still build without it"
 // AI Contribution: Application entry point: services, JSON options, startup migration, routes (~100%)
-// Human Modifications: None yet
-// Verification: Release build (0 warnings); WebApplicationFactory<Program> tests against PostgreSQL 18 (123 passed, 0 failed, 0 skipped); Semgrep 1.180.0 p/csharp: 0 parse errors
+// Human Modifications: None (review only)
+// Verification: Release build (0 warnings); WebApplicationFactory<Program> tests against PostgreSQL 18 (123 passed, 0 failed, 0 skipped); Semgrep 1.180.0 p/csharp: 0 parse errors; reviewed by me 2026-11-15
 // Confidence: High
 
 using System.Text.Json;

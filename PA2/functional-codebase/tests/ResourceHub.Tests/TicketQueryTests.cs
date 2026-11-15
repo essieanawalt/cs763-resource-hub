@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: Tests for GET /api/v1/assets/tickets filters, paging and order (~100%)
-// Human Modifications: None yet
-// Verification: dotnet test (failed before the listing route existed, passes after)
+// Human Modifications: None (review only)
+// Verification: dotnet test (failed before the listing route existed, passes after); reviewed by me 2026-11-15
 // Confidence: High
 
 using System.Net;
@@ -38,7 +38,8 @@ public class TicketQueryTests(HubApiFactory factory) : IClassFixture<HubApiFacto
         var asset = await S.PhysicalAsync(category: category);
         var withProject = await S.SubmitAsync(Ids.AdvisorRaman, new
         {
-            researchLabId = Ids.LabEmbedded, projectId = Ids.ProjectParking,
+            researchLabId = Ids.LabEmbedded,
+            projectId = Ids.ProjectParking,
             items = new[] { new { assetId = asset, quantity = 1 } },
         });
         await S.SubmitAsync(Ids.AdvisorRaman, new

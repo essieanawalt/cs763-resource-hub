@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: Tests for POST/GET/PUT/DELETE on /api/v1/assets, validation and role checks (~100%)
-// Human Modifications: None yet
-// Verification: dotnet test (failed before the create/update/delete routes existed, passes after)
+// Human Modifications: None (review only)
+// Verification: dotnet test (failed before the create/update/delete routes existed, passes after); reviewed by me 2026-11-15
 // Confidence: High
 
 using System.Net;
@@ -156,14 +156,20 @@ public class AssetCrudTests(HubApiFactory factory) : IClassFixture<HubApiFactory
     {
         var created = await _client.SendAsync(HttpMethod.Post, "/api/v1/assets", new
         {
-            name = "Figma seats", type = "license", category = "Design license", departmentProgram = "Computer Science",
+            name = "Figma seats",
+            type = "license",
+            category = "Design license",
+            departmentProgram = "Computer Science",
             licenseKeys = new[] { "FIGMA-0001" },
         }, Ids.Admin);
         var id = (await created.JsonAsync()).Id();
 
         var response = await _client.SendAsync(HttpMethod.Put, $"/api/v1/assets/{id}", new
         {
-            name = "Figma seats", type = "license", category = "Design license", departmentProgram = "Computer Science",
+            name = "Figma seats",
+            type = "license",
+            category = "Design license",
+            departmentProgram = "Computer Science",
             licenseKeys = new[] { "FIGMA-0001", "FIGMA-0002" },
         }, Ids.Admin);
 
@@ -180,7 +186,11 @@ public class AssetCrudTests(HubApiFactory factory) : IClassFixture<HubApiFactory
 
         var response = await _client.SendAsync(HttpMethod.Put, $"/api/v1/assets/{id}", new
         {
-            name = "X", type = "voucher", category = "Cloud", departmentProgram = "CS", balance = 10,
+            name = "X",
+            type = "voucher",
+            category = "Cloud",
+            departmentProgram = "CS",
+            balance = 10,
         }, Ids.Admin);
 
         await response.AssertStatusAsync(HttpStatusCode.BadRequest);

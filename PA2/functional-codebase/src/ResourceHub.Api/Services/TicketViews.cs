@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: Builds ticket responses, with events and timing metrics for the detail view (~100%)
-// Human Modifications: None yet
-// Verification: TicketSubmitTests, TicketMetricsTests
+// Human Modifications: None (review only)
+// Verification: TicketSubmitTests, TicketMetricsTests; reviewed by me 2026-11-15: what is the timezone for the logs
 // Confidence: High
 
 using ResourceHub.Api.Contracts;

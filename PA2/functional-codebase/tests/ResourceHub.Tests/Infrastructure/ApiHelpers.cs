@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: Mock data ids from spec section 7 and HTTP helpers for the tests (~100%)
-// Human Modifications: None yet
-// Verification: Used by every test in ResourceHub.Tests
+// Human Modifications: None (review only)
+// Verification: Used by every test in ResourceHub.Tests; reviewed by me 2026-11-15 
 // Confidence: High
 
 using System.Net.Http.Json;

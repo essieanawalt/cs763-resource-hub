@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: Shared steps for ticket and allocation tests (create asset, submit, approve, allocate) (~100%)
-// Human Modifications: None yet
-// Verification: Used by TicketTests, TicketQueryTests, AllocationTests, ReturnTests, ActiveAllocationTests
+// Human Modifications: None (review only)
+// Verification: Used by TicketTests, TicketQueryTests, AllocationTests, ReturnTests, ActiveAllocationTests; reviewed by me 2026-11-15
 // Confidence: High
 
 using System.Net;
@@ -20,8 +20,12 @@ public sealed class Scenario(HttpClient client)
     {
         return await CreateAssetAsync(new
         {
-            name = "Test kit", type = "physical", category = category ?? "Test device", departmentProgram = "Computer Science",
-            units, defaultLoanDays = loanDays,
+            name = "Test kit",
+            type = "physical",
+            category = category ?? "Test device",
+            departmentProgram = "Computer Science",
+            units,
+            defaultLoanDays = loanDays,
         });
     }
 
@@ -29,7 +33,10 @@ public sealed class Scenario(HttpClient client)
     {
         return await CreateAssetAsync(new
         {
-            name = "Test license", type = "license", category = "Test license", departmentProgram = "Computer Science",
+            name = "Test license",
+            type = "license",
+            category = "Test license",
+            departmentProgram = "Computer Science",
             licenseKeys = keys,
         });
     }
@@ -38,7 +45,10 @@ public sealed class Scenario(HttpClient client)
     {
         return await CreateAssetAsync(new
         {
-            name = "Test credits", type = "voucher", category = "Test credits", departmentProgram = "Computer Science",
+            name = "Test credits",
+            type = "voucher",
+            category = "Test credits",
+            departmentProgram = "Computer Science",
             balance,
         });
     }

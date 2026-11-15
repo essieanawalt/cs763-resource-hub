@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: Builds asset responses with availability counts by status flag (~100%)
-// Human Modifications: None yet
-// Verification: SeedDataTests, AssetCrudTests, AssetQueryTests, ReturnTests
+// Human Modifications: None (review only)
+// Verification: SeedDataTests, AssetCrudTests, AssetQueryTests, ReturnTests; reviewed by me 2026-11-15: could use a second pass for null-checks
 // Confidence: High
 
 using Microsoft.EntityFrameworkCore;

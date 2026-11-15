@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: Static mock data from spec section 7, seeded with its fixed ids (~100%)
-// Human Modifications: None yet
-// Verification: SeedDataTests read every seeded asset and user back by id
+// Human Modifications: Editor reformatting on save, 2026-11-15 (line breaks only, no behaviour change)
+// Verification: SeedDataTests read every seeded asset and user back by id; reviewed by me 2026-11-15
 // Confidence: High
 
 using Microsoft.EntityFrameworkCore;
@@ -50,31 +50,53 @@ public static class SeedData
         model.Entity<Asset>().HasData(
             new Asset
             {
-                Id = Guid.Parse("50000000-0000-4000-8000-000000000001"), Name = "Raspberry Pi 5 kit", Type = AssetType.Physical,
-                Category = "IoT node", DepartmentProgram = ElectricalEngineering,
-                TotalUnits = 10, RemainingUnits = 10, DefaultLoanDays = 14,
-                CreatedAt = SeededAt, UpdatedAt = SeededAt,
+                Id = Guid.Parse("50000000-0000-4000-8000-000000000001"),
+                Name = "Raspberry Pi 5 kit",
+                Type = AssetType.Physical,
+                Category = "IoT node",
+                DepartmentProgram = ElectricalEngineering,
+                TotalUnits = 10,
+                RemainingUnits = 10,
+                DefaultLoanDays = 14,
+                CreatedAt = SeededAt,
+                UpdatedAt = SeededAt,
             },
             new Asset
             {
-                Id = Guid.Parse("50000000-0000-4000-8000-000000000002"), Name = "Dell Latitude 7450 laptop", Type = AssetType.Physical,
-                Category = "Laptop", DepartmentProgram = ComputerScience,
-                TotalUnits = 5, RemainingUnits = 5, DefaultLoanDays = 30,
-                CreatedAt = SeededAt.AddMinutes(1), UpdatedAt = SeededAt.AddMinutes(1),
+                Id = Guid.Parse("50000000-0000-4000-8000-000000000002"),
+                Name = "Dell Latitude 7450 laptop",
+                Type = AssetType.Physical,
+                Category = "Laptop",
+                DepartmentProgram = ComputerScience,
+                TotalUnits = 5,
+                RemainingUnits = 5,
+                DefaultLoanDays = 30,
+                CreatedAt = SeededAt.AddMinutes(1),
+                UpdatedAt = SeededAt.AddMinutes(1),
             },
             new Asset
             {
-                Id = jetBrains, Name = "JetBrains IDE license", Type = AssetType.License,
-                Category = "IDE license", DepartmentProgram = ComputerScience,
-                TotalUnits = 3, RemainingUnits = 3,
-                CreatedAt = SeededAt.AddMinutes(2), UpdatedAt = SeededAt.AddMinutes(2),
+                Id = jetBrains,
+                Name = "JetBrains IDE license",
+                Type = AssetType.License,
+                Category = "IDE license",
+                DepartmentProgram = ComputerScience,
+                TotalUnits = 3,
+                RemainingUnits = 3,
+                CreatedAt = SeededAt.AddMinutes(2),
+                UpdatedAt = SeededAt.AddMinutes(2),
             },
             new Asset
             {
-                Id = Guid.Parse("50000000-0000-4000-8000-000000000004"), Name = "Cloud credit pool", Type = AssetType.Voucher,
-                Category = "Cloud credits", DepartmentProgram = ComputerScience,
-                TotalBalance = 5000.00m, Balance = 5000.00m,
-                CreatedAt = SeededAt.AddMinutes(3), UpdatedAt = SeededAt.AddMinutes(3),
+                Id = Guid.Parse("50000000-0000-4000-8000-000000000004"),
+                Name = "Cloud credit pool",
+                Type = AssetType.Voucher,
+                Category = "Cloud credits",
+                DepartmentProgram = ComputerScience,
+                TotalBalance = 5000.00m,
+                Balance = 5000.00m,
+                CreatedAt = SeededAt.AddMinutes(3),
+                UpdatedAt = SeededAt.AddMinutes(3),
             });
 
         model.Entity<LicenseKey>().HasData(

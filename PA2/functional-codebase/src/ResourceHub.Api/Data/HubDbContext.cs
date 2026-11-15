@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Replace primary constructors with regular constructors so Semgrep's C# parser can read the file"
 // AI Contribution: EF Core model: tables, keys, constraints and seed data (~100%)
-// Human Modifications: None yet
-// Verification: dotnet test against PostgreSQL 18 (123 passed, 0 failed, 0 skipped); Semgrep 1.180.0 p/csharp: 0 parse errors
+// Human Modifications: None (review only)
+// Verification: dotnet test against PostgreSQL 18 (123 passed, 0 failed, 0 skipped); Semgrep 1.180.0 p/csharp: 0 parse errors; reviewed by me 2026-11-15
 // Confidence: High
 
 using Microsoft.EntityFrameworkCore;

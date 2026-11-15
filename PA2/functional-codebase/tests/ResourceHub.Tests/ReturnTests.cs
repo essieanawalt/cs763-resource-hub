@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: Tests for POST /api/v1/assets/{id}/return and overdue tracking (~100%)
-// Human Modifications: None yet
-// Verification: dotnet test (failed before the return route existed, passes after)
+// Human Modifications: None (review only)
+// Verification: dotnet test (failed before the return route existed, passes after); reviewed by me 2026-11-15
 // Confidence: High
 
 using System.Net;

@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: Input validation for asset bodies, plus shared limits (~100%)
-// Human Modifications: None yet
-// Verification: Create_with_invalid_body_is_400 theory and ticket validation tests
+// Human Modifications: None (review only)
+// Verification: Create_with_invalid_body_is_400 theory and ticket validation tests; reviewed by me 2026-11-15: decent error handling
 // Confidence: High
 
 using System.Text.RegularExpressions;

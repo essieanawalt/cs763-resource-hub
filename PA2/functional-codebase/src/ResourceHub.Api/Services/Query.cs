@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: Parsing of page/pageSize and enum query parameters (~100%)
-// Human Modifications: None yet
-// Verification: Invalid_query_parameters_are_400 theories in AssetQueryTests and TicketQueryTests
+// Human Modifications: None (review only)
+// Verification: Invalid_query_parameters_are_400 theories in AssetQueryTests and TicketQueryTests; reviewed by me 2026-11-15: snake_case is an interesting choice that I've never used
 // Confidence: High
 
 using System.Text.Json;

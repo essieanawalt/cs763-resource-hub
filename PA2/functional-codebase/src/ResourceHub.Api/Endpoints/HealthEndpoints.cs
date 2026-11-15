@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: GET /api/v1/health: 200 when the database is reachable, 503 when not (~100%)
-// Human Modifications: None yet
-// Verification: HealthTests (200 against PostgreSQL, 503 against an unreachable server)
+// Human Modifications: None (review only)
+// Verification: HealthTests (200 against PostgreSQL, 503 against an unreachable server); reviewed by me 2026-11-15
 // Confidence: High
 
 using ResourceHub.Api.Data;

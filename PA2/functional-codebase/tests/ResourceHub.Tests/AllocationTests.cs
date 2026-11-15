@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: Tests for POST /api/v1/assets/tickets/{id}/allocate: issuing, all-or-nothing, concurrency, close (~100%)
-// Human Modifications: None yet
-// Verification: dotnet test (failed before the allocate route existed, passes after)
+// Human Modifications: None (review only)
+// Verification: dotnet test (failed before the allocate route existed, passes after); reviewed by me 2026-11-15
 // Confidence: High
 
 using System.Net;
@@ -105,7 +105,11 @@ public class AllocationTests(HubApiFactory factory) : IClassFixture<HubApiFactor
         // Top up the pool, then the same ticket allocates.
         var topUp = await _client.SendAsync(HttpMethod.Put, $"/api/v1/assets/{credits}", new
         {
-            name = "Test credits", type = "voucher", category = "Test credits", departmentProgram = "Computer Science", balance = 200m,
+            name = "Test credits",
+            type = "voucher",
+            category = "Test credits",
+            departmentProgram = "Computer Science",
+            balance = 200m,
         }, Ids.Admin);
         await topUp.AssertStatusAsync(HttpStatusCode.OK);
 
@@ -201,8 +205,12 @@ public class AllocationTests(HubApiFactory factory) : IClassFixture<HubApiFactor
 
         var response = await _client.SendAsync(HttpMethod.Put, $"/api/v1/assets/{asset}", new
         {
-            name = "Test kit", type = "physical", category = "Test device", departmentProgram = "Computer Science",
-            units = 1, defaultLoanDays = 14,
+            name = "Test kit",
+            type = "physical",
+            category = "Test device",
+            departmentProgram = "Computer Science",
+            units = 1,
+            defaultLoanDays = 14,
         }, Ids.Admin);
 
         await response.AssertStatusAsync(HttpStatusCode.Conflict);
@@ -216,7 +224,10 @@ public class AllocationTests(HubApiFactory factory) : IClassFixture<HubApiFactor
 
         var response = await _client.SendAsync(HttpMethod.Put, $"/api/v1/assets/{asset}", new
         {
-            name = "Test license", type = "license", category = "Test license", departmentProgram = "Computer Science",
+            name = "Test license",
+            type = "license",
+            category = "Test license",
+            departmentProgram = "Computer Science",
             licenseKeys = new[] { "OTHER-KEY-2" },
         }, Ids.Admin);
 

@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: Tests for the events and timing metrics on GET /api/v1/assets/tickets/{id} (spec 6.13) (~100%)
-// Human Modifications: None yet
-// Verification: dotnet test
+// Human Modifications: None (review only)
+// Verification: dotnet test; reviewed by me 2026-11-15; these test names are hilarious
 // Confidence: High
 
 using System.Net;
@@ -29,7 +29,11 @@ public class TicketMetricsTests(HubApiFactory factory) : IClassFixture<HubApiFac
         await (await S.AllocateAsync(id)).AssertStatusAsync(HttpStatusCode.Conflict);   // not enough credits
         await (await _client.SendAsync(HttpMethod.Put, $"/api/v1/assets/{credits}", new
         {
-            name = "Test credits", type = "voucher", category = "Test credits", departmentProgram = "Computer Science", balance = 300m,
+            name = "Test credits",
+            type = "voucher",
+            category = "Test credits",
+            departmentProgram = "Computer Science",
+            balance = 300m,
         }, Ids.Admin)).AssertStatusAsync(HttpStatusCode.OK);
         factory.Clock.Advance(TimeSpan.FromMinutes(30));
         await (await S.AllocateAsync(id)).AssertStatusAsync(HttpStatusCode.OK);

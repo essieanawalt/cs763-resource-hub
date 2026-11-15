@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: GET /api/v1/assets/allocations: active allocations and metrics for one course or lab (~100%)
-// Human Modifications: None yet
-// Verification: ActiveAllocationTests
+// Human Modifications: None (review only)
+// Verification: ActiveAllocationTests; reviewed by me 2026-11-15: lists only certain roles can view things, but roles can be spoofed
 // Confidence: High
 
 using Microsoft.EntityFrameworkCore;

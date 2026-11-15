@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: Tests for GET /api/v1/assets filters, paging and sort order (~100%)
-// Human Modifications: None yet
-// Verification: dotnet test (failed before the listing route existed, passes after)
+// Human Modifications: None (review only)
+// Verification: dotnet test (failed before the listing route existed, passes after); reviewed by me 2026-11-15
 // Confidence: High
 
 using System.Net;
@@ -117,7 +117,12 @@ public class AssetQueryTests(HubApiFactory factory) : IClassFixture<HubApiFactor
     {
         var response = await _client.SendAsync(HttpMethod.Post, "/api/v1/assets", new
         {
-            name = "Test device", type = "physical", category, departmentProgram = department, units = 2, defaultLoanDays = 7,
+            name = "Test device",
+            type = "physical",
+            category,
+            departmentProgram = department,
+            units = 2,
+            defaultLoanDays = 7,
         }, Ids.Admin);
         await response.AssertStatusAsync(HttpStatusCode.Created);
         return (await response.JsonAsync()).Id();

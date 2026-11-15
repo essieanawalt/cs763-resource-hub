@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: Validates ticket content (spec 6.7) and the requester's right to ask for that course or lab (~100%)
-// Human Modifications: None yet
-// Verification: Submit_with_invalid_body_is_400 theory, role tests in TicketSubmitTests and TicketLifecycleTests
+// Human Modifications: Editor reformatting on save, 2026-11-15 (line breaks only, no behaviour change)
+// Verification: Submit_with_invalid_body_is_400 theory, role tests in TicketSubmitTests and TicketLifecycleTests; reviewed by me 2026-11-15: dislike the nesting of if/else
 // Confidence: High
 
 using Microsoft.EntityFrameworkCore;
@@ -96,7 +96,11 @@ public static class TicketContent
 
                 items.Add(new TicketItem
                 {
-                    Id = Guid.NewGuid(), AssetId = asset.Id, Quantity = item.Quantity, Amount = item.Amount, LoanDays = item.LoanDays,
+                    Id = Guid.NewGuid(),
+                    AssetId = asset.Id,
+                    Quantity = item.Quantity,
+                    Amount = item.Amount,
+                    LoanDays = item.LoanDays,
                 });
             }
         }

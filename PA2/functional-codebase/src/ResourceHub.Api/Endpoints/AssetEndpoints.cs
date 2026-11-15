@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: /api/v1/assets routes: create, list with filters, read, update, delete (~100%)
-// Human Modifications: None yet
-// Verification: SeedDataTests, AssetCrudTests, AssetQueryTests
+// Human Modifications: Editor reformatting on save, 2026-11-15 (line breaks only, no behaviour change)
+// Verification: SeedDataTests, AssetCrudTests, AssetQueryTests; reviewed by me 2026-11-15
 // Confidence: High
 
 using Microsoft.EntityFrameworkCore;
@@ -241,50 +241,50 @@ public static class AssetEndpoints
         switch (asset.Type)
         {
             case AssetType.Physical:
-            {
-                var handedOut = asset.TotalUnits!.Value - asset.RemainingUnits!.Value;
-                if (body.Units < handedOut)
                 {
-                    return Problems.Conflict("Total stock below units already handed out.",
-                        $"{handedOut} units are checked out; total stock cannot go below that.");
+                    var handedOut = asset.TotalUnits!.Value - asset.RemainingUnits!.Value;
+                    if (body.Units < handedOut)
+                    {
+                        return Problems.Conflict("Total stock below units already handed out.",
+                            $"{handedOut} units are checked out; total stock cannot go below that.");
+                    }
+                    asset.TotalUnits = body.Units;
+                    asset.RemainingUnits = body.Units - handedOut;
+                    asset.DefaultLoanDays = body.DefaultLoanDays;
+                    break;
                 }
-                asset.TotalUnits = body.Units;
-                asset.RemainingUnits = body.Units - handedOut;
-                asset.DefaultLoanDays = body.DefaultLoanDays;
-                break;
-            }
             case AssetType.License:
-            {
-                var wanted = keys.ToHashSet(StringComparer.Ordinal);
-                var missingIssued = asset.LicenseKeys.Where(k => k.IssuedTicketId is not null && !wanted.Contains(k.Key)).ToList();
-                if (missingIssued.Count > 0)
                 {
-                    return Problems.Conflict("Issued license keys cannot be removed.",
-                        $"{missingIssued.Count} of the keys left out have already been issued.");
+                    var wanted = keys.ToHashSet(StringComparer.Ordinal);
+                    var missingIssued = asset.LicenseKeys.Where(k => k.IssuedTicketId is not null && !wanted.Contains(k.Key)).ToList();
+                    if (missingIssued.Count > 0)
+                    {
+                        return Problems.Conflict("Issued license keys cannot be removed.",
+                            $"{missingIssued.Count} of the keys left out have already been issued.");
+                    }
+                    db.LicenseKeys.RemoveRange(asset.LicenseKeys.Where(k => k.IssuedTicketId is null && !wanted.Contains(k.Key)));
+                    var existing = asset.LicenseKeys.Select(k => k.Key).ToHashSet(StringComparer.Ordinal);
+                    foreach (var key in keys.Where(k => !existing.Contains(k)))
+                    {
+                        db.LicenseKeys.Add(new LicenseKey { Id = Guid.NewGuid(), AssetId = asset.Id, Key = key });
+                    }
+                    var issued = asset.LicenseKeys.Count(k => k.IssuedTicketId is not null);
+                    asset.TotalUnits = keys.Count;
+                    asset.RemainingUnits = keys.Count - issued;
+                    break;
                 }
-                db.LicenseKeys.RemoveRange(asset.LicenseKeys.Where(k => k.IssuedTicketId is null && !wanted.Contains(k.Key)));
-                var existing = asset.LicenseKeys.Select(k => k.Key).ToHashSet(StringComparer.Ordinal);
-                foreach (var key in keys.Where(k => !existing.Contains(k)))
-                {
-                    db.LicenseKeys.Add(new LicenseKey { Id = Guid.NewGuid(), AssetId = asset.Id, Key = key });
-                }
-                var issued = asset.LicenseKeys.Count(k => k.IssuedTicketId is not null);
-                asset.TotalUnits = keys.Count;
-                asset.RemainingUnits = keys.Count - issued;
-                break;
-            }
             case AssetType.Voucher:
-            {
-                var used = asset.TotalBalance!.Value - asset.Balance!.Value;
-                if (body.Balance < used)
                 {
-                    return Problems.Conflict("Total credits below credits already allocated.",
-                        $"{used} credits are allocated; the total cannot go below that.");
+                    var used = asset.TotalBalance!.Value - asset.Balance!.Value;
+                    if (body.Balance < used)
+                    {
+                        return Problems.Conflict("Total credits below credits already allocated.",
+                            $"{used} credits are allocated; the total cannot go below that.");
+                    }
+                    asset.TotalBalance = body.Balance;
+                    asset.Balance = body.Balance - used;
+                    break;
                 }
-                asset.TotalBalance = body.Balance;
-                asset.Balance = body.Balance - used;
-                break;
-            }
         }
 
         asset.Name = name;

@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: Test database settings and the skip-when-no-database fact attribute (~100%)
-// Human Modifications: None yet
-// Verification: dotnet test with and without RESOURCEHUB_TEST_DB set
+// Human Modifications: None (review only)
+// Verification: dotnet test with and without RESOURCEHUB_TEST_DB set; reviewed by me 2026-11-15
 // Confidence: High
 
 using Npgsql;

@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Replace primary constructors with regular constructors so Semgrep's C# parser can read the file"
 // AI Contribution: The allocation engine: atomic, all-or-nothing deductions that issue keys, credits and device tokens (~100%)
-// Human Modifications: None yet
-// Verification: AllocationTests (incl. concurrent allocations), SeededLicense*Tests; full suite against PostgreSQL 18 (123 passed, 0 failed, 0 skipped); Semgrep 1.180.0 p/csharp: 0 parse errors
+// Human Modifications: Editor reformatting on save, 2026-11-15 (line breaks only, no behaviour change)
+// Verification: AllocationTests (incl. concurrent allocations), SeededLicense*Tests; full suite against PostgreSQL 18 (123 passed, 0 failed, 0 skipped); Semgrep 1.180.0 p/csharp: 0 parse errors; reviewed by me 2026-11-15: appreciate the deadlock check
 // Confidence: High
 
 using System.Security.Cryptography;
@@ -92,41 +92,46 @@ public sealed class AllocationService
             switch (asset.Type)
             {
                 case AssetType.Physical:
-                {
-                    var qty = item.Quantity!.Value;
-                    asset.RemainingUnits -= qty;
-                    var due = now.AddDays(item.LoanDays ?? asset.DefaultLoanDays!.Value);
-                    devices = [];
-                    for (var n = 0; n < qty; n++)
                     {
-                        var token = NewToken();
-                        db.DeviceAssignments.Add(new DeviceAssignment
+                        var qty = item.Quantity!.Value;
+                        asset.RemainingUnits -= qty;
+                        var due = now.AddDays(item.LoanDays ?? asset.DefaultLoanDays!.Value);
+                        devices = [];
+                        for (var n = 0; n < qty; n++)
                         {
-                            Id = Guid.NewGuid(), Token = token, AllocationId = allocation.Id, AssetId = asset.Id,
-                            TicketId = ticketId, CheckedOutAt = now, DueAt = due,
-                        });
-                        devices.Add(new DeviceDto(token, now, due, null, "checkedout"));
+                            var token = NewToken();
+                            db.DeviceAssignments.Add(new DeviceAssignment
+                            {
+                                Id = Guid.NewGuid(),
+                                Token = token,
+                                AllocationId = allocation.Id,
+                                AssetId = asset.Id,
+                                TicketId = ticketId,
+                                CheckedOutAt = now,
+                                DueAt = due,
+                            });
+                            devices.Add(new DeviceDto(token, now, due, null, "checkedout"));
+                        }
+                        break;
                     }
-                    break;
-                }
                 case AssetType.License:
-                {
-                    var qty = item.Quantity!.Value;
-                    var free = await db.LicenseKeys
-                        .Where(k => k.AssetId == asset.Id && k.IssuedTicketId == null)
-                        .OrderBy(k => k.Id)
-                        .Take(qty)
-                        .ToListAsync(ct);
-                    foreach (var key in free)
                     {
-                        key.IssuedTicketId = ticketId;
-                        key.AllocationId = allocation.Id;
-                        key.IssuedAt = now;
+                        var qty = item.Quantity!.Value;
+                        var free = await db.LicenseKeys
+                            .Where(k => k.AssetId == asset.Id && k.IssuedTicketId == null)
+                            .OrderBy(k => k.Id)
+                            .Take(qty)
+                            .ToListAsync(ct);
+                        foreach (var key in free)
+                        {
+                            key.IssuedTicketId = ticketId;
+                            key.AllocationId = allocation.Id;
+                            key.IssuedAt = now;
+                        }
+                        asset.RemainingUnits -= qty;
+                        keys = free.Select(k => k.Key).ToList();
+                        break;
                     }
-                    asset.RemainingUnits -= qty;
-                    keys = free.Select(k => k.Key).ToList();
-                    break;
-                }
                 case AssetType.Voucher:
                     asset.Balance -= item.Amount!.Value;
                     break;

@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: Lets dotnet-ef create migrations without a running database or secrets (~100%)
-// Human Modifications: None yet
-// Verification: dotnet-ef migrations add ran with this factory
+// Human Modifications: None (review only)
+// Verification: dotnet-ef migrations add ran with this factory; reviewed by me 2026-11-15
 // Confidence: High
 
 using Microsoft.EntityFrameworkCore;

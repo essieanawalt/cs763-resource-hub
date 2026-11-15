@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: Request and response shapes for /api/v1/assets (~100%)
-// Human Modifications: None yet
-// Verification: AssetCrudTests, AssetQueryTests, SeedDataTests
+// Human Modifications: None (review only)
+// Verification: AssetCrudTests, AssetQueryTests, SeedDataTests; reviewed by me 2026-11-15
 // Confidence: High
 
 using ResourceHub.Api.Domain;

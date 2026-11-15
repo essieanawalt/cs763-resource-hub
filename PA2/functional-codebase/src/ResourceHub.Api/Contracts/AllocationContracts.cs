@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: Response shapes for allocation, return and active-allocation routes (~100%)
-// Human Modifications: None yet
-// Verification: AllocationTests, ReturnTests, ActiveAllocationTests
+// Human Modifications: None (review only)
+// Verification: AllocationTests, ReturnTests, ActiveAllocationTests; reviewed by me 2026-11-15: shortage dto was a solid choice
 // Confidence: High
 
 using ResourceHub.Api.Domain;

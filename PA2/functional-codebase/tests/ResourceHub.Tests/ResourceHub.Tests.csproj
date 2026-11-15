@@ -3,8 +3,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: Project file for the API integration tests (~100%)
-// Human Modifications: None yet
-// Verification: dotnet test ResourceHub.slnx against PostgreSQL 18
+// Human Modifications: None (review only)
+// Verification: dotnet test ResourceHub.slnx against PostgreSQL 18; reviewed by me 2026-11-15
 // Confidence: High
 -->
 <Project Sdk="Microsoft.NET.Sdk">

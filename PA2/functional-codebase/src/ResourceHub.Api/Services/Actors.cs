@@ -2,8 +2,8 @@
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
 // Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
 // AI Contribution: Resolves the calling mock user from X-User-Id and checks their role (~100%)
-// Human Modifications: None yet
-// Verification: Role tests in AssetCrudTests, TicketTests, AllocationTests
+// Human Modifications: None (review only)
+// Verification: Role tests in AssetCrudTests, TicketTests, AllocationTests; reviewed by me 2026-11-15: auth out of scope note interesting, as is X-User-id
 // Confidence: Medium (stand-in for real authentication, which is out of scope)
 
 using Microsoft.EntityFrameworkCore;
