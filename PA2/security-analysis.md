@@ -138,7 +138,8 @@ Status values: **Met (tested)**, **Met (review)** (read in the code, not yet run
 - **Lost devices:** a physical device that never comes back stays overdue forever. There's no way to write it off and adjust total stock
 - **Leaked license keys:** an issued key is never returned to the pool, and expiry is out of scope (spec section 8), but there's also no way to revoke or replace a key if it leaks (V3). Revocation is a different thing from expiry, so this one leans toward a security requirement
 - **Approved tickets that can't be filled:** a ticket short on stock stays approved so allocation can run later (clarification 9), but clarification 8 gives no way to cancel or close it, so it can stay approved forever
-- **Separation of duties:** the user who submits a ticket shouldn't be the one who approves it. The spec doesn't ask for it and no mock user holds two roles, so nothing can break it today. I'm keeping it here rather than as a requirement with a status
+- **Separation of duties:** the user who submits a ticket shouldn't be the one who approves it. The spec doesn't ask for it and no mock user holds two roles, so nothing can break it today. I'm keeping it here rather than as a requirement with a status. The wider version is that an administrator can allocate, return and delete with no second person involved (AC7)
+- **Returns trust the token alone:** a return is accepted for any valid token sent by an administrator, with nothing confirming the device came back. SR9 makes each token work only once, but doesn't cover this (AC4, AC7)
 
 ### 2.2 Group B: cross-cutting controls
 
@@ -237,7 +238,7 @@ Status values: **Met (tested)**, **Met (review)** (read in the code, not yet run
 
 ## 3. Abuse cases
 
-Each case is told from the attacker's side, using the findings in section 1 and the requirements in section 2. I kept the seven strongest: they use different attackers (an outsider, a legitimate requester, a trusted administrator, someone with log access, anyone who can reach the database port) and together they break every requirement group except input handling, which held up in testing. "Shown" records what I demonstrated: **Demonstrated** (run end to end), **Partly demonstrated** (steps shown separately) or **Not demonstrated**.
+Each case is told from the attacker's side, using the findings in section 1 and the requirements in section 2. I kept seven cases, drawn from five kinds of attacker (an outsider, a legitimate requester, a trusted administrator, someone with log access, anyone who can reach the database port); some attackers appear in more than one case. Together they break every requirement group except input handling, which held up in testing, and devices and returns, where the cases use a gap the requirements don't cover rather than breaking one. "Shown" records what I demonstrated: **Demonstrated** (run end to end), **Partly demonstrated** (steps shown separately) or **Not demonstrated**.
 
 ### AC1 — Steal license keys
 - **Attacker:** an outsider on the network with no account
@@ -294,7 +295,8 @@ Each case is told from the attacker's side, using the findings in section 1 and 
   2. Send it to `/return` as the administrator (V1); the token is all the route needs
   3. The stock count goes up and the device drops off the overdue list while it is still out
 - **Weaknesses used:** V1, V2, V5
-- **Requirements broken:** SR9 (the return is accepted once, as designed, but nothing checks the device came back), SR12, SR13, SR15, SR22
+- **Gaps used:** returns trust the token alone (gaps note in section 2). SR9 holds as written, since each token is accepted once, but nothing checks the device actually came back
+- **Requirements broken:** SR12, SR13, SR15, SR22
 - **Impact:** inventory that doesn't match reality, and a lost or stolen device that never shows as overdue
 - **Risk:** Medium
 - **Shown:** partly demonstrated. The allocations listing returns device tokens (`evidence/abuse-case-checks-2026-11-15.txt`, check 1), the token is in the log (V5), and a token returns with a 200 (`evidence/sr-validation-2026-11-15.txt`, SR8); I didn't return a device I knew was still out
@@ -337,8 +339,9 @@ Each case is told from the attacker's side, using the findings in section 1 and 
   2. Keep a device and mark it returned with its token; the return route checks only the token, so stock goes up and the device is never overdue (as in AC4, but with no impersonation)
   3. Delete other requesters' pending tickets they don't want filled; an administrator can delete any pending ticket, and its history goes with it (V4)
   4. Change total stock through `PUT /api/v1/assets/{id}` to make the numbers fit
-- **Weaknesses used:** V4; no separation of duties or second approval for allocation, returns or deletes (gaps note in section 2); the event log is the only check and it can be emptied (SR11)
-- **Requirements broken:** SR9 (a return is accepted on the token alone), SR11
+- **Weaknesses used:** V4
+- **Gaps used:** no separation of duties or second approval for allocation, returns or deletes, and returns trust the token alone (both in the gaps note in section 2)
+- **Requirements broken:** SR11 (the event log is the only check on the administrator, and it can be emptied)
 - **Impact:** a trusted role can take stock and remove the trail with no other person involved, so the controls that hold against outsiders (SR1, SR3, SR10) don't help here
 - **Risk:** Medium: it needs a trusted role, but nothing in the system would catch it
 - **Shown:** partly demonstrated. The administrator received the keys and tokens on allocate and returned a device with its token (`evidence/sr-validation-2026-11-15.txt`, SR3 and SR8); the code lets an administrator delete any pending ticket (`Endpoints/TicketEndpoints.cs` L192); deleting a pending ticket removed its events (V4). I didn't delete another requester's ticket as the administrator
@@ -364,7 +367,7 @@ Every High-risk finding (V1, V2, V3, V6) appears in at least one case.
 |---|---|
 | A1 Requests and approval | AC2 (SR2) |
 | A2 Allocation | AC5 (SR4, SR5), AC6 (SR7) |
-| A3 Devices and returns | AC4, AC7 (SR9) |
+| A3 Devices and returns | none broken; AC4 and AC7 use the token-only return gap instead |
 | A4 Catalog and records | AC2, AC3, AC5, AC7 (SR11) |
 | B1 Identity and access | AC1, AC2, AC3, AC4 |
 | B2 Protecting data | AC1, AC2, AC4 |
