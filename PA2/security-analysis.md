@@ -5,8 +5,8 @@
 | Item | Detail |
 |---|---|
 | Conceptual AI contribution | AI: _%_ / HUMAN: _%_ (to set once sections 3–7 are written) |
-| My part | Wrote the security requirements from the spec's business rules, including the review gaps, and chose to judge each on its own logic; checked every CWE against MITRE CWE 5.0; ran every test and check against the stack (`\du`, the network login, the requirement runs, the abuse case checks); decided which findings were confirmed and promoted (V4, V5, V6) and asked for M9 to be closed; asked for risk ratings and for data minimization, deny by default, the event log in the database and response headers to be explored; raised hoarding and asked to add it; decided on the renumbering; wrote AC1–AC6 and the coverage tables, and asked for AC7; caught the SR9 contradiction and proposed the fix; wrote the attack trees; found the SR11 scope gap and set out the two options, then chose to widen it; revised the attack surface map and ran the database volume check; drew the DFD and wrote the STRIDE matrix, raised the log integrity threat (G7), chose the host access scope rule, corrected G8's CWE and ran the log configuration check; caught stale and broken references and the assistant overstating its part |
-| AI part (Claude chat assistant) | Section skeleton; carried in the triage findings and protections; attack-surface routes read from the code; reviews of the requirements, abuse cases and attack trees against the code and evidence; test scripts and check commands; status updates from the results; V4–V6 write-ups (suggested testing the V6 chain); risk-rating scale and ratings; drafts of SR14, SR16, SR18 and SR7 (fair share); AC7 draft; renumbering; tree layout fixes; SR11 rewrite after she widened it; review of the attack surface map and the volume check command; review of the DFD and STRIDE matrix (two missing flows, host rule options, G8 draft and its correction after her check) |
+| My part | Wrote the security requirements from the spec's business rules, including the review gaps, and chose to judge each on its own logic; checked every CWE against MITRE CWE 5.0; ran every test and check against the stack (`\du`, the network login, the requirement runs, the abuse case checks); decided which findings were confirmed and promoted (V4, V5, V6) and asked for M9 to be closed; asked for risk ratings and for data minimization, deny by default, the event log in the database and response headers to be explored; raised hoarding and asked to add it; decided on the renumbering; wrote AC1–AC6 and the coverage tables, and asked for AC7; caught the SR9 contradiction and proposed the fix; wrote the attack trees; found the SR11 scope gap and set out the two options, then chose to widen it; revised the attack surface map and ran the database volume check; drew the DFD and wrote the STRIDE matrix, raised the log integrity threat (G7), chose the host access scope rule, corrected G8's CWE and ran the log configuration check; wrote the mitigation plan; caught stale and broken references and the assistant overstating its part |
+| AI part (Claude chat assistant) | Section skeleton; carried in the triage findings and protections; attack-surface routes read from the code; reviews of the requirements, abuse cases and attack trees against the code and evidence; test scripts and check commands; status updates from the results; V4–V6 write-ups (suggested testing the V6 chain); risk-rating scale and ratings; drafts of SR14, SR16, SR18 and SR7 (fair share); AC7 draft; renumbering; tree layout fixes; SR11 rewrite after she widened it; review of the attack surface map and the volume check command; review of the DFD and STRIDE matrix (two missing flows, host rule options, G8 draft and its correction after her check); review and corrections of the mitigation plan |
 | Design-aid prompts | `.ai_logs/2026-11-15_security-analysis-log.md` (in this folder) |
 
 ## 1. Scope
@@ -680,4 +680,147 @@ Every element in 6.1 against the six threat types, STRIDE per element.
 
 ## 7. Proposed mitigations
 
-_A technical plan for every vulnerability and threat above, traced back to its id._
+The plan is organised by fix, not by finding: each fix lists everything it closes, so one change can be traced to every finding, requirement, abuse case and STRIDE cell it answers. Fixes are numbered MT1–MT11 so they don't clash with the finding and protection ids. Nothing here is implemented yet; the hardening phase does that.
+
+Each fix has: **what** to change, **closes** (findings, requirements, abuse cases, matrix cells), **where** in the code or config, **verify** (how to show it worked, usually the requirement's own "How to verify"), and its **priority**.
+
+### 7.1 Priority order
+
+| # | Fix | Main findings | Priority | Why this order |
+|---|---|---|---|---|
+| MT1 | Real authentication | V1, M8 | 1 | Almost every requirement depends on SR12, and V1 is in four of the seven abuse cases (and a step of AC6) and in all three attack trees |
+| MT2 | Lock down the database | V6 | 1 | The only route that skips the API and every rule in it (AC5); fixing MT1 alone leaves it open |
+| MT3 | Deny by default, authorize by object, send less | V2, G3 | 2 | Closes the open reads that supply the ids for V1 |
+| MT4 | Protect keys and tokens at rest | V3 | 2 | The highest-value data; limits the damage of any route that still gets through |
+| MT5 | Make the event log trustworthy | V4 | 2 | Without it nothing else can be audited afterwards |
+| MT6 | Fix security logging | V5, G7, G8 | 3 | Removes working tokens from the log and records refused attempts |
+| MT7 | Encrypt transport | M7 | 3 | Protects the new identity proof (MT1) and the keys on the network |
+| MT8 | Response headers and error messages | M8 | 4 | Small changes, low risk on their own |
+| MT9 | Limits: rate and fair share | G5, SR7 | 4 | Availability; AC6 is an insider using the normal flow |
+| MT10 | Confirm returns and separate duties | token-only return gap, AC7 | 4 | Insider misuse; needs policy decisions as well as code |
+| MT11 | Pin the supply chain | M6 | 4 | Generic to any service, but cheap to fix |
+
+**What the attack trees say about this order:** MT1 and MT2 cut the impersonation and database branches of all three trees, MT7 cuts AC1's network branch, and MT5 and MT6 cut AC3's "erase through the API" and "leave nothing to record" branches. What's left is insider misuse with a real role: a requester deleting their own pending ticket, a careless or colluding approver, and T0's "have a real one act for me". No technical control removes that; MT5, MT9 and MT10 make it visible and limited instead (section 7.4).
+
+### 7.2 Fixes
+
+#### MT1 — Real authentication (priority 1)
+- **What:** replace the `X-User-Id` header with a signed JSON Web Token checked on every request except health. Use an asymmetric algorithm (RS256 or ES256) and verify the signature locally with the public key; pin the accepted algorithm so `none` or a symmetric algorithm is refused. Validate issuer, audience, expiry and not-before, keep tokens short-lived, and take the user id from the verified `sub` claim and the role from the users table, not from anything the caller sends. The private signing key lives outside the repository and the database. The event log takes its actor from the verified identity
+- **Closes:** V1; SR12; the authentication half of SR2, SR13 and SR11; AC1 (API route), AC2, AC3 (hide who did it), AC4; T0's "impersonate them" branch. Matrix: EE1-S, EE1-R, PS1-E, PS2-S, PS2-R, PS2-E, PS3-S, PS3-T, PS3-E, PS4-S, PS4-E, DS2-R
+- **Where:** `Services/Actors.cs` (replaced by authentication middleware), `Program.cs`, every endpoint that calls `Actors.RequireAsync`
+- **Verify:** SR12's checks: another user's id with no token, a forged token, an expired token, a token signed with the wrong key or algorithm; all refused with 401
+
+#### MT2 — Lock down the database (priority 1)
+- **What:** stop publishing port 5432 (or bind it to `127.0.0.1` for local work only). Remove the fallback password from `docker-compose.yml` so the stack refuses to start without `POSTGRES_PASSWORD` (`${POSTGRES_PASSWORD:?}`), delete it from `appsettings.Development.json`, and change it, since the old one is in git history. Split database roles: an owner role used only by a separate migration step, and an application role with only the table rights it needs and no superuser, schema or role rights. The application role gets insert and select only on the event table (MT5)
+- **Closes:** V6 (and with it M4, G2, G4); SR23, SR24; AC1 (database route), AC3 (database route), AC5; the database path out of T0. Matrix: PS5-T, PS5-E, DS1-T, DS1-R, DS1-I, DS1-D, DS2-T, DS4-I, DF3-T, DF3-I, DF3-D, DF5-I, DF7-I (password part)
+- **Where:** `docker-compose.yml` (L8, L10, L24), `appsettings.Development.json`, `Program.cs` (migrations at startup move out), a database init script for the two roles
+- **Verify:** SR23 and SR24's checks: `\du` shows no superuser for the app role; connecting to 5432 from outside fails; `docker compose up` without the password fails
+
+#### MT3 — Deny by default, authorize by object, send less (priority 2)
+- **What:** set a fallback authorization policy that requires an authenticated caller on every route, with only health marked public. Limit ticket reads to the requester, the course's instructor or lab's advisor, the IT director and administrators; limit the asset catalog to signed-in users. Strip other people's user ids, notes and event actor ids from responses for callers who don't need them, and return keys and tokens only on the routes that issue them
+- **Closes:** V2, G3; SR13, SR14, SR16; AC1 step 2, AC2 and AC4 preconditions. Matrix: PS1-I (V2, G3), PS1-E (SR14), PS3-I, DS2-I
+- **Where:** `Program.cs` (authorization policy), `Endpoints/TicketEndpoints.cs`, `Endpoints/AssetEndpoints.cs`, `Services/TicketViews.cs`
+- **Verify:** SR14's check (every route with no token; only health answers) and SR16's (count the user ids in a ticket response as a requester)
+
+#### MT4 — Protect keys and tokens at rest (priority 2)
+- **What:** encrypt license keys in the database with authenticated encryption (AES-256-GCM, for example through .NET's `AesGcm` or the Data Protection API), with the key held outside the database and the repository, and decrypt only when building a response for a caller MT3 allows. Device tokens only ever need to be compared, so store a hash and show the token once, at allocation. Rotate the keys that are already stored: plain-text copies remain in the write-ahead log and old data files (`evidence/abuse-case-checks-2026-11-15.txt`, check 3), so encrypting from now on doesn't remove them. Add a way to revoke and replace a license key (gaps note)
+- **Closes:** V3; SR15; AC1 (keys readable on every route); the "leaked license keys" gap. Matrix: PS1-I (V3), PS4-I (V3), DS1-I (V3), DF1-I (V3), DF7-I (volume part)
+- **Where:** `Domain/Entities.cs`, `Data/HubDbContext.cs`, `Services/AllocationService.cs`, `Endpoints/AllocationEndpoints.cs`, the return lookup in `Endpoints/AssetEndpoints.cs`
+- **Verify:** SR15's checks: query `license_keys` directly, search the database volume for a known key, read allocations as a caller who shouldn't see them; none shows a key
+
+#### MT5 — Make the event log trustworthy (priority 2)
+- **What:** stop events from being deleted with their ticket: change the cascade to restrict and keep deleted pending tickets as withdrawn rather than removing the row. Record every change the widened SR11 covers: refused transitions, returns, and asset create, update and delete, in an audit table not tied to tickets. Make the table append-only in the database itself (the app role from MT2 can only insert and read; optionally a trigger refusing update and delete), so a compromised API connection can't rewrite history either
+- **Closes:** V4; SR11; the "refused transitions leave no event" part of SR2; AC3 (erase through the API), AC7 step 3. Matrix: EE1-R (SR11), PS1-R (SR11), PS3-R (V4), PS4-R, DS1-R (SR11), DS2-T (V4), DS2-R (SR11)
+- **Where:** `Data/HubDbContext.cs` L114, `Endpoints/TicketEndpoints.cs` (delete), `Endpoints/AssetEndpoints.cs` (return and asset changes), `Services/TicketEvents.cs`, a migration for the table and grants
+- **Verify:** SR11's checks: delete a pending ticket and count its events; return a device and change an asset, then look for events; try to update or delete an event as the app role
+- **Note:** spec clarification 8 says pending tickets can be deleted. Keeping them as withdrawn changes what "delete" means internally, not what the caller sees, so I'd record it as a clarification
+
+#### MT6 — Fix security logging (priority 3)
+- **What:** log the device or allocation id on return, never the token. Log every refused or failed request (401, 403, 409) with the caller, route and time. Set a size and rotation limit in `docker-compose.yml` (`logging:` with `max-size` and `max-file`), so the result doesn't depend on the host's settings. Once MT5 records returns and asset changes in the database, the application log is no longer the only record of them; for the log itself, ship it to a store the host operator can't edit if the deployment needs that
+- **Closes:** V5, G7, G8 (with MT5 and MT9); SR22; AC3 (probe freely), AC4 and AC7 (tokens from the log). Matrix: EE1-R (SR22), PS1-R (SR22), PS2-R (SR22), PS3-R (SR22), PS4-I (V5), DS3-T, DS3-R, DS3-I, DS3-D, DF4-I, DF7-I (log part)
+- **Where:** `Endpoints/AssetEndpoints.cs` L77, `Services/Actors.cs` (or the MT1 middleware), `docker-compose.yml`
+- **Verify:** SR22's checks: make refused calls and find them in the log; search the log for key and token values and find none
+
+#### MT7 — Encrypt transport (priority 3)
+- **What:** serve the API over TLS only, either in Kestrel with a certificate kept out of the repository or behind a reverse proxy that terminates TLS; refuse or redirect plain HTTP and send HSTS
+- **Closes:** M7; SR17; AC1 (network branch). Matrix: PS1-S, DF1-T, DF1-I (M7)
+- **Where:** `Program.cs`, `Dockerfile`, `docker-compose.yml`
+- **Verify:** SR17's check: a plain-HTTP call is refused or redirected
+- **Note:** DF2 stays on the compose network under the deployment assumption in section 1; it needs TLS too if the database moves
+
+#### MT8 — Response headers and error messages (priority 4)
+- **What:** add `Cache-Control: no-store` to responses that carry keys or tokens (simplest: every API response) and `X-Content-Type-Options: nosniff` everywhere, and turn off the `Server` header (Kestrel's `AddServerHeader = false`). Make the 401 generic, with only the standard `WWW-Authenticate: Bearer` header MT1 brings
+- **Closes:** M8; SR18, SR21. Matrix: PS1-I (M8, SR18), PS2-I, DF1-I (SR18)
+- **Where:** `Program.cs` (middleware and Kestrel options), `Services/Actors.cs` L31
+- **Verify:** SR18 and SR21's checks: read the headers on the allocations listing; trigger a 401 and read the body
+
+#### MT9 — Limits: rate and fair share (priority 4)
+- **What:** add ASP.NET Core's rate limiter, partitioned by authenticated user and falling back to client address, returning 429. Set fair-share limits by policy and enforce them on submission: quantity per ticket against stock, loan length, and open tickets or held units per requester and per department program (SR7 leaves the numbers to policy)
+- **Closes:** G5, SR26, SR7; AC6; AC2's "approves without looking" leaf; most of G8's flood. Matrix: PS1-D, PS3-D, PS4-D, DF1-D
+- **Where:** `Program.cs` (rate limiter), `Services/TicketContent.cs` and `Services/Validation.cs` (share limits)
+- **Verify:** SR26's loop (expect 429) and SR7's check (one instructor over the limit is refused)
+
+#### MT10 — Confirm returns and separate duties (priority 4)
+- **What:** a return records who received the device (the verified identity from MT1) and needs a second step to complete, such as the IT director confirming the check-in, or a scan of the device's own label rather than the token alone. The requester can never approve their own ticket. Settle the other gaps by giving each record a way to close: a recorded write-off for lost devices (administrator plus IT director) and a cancel transition for approved tickets that can't be filled
+- **Closes:** the token-only return gap and the separation-of-duties gap; AC4, AC7 (steps 1–2); AC2's "wait" leaf; the lost-device and unfillable-ticket gaps. Matrix: PS4-T
+- **Where:** `Endpoints/AssetEndpoints.cs` (return), `Endpoints/TicketEndpoints.cs` (transitions), `spec-domain2.md` (new clarifications)
+- **Verify:** an administrator alone can't complete a return; a user holding both roles can't approve their own ticket
+- **Note:** this one needs decisions from whoever runs the service, not only code, so the policy has to come before the change
+
+#### MT11 — Pin the supply chain (priority 4)
+- **What:** pin base images by digest (`image:tag@sha256:…`) in the `Dockerfile` and `docker-compose.yml`, pin the runner to a fixed version (`ubuntu-24.04`), and let an update tool (Dependabot or Renovate) propose digest bumps so pinning doesn't mean never patching. Keep the Trivy scans
+- **Closes:** M6; SR25; the left-out poisoned base image case. Matrix: EE3-S, EE3-R, PS5-T (M6), DF6-T
+- **Where:** `Dockerfile`, `docker-compose.yml`, `.github/workflows/devsecops.yml`
+- **Verify:** SR25's check: no floating tags left; Trivy still runs on the pinned images
+
+### 7.3 Keep what already works
+
+The requirements that tested as met (SR1, SR3–SR6, SR8–SR10, SR19, SR20) and the protections the agent added (P1–P10) stay. Their tests should run in the CI pipeline so a later change can't quietly undo them. Two change shape under the fixes above: P1 is replaced by MT1, and P5's role and ownership checks keep their logic but read the verified identity.
+
+### 7.4 What's left after these fixes
+
+- **Insider misuse with a real role** (AC7, T0's "have a real one act for me", collusion): no technical control removes it. MT5 makes it visible, MT9 limits how much one person can take, and MT10 puts a second person on returns and approvals
+- **Host access** (out of scope, section 1): restricting who can use `docker` on the host and encrypting the disk that holds the volume are deployment controls, not application ones. MT4 and MT6 already limit what host files reveal
+- **DF2** under the one-host assumption (MT7 note)
+- **Requirements checked by review only:** the "—" cells in the STRIDE matrix and SR3's competing-key case rest on reading the code; dynamic testing should cover them
+
+### 7.5 Traceability check
+
+Every finding, every requirement not fully met, every gap and every abuse case maps to at least one fix, and so does every STRIDE cell that holds a threat; cells marked out of scope (host) are covered by section 7.4 instead.
+
+| Id | Fixes |
+|---|---|
+| V1 | MT1 |
+| V2 | MT3 |
+| V3 | MT4 |
+| V4 | MT5 |
+| V5 | MT6 |
+| V6 | MT2 |
+| M6 | MT11 |
+| M7 | MT7 |
+| M8 | MT1, MT8 |
+| G3 | MT3 |
+| G5 | MT9 |
+| G7 | MT6 |
+| G8 | MT6, MT5 (records returns and asset changes outside the log), MT9 (limits the flood) |
+| SR2 (partly met) | MT1, MT5 |
+| SR7 | MT9 |
+| SR11 | MT5, MT1 |
+| SR12 | MT1 |
+| SR13, SR14, SR16 | MT3 |
+| SR15 | MT4 |
+| SR17 | MT7 |
+| SR18, SR21 | MT8 |
+| SR22 | MT6 |
+| SR23, SR24 | MT2 |
+| SR25 | MT11 |
+| SR26 | MT9 |
+| Gaps: lost devices, unfillable tickets, separation of duties, token-only returns | MT10 |
+| Gap: leaked license keys | MT4 |
+| AC1 | MT1, MT2, MT3, MT4, MT7 |
+| AC2 | MT1, MT3, MT9, MT10 |
+| AC3 | MT1, MT2, MT5, MT6 |
+| AC4 | MT1, MT3, MT6, MT10 |
+| AC5 | MT2 |
+| AC6 | MT9 |
+| AC7 | MT5, MT10 |
