@@ -10,6 +10,24 @@ Running journal of how I work with AI tools on this project: what they got wrong
 
 > First drafts by the chat assistant during our session, rewritten by me during intervals between sub-phase work in this session.
 
+### 2026-11-15 — The assistant overstated its own part in the record
+
+**What happened:** I noticed the assistant sometimes writes up the work as if it did or decided more than it did. In the initial journal entry about the event log, it wrote that it "recommended widening SR11", when I had found the gap and laid out both options and it only agreed with one. The first version of that entry was also about the requirement rather than about our collaboration, which left out that the assistant had missed the gap in two reviews. It also summarizes steps as "updated X" when I chose what X should be and it only wrote it down.
+
+**Fix:** I pointed it out, the assistant corrected the entry, and it now separates who raised an idea, who chose between options and who only carried out the change, and says when it isn't sure.
+
+**Why it matters:** the journal, the metadata blocks and the session logs are my AI disclosure. If the assistant's summaries overstate its part, the record understates mine, so I have to read its write-ups for attribution as well as for accuracy. These don't happen frequently, but they're persistent enough to warrant this continued review and redraft for all sections. It's great for getting the thought down initially, but I know I need to review and redraft very soon to ensure it is a more accurate source of truth. 
+
+---
+
+### 2026-11-15 — The assistant reviewed the event log requirement twice and missed its scope
+
+**What happened:** I asked the assistant twice whether the requirements were sound and whether there were gaps. Both times it checked SR11 against the code, and both times it suggested extending it to the database, but it never noticed that returns and asset changes write no event at all. I found that myself while building the attack trees, because the fake return and the administrator adjusting stock both depend on it. When I raised it, along with two options (widen SR11, or keep it and note a gap), the assistant confirmed it in the code and agreed with widening it. Checking the event types also exposed one of its own errors: its database test had used an event type that doesn't exist, which is why the update in that test matched no rows.
+
+**Why it matters:** the assistant reviewed SR11 against what the requirement said, and against the spec clarification it came from, not against what the attacks needed. It was quick to prove or disprove something once I named it, but it didn't find this gap on its own. The attack trees did, because they forced me to trace each step to something that should have stopped or recorded it
+
+---
+
 ### 2026-11-15 — The coverage check contradicted the cases it summarized
 
 **What happened:** on a second read of the abuse cases, I noticed the coverage summary said the requirements that tested as met weren't broken by any case through the API, and listed SR9 among them, while AC4 and AC7 both listed SR9 as broken through the API. I'd framed AC4 that way, and the assistant copied the same framing when it drafted AC7 and didn't notice the clash with the summary. SR9 had actually held in testing: each token works only once. What the attacks use is a gap SR9 doesn't cover, since a return is accepted on the token alone with nothing confirming the device came back.
