@@ -16,3 +16,14 @@ $ docker run --rm -e PGPASSWORD=resourcehub_dev postgres:18 psql -h host.docker.
 BEGIN
 UPDATE 1
 ROLLBACK
+
+3) SR15 / database volume: a license key is readable in plain text in the volume's files,
+   read directly (read-only mount), without the database port or a password. ~22:17 UTC
+
+$ docker run --rm -v cs763-resource-hub_db-data:/data:ro alpine grep -rl 'JBIDE-7K2M-Q9XA' /data | head -3
+(image pull lines removed)
+/data/18/docker/pg_wal/000000010000000000000001
+/data/18/docker/base/16384/16606
+/data/18/docker/base/16384/16574
+
+Result: the key appears in two table data files and in the write-ahead log (pg_wal).
