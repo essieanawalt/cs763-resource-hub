@@ -10,6 +10,18 @@ Running journal of how I work with AI tools on this project: what they got wrong
 
 > First drafts by the chat assistant during our session, rewritten by me during intervals between sub-phase work in this session.
 
+### 2026-11-15 — The coverage check contradicted the cases it summarized
+
+> First draft by the Claude chat assistant, from our session; to be rewritten by me.
+
+**What happened:** on a second read of the abuse cases, I noticed the coverage summary said the requirements that tested as met weren't broken by any case through the API, and listed SR9 among them, while AC4 and AC7 both listed SR9 as broken through the API. I'd framed AC4 that way, and the assistant copied the same framing when it drafted AC7 and didn't notice the clash with the summary. SR9 had actually held in testing: each token works only once. What the attacks use is a gap SR9 doesn't cover, since a return is accepted on the token alone with nothing confirming the device came back.
+
+**Fix:** AC4 and AC7 now list that as a gap they use, not a requirement they break, and the gap is written up in section 2. Fixing it also showed the intro's claim that every requirement group was broken was no longer true.
+
+**Why it matters:** a weakness and a missing requirement aren't the same thing, and mixing them up made a tested requirement look failed. The assistant repeated my framing rather than checking it against the test results it had itself written up
+
+---
+
 ### 2026-11-15 — I brought the theory, the assistant built the test, and it went both ways
 
 **What happened:** while writing the requirements I left myself a note that deleting a pending ticket probably deletes its events too, because they're set to cascade. I asked the assistant to check what it could from notes I had left in my draft, and it wrote a test which confirmed it, which then became V4. The same thing happened with hoarding: I asked what it would look like, it should someone could request an obscene number and have it accepted. It also went the other way. My guesses that a requester could submit for any course, that vouchers might skip the stock locking, and that asset responses had null checks missing were all disproved by the code and the tests.
