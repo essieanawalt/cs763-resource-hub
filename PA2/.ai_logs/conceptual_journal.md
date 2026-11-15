@@ -12,8 +12,6 @@ Running journal of how I work with AI tools on this project: what they got wrong
 
 ### 2026-11-15 — The coverage check contradicted the cases it summarized
 
-> First draft by the Claude chat assistant, from our session; to be rewritten by me.
-
 **What happened:** on a second read of the abuse cases, I noticed the coverage summary said the requirements that tested as met weren't broken by any case through the API, and listed SR9 among them, while AC4 and AC7 both listed SR9 as broken through the API. I'd framed AC4 that way, and the assistant copied the same framing when it drafted AC7 and didn't notice the clash with the summary. SR9 had actually held in testing: each token works only once. What the attacks use is a gap SR9 doesn't cover, since a return is accepted on the token alone with nothing confirming the device came back.
 
 **Fix:** AC4 and AC7 now list that as a gap they use, not a requirement they break, and the gap is written up in section 2. Fixing it also showed the intro's claim that every requirement group was broken was no longer true.
