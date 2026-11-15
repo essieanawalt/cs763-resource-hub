@@ -5,8 +5,8 @@
 | Item | Detail |
 |---|---|
 | Conceptual AI contribution | AI: 50% / HUMAN: 50% |
-| My part | Collected the pipeline and SonarCloud evidence; caught that Semgrep only partly parsed three files and raised it with the facilitator from PA1 experience; reviewed every generated file (header notes), including spotting that roles can be spoofed; ran the manual validation of M1–M3 against the running stack, and the security requirement tests that confirmed V4 and V5; decided verdicts and which findings count; rewrote drafts |
-| AI part (Claude chat assistant) | Report structure; scan facts summarized from the evidence; first-draft ledger rows; manual-review candidates (M1–M8) from chat notes; validation commands; test script for the requirement checks; V4/V5 write-ups |
+| My part | Collected the pipeline and SonarCloud evidence; caught that Semgrep only partly parsed three files and raised it with the facilitator from PA1 experience; reviewed every generated file (header notes), including spotting that roles can be spoofed; ran the manual validation of M1–M3 against the running stack, the security requirement tests that confirmed V4 and V5, and the database checks that confirmed V6 (`\du` and the network login); decided verdicts and which findings count; rewrote drafts |
+| AI part (Claude chat assistant) | Report structure; scan facts summarized from the evidence; first-draft ledger rows; manual-review candidates (M1–M8) from chat notes; validation commands; test script for the requirement checks; V4–V6 write-ups (suggested testing the V6 chain) |
 | Design-aid prompts | `.ai_logs/2026-11-14_review-log.md` and `.ai_logs/2026-11-15_review-log.md` (in this folder) |
 
 ## 1. Scope and evidence

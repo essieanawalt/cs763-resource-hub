@@ -5,8 +5,8 @@
 | Item | Detail |
 |---|---|
 | Conceptual AI contribution | AI: _%_ / HUMAN: _%_ (to set once sections 3–7 are written) |
-| My part | Wrote the security requirements from the spec's business rules, including the review gaps; checked every CWE against MITRE CWE 5.0; confirmed the database superuser (`\du`); ran the requirement tests; decided which findings were confirmed and promoted (V4, V5) |
-| AI part (Claude chat assistant) | Section skeleton; carried in the triage findings and protections; attack-surface routes read from the code; review of the requirements against the code; test script; status updates from the test results; V4/V5 write-ups |
+| My part | Wrote the security requirements from the spec's business rules, including the review gaps, and chose to judge each on its own logic; checked every CWE against MITRE CWE 5.0; ran every test and check against the stack (`\du`, the network login, the requirement runs, the abuse case checks); decided which findings were confirmed and promoted (V4, V5, V6) and asked for M9 to be closed; asked for risk ratings and for data minimization, deny by default, the event log in the database and response headers to be explored; raised hoarding and asked to add it; decided on the renumbering; wrote AC1–AC6 and the coverage tables, and asked for AC7; caught the SR9 contradiction and proposed the fix; wrote the attack trees; found the SR11 scope gap and set out the two options, then chose to widen it; caught stale and broken references and the assistant overstating its part |
+| AI part (Claude chat assistant) | Section skeleton; carried in the triage findings and protections; attack-surface routes read from the code; reviews of the requirements, abuse cases and attack trees against the code and evidence; test scripts and check commands; status updates from the results; V4–V6 write-ups (suggested testing the V6 chain); risk-rating scale and ratings; drafts of SR14, SR16, SR18 and SR7 (fair share); AC7 draft; renumbering; tree layout fixes; SR11 rewrite after she widened it |
 | Design-aid prompts | `.ai_logs/2026-11-15_security-analysis-log.md` (in this folder) |
 
 ## 1. Scope
@@ -128,11 +128,16 @@ Status values: **Met (tested)**, **Met (review)** (read in the code, not yet run
 - How to verify: delete an asset with a checked-out device or an issued key and expect a 409; delete an unused asset and expect a 204
 - Status: **Met (tested).** Deleting the laptop while in use got a 409; an unused asset was deleted with a 204 (`evidence/sr-validation-2026-11-15.txt`, SR9). The agent added this without being asked (P10)
 
-**SR11 — Accountability: trustworthy event log.** Every ticket state change and every allocation attempt, failed ones included, shall be recorded with the verified identity of the caller who made it, the time and the outcome. The log shall be append-only, both through the API and in the database: the service's database user can add events but not change or delete them. Other requirements that say "logged" mean this.
-- Source: spec requirement 3, clarification 13
+**SR11 — Accountability: trustworthy event log.** Every change to tickets, stock and devices shall be recorded with the verified identity of the caller who made it, the time and the outcome: ticket submissions, edits and state changes, every allocation attempt (failed ones included), device returns, and creating, updating or deleting an asset. The log shall be append-only, both through the API and in the database: the service's database user can add events but not change or delete them. Other requirements that say "logged" mean this.
+- Source: spec requirement 3 and clarification 13, which cover tickets and allocation attempts. I widened it to returns and asset changes because those change stock and devices just as much, and AC4 and AC7 rely on them leaving no record
 - Depends on: SR12
-- How to verify: make a change, read the ticket's events, check the actor; try to edit or delete an event
-- Status: **Not met.** In the database too: through V6, deleting 6 events succeeded inside a transaction that was then rolled back (`evidence/sr-validation-2-2026-11-15.txt`; the update in the same test matched no rows, so only deletion is shown). Recording works: state changes, edits and allocation attempts are recorded with actor and time (`Endpoints/TicketEndpoints.cs` L97, L168; `Services/AllocationService.cs` L52, L65). But the log isn't append-only: deleting pending ticket T3 through the API removed its submission event from `ticket_events` (V4; 0 left; `evidence/sr-validation-2026-11-15.txt`, SR10), because events cascade-delete with their ticket (`Data/HubDbContext.cs` L114). The actor is also only as trustworthy as SR12, which fails (V1)
+- How to verify: make a change, read the ticket's events, check the actor; return a device and change an asset, then look for an event; try to edit or delete an event through the API and in the database
+- Status: **Not met**, for three separate reasons:
+  - **Scope:** returns and asset create, update and delete record no event, only an application log line. There's no event type for them (`TicketEventType` in `Domain/Entities.cs` has only Submitted, Updated, Approved, Rejected, AllocationSucceeded, AllocationFailed, Closed), and events are written only in `Endpoints/TicketEndpoints.cs` (L97, L168, L297) and `Services/AllocationService.cs` (L52, L65, L149). Met (review) for what clarification 13 asks: ticket changes and allocation attempts are recorded with actor and time
+  - **Append-only through the API:** deleting pending ticket T3 removed its submission event from `ticket_events` (V4; 0 left; `evidence/sr-validation-2026-11-15.txt`, SR10), because events cascade-delete with their ticket (`Data/HubDbContext.cs` L114)
+  - **Append-only in the database:** through V6, deleting 6 events succeeded inside a transaction that was then rolled back (`evidence/sr-validation-2-2026-11-15.txt`). The update in the same test matched no rows because it used an event type that doesn't exist (`Allocated` instead of `AllocationSucceeded`), so only deletion is shown
+
+  The actor is also only as trustworthy as SR12, which fails (V1)
 
 **Gaps found in review, to decide later.** These aren't from the spec. Most came from asking whether everything the service hands out has a way to close, return or end. They are business-process gaps more than security requirements, but a record that never closes is also an audit and availability problem, so I'm keeping them here to decide on:
 - **Lost devices:** a physical device that never comes back stays overdue forever. There's no way to write it off and adjust total stock
@@ -296,7 +301,7 @@ Each case is told from the attacker's side, using the findings in section 1 and 
   3. The stock count goes up and the device drops off the overdue list while it is still out
 - **Weaknesses used:** V1, V2, V5
 - **Gaps used:** returns trust the token alone (gaps note in section 2). SR9 holds as written, since each token is accepted once, but nothing checks the device actually came back
-- **Requirements broken:** SR12, SR13, SR15, SR22
+- **Requirements broken:** SR11 (the return records no event), SR12, SR13, SR15, SR22
 - **Impact:** inventory that doesn't match reality, and a lost or stolen device that never shows as overdue
 - **Risk:** Medium
 - **Shown:** partly demonstrated. The allocations listing returns device tokens (`evidence/abuse-case-checks-2026-11-15.txt`, check 1), the token is in the log (V5), and a token returns with a 200 (`evidence/sr-validation-2026-11-15.txt`, SR8); I didn't return a device I knew was still out
@@ -368,7 +373,7 @@ Every High-risk finding (V1, V2, V3, V6) appears in at least one case.
 | A1 Requests and approval | AC2 (SR2) |
 | A2 Allocation | AC5 (SR4, SR5), AC6 (SR7) |
 | A3 Devices and returns | none broken; AC4 and AC7 use the token-only return gap instead |
-| A4 Catalog and records | AC2, AC3, AC5, AC7 (SR11) |
+| A4 Catalog and records | AC2, AC3, AC4, AC5, AC7 (SR11) |
 | B1 Identity and access | AC1, AC2, AC3, AC4 |
 | B2 Protecting data | AC1, AC2, AC4 |
 | B3 Input | none; held up in testing |
@@ -379,13 +384,96 @@ Every High-risk finding (V1, V2, V3, V6) appears in at least one case.
 
 ## 4. Attack trees
 
-_At least three, one per chosen abuse case._
+Three trees, one each for AC1, AC2 and AC3. Each root is the attacker's goal from the abuse case; each branch is one way to get there.
 
-### 4.1 Attack tree: _AC?_
+**How to read them:**
+- **[OR]**: any one child is enough. **[AND]**: every child is needed
+- Each leaf is a concrete action tied to a finding, with three tags: **Shown** (D demonstrated, P partly, N not, as in section 3) · **Effort** (Low, Med, High) · **Needs** (none, a role, log access, network access)
+- **Needs** counts only what's beyond reaching the API on port 8080, which every attack assumes. "network" means a further foothold: the database port, or a position on the path between a client and the API
+- **→ cheapest path** marks the route an attacker would most likely take
+- **[see T0]** points to the shared subtree below instead of repeating it
 
-### 4.2 Attack tree: _AC?_
+### T0 — Shared subtree: act as a privileged user
 
-### 4.3 Attack tree: _AC?_
+Used by all three trees. It covers acting as someone inside the API; reaching the database directly (V6) goes around the API, so each tree has it as its own branch.
+
+```
+Act as a privileged user: IT director or administrator [OR]
+├── Impersonate them [AND]                                            → cheapest path
+│   ├── Learn the target's id [OR]
+│   │   ├── Read any ticket with no header (V2)                       D · Low  · none
+│   │   └── Use the fixed seeded ids (spec section 7, …0005, …0006)   D · Low  · none
+│   └── Send the id as X-User-Id (V1)                                 D · Low  · none
+└── Have a real one act for me [OR]
+    ├── Be one: misuse my own real role (AC7)                         P · —    · role
+    └── Get one to go along knowingly (collusion)                     N · High · none
+```
+
+The seeded ids are published in the spec and used unchanged by the running stack; every test in the evidence files sent them without first reading a ticket, so V1 works even if V2 is fixed.
+
+### 4.1 Attack tree: AC1 — Steal license keys
+
+```
+Steal license keys [OR]
+├── From the API [AND]                                               → cheapest path
+│   ├── Act as the administrator [see T0]
+│   └── Read the keys in plain text (V3) [OR]
+│       ├── The allocations listing returns them                     D · Low  · none
+│       └── Allocate an approved ticket; the response returns them   D · Low  · none
+├── From the database [AND]
+│   ├── Reach port 5432 on the host (G4, part of V6)                 D · Low  · network
+│   ├── Log in with the fallback password (V6)                       D · Low  · none
+│   └── Read license_keys, stored in plain text (V3)                 D · Low  · none
+└── From the network [AND]
+    ├── Sit on the path between a client and the API (M7)            N · Med  · network
+    └── Capture a plain-HTTP response that carries keys (M7)         N · Med  · network
+```
+
+### 4.2 Attack tree: AC2 — Approve your own request
+
+```
+Get my own ticket approved and allocated without a real review by the IT director [AND]
+├── Submit my own ticket                                         D · Low  · role
+├── Get it approved [OR]
+│   ├── Act as the IT director [see T0]                          → cheapest path
+│   └── A real IT director approves it without looking,
+│       worn down by volume (as in AC6)                          N · Med  · none
+└── Get it allocated [OR]
+    ├── Act as the administrator [see T0]
+    └── Wait: once approved, a real administrator allocates it   → cheapest path
+        as routine, and nothing marks it as unusual              N · Low  · none
+```
+
+T0's "Be one" branch doesn't apply here: a requester can't also be the IT director or the administrator.
+
+Waiting is marked as the cheapest way to get the allocation: once a ticket is approved, allocation is the administrator's normal next step, so it needs no impersonation and leaves the attacker out of the event log for that step.
+
+The database route (V6) is left out on purpose. Someone with superuser access could set the status and write allocation rows directly, but they'd skip the ticket altogether and read the keys (AC1), so it isn't a realistic way to reach this goal.
+
+### 4.3 Attack tree: AC3 — Cover your tracks
+
+```
+Leave no trustworthy record of what I did [OR]
+├── Hide who did it: send another user's id as X-User-Id (V1)   D · Low  · none   → cheapest path
+├── Erase the record [OR]
+│   ├── Delete a pending ticket; its events go with it (V4) [AND]
+│   │   ├── The ticket is still pending                         D · Low  · none
+│   │   └── Have the right to delete it [OR]
+│   │       ├── Be its requester                                D · Low  · role
+│   │       └── Act as the administrator [see T0]               N · Low  · none
+│   └── Delete or edit event rows in the database [AND]
+│       ├── Reach port 5432 on the host (G4, part of V6)        D · Low  · network
+│       ├── Log in with the fallback password (V6)              D · Low  · none
+│       └── Change the rows [OR]
+│           ├── Delete event rows                               D · Low  · none
+│           └── Edit event rows                                 N · Low  · none
+└── Leave nothing to record [OR]
+    ├── Probe freely: refused attempts aren't logged (SR22)     D · Low  · none
+    └── Act outside tickets: returns and asset create, update and
+        delete write no event, only an application log line     N · Low  · role
+```
+
+Editing event rows is marked N because the update in the assistant's test script used an event type that doesn't exist (`Allocated` instead of `AllocationSucceeded`) and matched no rows; only the delete is shown (`evidence/sr-validation-2-2026-11-15.txt`). The last leaf is confirmed in the code but not run: events are only written for ticket submission, updates, transitions and allocation attempts (`Endpoints/TicketEndpoints.cs` L97, L168, L297; `Services/AllocationService.cs` L149, L184), so returns and asset changes leave no event at all.
 
 ## 5. Attack surface map
 
