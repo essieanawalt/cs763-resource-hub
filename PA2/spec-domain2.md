@@ -8,7 +8,7 @@
 | Conceptual AI contribution | ~35% AI / ~65% me |
 | My part | Copied the standardized Domain 2 text (section 5) unchanged; walked through each requirement and endpoint and made every interpretation decision in section 6; directed which PA1 spec sections to carry over (overview, tech stack, deployment, layout, roles, out of scope) and how to adapt them |
 | AI part (Claude chat assistant) | Listed open questions and options for each requirement and endpoint; drafted the wording of section 6 and the mock data from my decisions; adapted the carried-over PA1 sections to the standardized spec |
-| Design-aid prompts | `PA2/.ai_logs/2026-11-14_spec-walkthrough-log.md` |
+| Design-aid prompts | `.ai_logs/2026-11-14_spec-walkthrough-log.md` (in this folder) |
 
 ## 1. Overview
 

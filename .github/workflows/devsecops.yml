@@ -103,7 +103,7 @@ jobs:
             /o:"essieanawalt" \
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.exclusions="evidence/**,PA1/**" \
+            /d:sonar.exclusions="PA1/**,PA2/evidence/**" \
             /d:sonar.cs.opencover.reportsPaths="PA2/functional-codebase/tests/**/TestResults/**/coverage.opencover.xml" \
             /d:sonar.cs.vstest.reportsPaths="PA2/functional-codebase/tests/**/TestResults/*.trx"
 
@@ -156,7 +156,7 @@ jobs:
             -v trivy-cache:/root/.cache \
             "$TRIVY_IMAGE" fs /src \
               --scanners vuln \
-              --skip-dirs '**/bin' --skip-dirs '**/obj' --skip-dirs 'reports' --skip-dirs '.sonarqube' --skip-dirs 'evidence' --skip-dirs 'PA1' \
+              --skip-dirs '**/bin' --skip-dirs '**/obj' --skip-dirs 'reports' --skip-dirs '.sonarqube' --skip-dirs 'PA2/evidence' --skip-dirs 'PA1' \
               --list-all-pkgs \
               --exit-code 0 \
               --format json --output /out/trivy-deps.json
@@ -216,7 +216,7 @@ jobs:
             -w /src \
             "$SEMGREP_IMAGE" semgrep scan \
               --config p/csharp \
-              --exclude 'evidence' \
+              --exclude 'PA2/evidence' \
               --exclude 'PA1' \
               --metrics=off \
               --sarif-output=reports/semgrep/semgrep.sarif \
