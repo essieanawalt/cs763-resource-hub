@@ -9,6 +9,21 @@
 | AI part (Claude chat assistant) | Report structure; scan facts summarized from the evidence; first-draft ledger rows; manual-review candidates (M1–M8) from chat notes; validation commands; test script for the requirement checks; V4–V6 write-ups (suggested testing the V6 chain) |
 | Design-aid prompts | `.ai_logs/2026-11-14_review-log.md` and `.ai_logs/2026-11-15_review-log.md` (in this folder) |
 
+## Confirmed CWEs
+
+The six vulnerabilities below are the confirmed findings of this report, validated against the running stack built from `4d39740`. Full write-ups, root causes and evidence are in section 4. Rows marked M or G in section 4 are candidates and are not confirmed, and the S rows in section 3 are scanner findings with no security impact.
+
+| # | Layer | Primary CWE | Also | Where | Finding |
+|---|---|---|---|---|---|
+| V1 | Authentication | CWE-290 | | `Services/Actors.cs` | The `X-User-Id` header is accepted as given, so anyone can act as any user |
+| V2 | Authorization | CWE-862 | | `Endpoints/TicketEndpoints.cs`, `Services/TicketViews.cs` | Ticket list and detail are open to anyone and return user ids and notes |
+| V3 | Data storage | CWE-312 | | `license_keys` table; `Services/AllocationService.cs`, `Endpoints/AllocationEndpoints.cs` | License keys are stored and returned in plain text |
+| V4 | Audit / database | CWE-221 | | `Data/HubDbContext.cs` L114; `Endpoints/TicketEndpoints.cs` (`DeleteAsync`) | A ticket's event history is deleted with the ticket |
+| V5 | Logging | CWE-532 | | `Endpoints/AssetEndpoints.cs` L77 | The full device token is written to the application log on return |
+| V6 | Deployment / database | CWE-1392 | CWE-1327, CWE-250, CWE-260 | `docker-compose.yml` L7–L10, L24; `appsettings.Development.json` | The database is reachable from the network as superuser with the committed fallback password |
+
+Paths are under `PA2/functional-codebase/src/ResourceHub.Api/`, except `docker-compose.yml` at the repository root.
+
 ## 1. Scope and evidence
 
 - Code scanned: `PA2/functional-codebase/` (test-first build, commit `cd539b8`; final scanned code `4d39740` after the parse fix)
