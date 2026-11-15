@@ -9,7 +9,7 @@ Manual log of my prompts to the Claude chat assistant (claude.ai, Claude Opus 5.
 - **Questions about my own logging and working notes:** record-keeping, not deliverable content
 - **Personal details:** masked as `[REDACTED: …]`
 
-**Result of this session (repo):** _to fill at the end of the session_
+**Result of this session (repo):** SonarQube results exported through the web API as raw evidence; the Semgrep partial parse fixed by the agent (`4d39740`) and the pipeline re-run with full parsing; file headers updated after review; M1–M3 validated against the running stack (`evidence/manual-validation-2026-11-15.txt`); `sast-triage-report.md` completed (ledger, coverage, V1–V3, protections P1–P10); parse-fix transcript and review logs committed; journal entries added
 
 ---
 
