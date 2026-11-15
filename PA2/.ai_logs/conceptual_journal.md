@@ -18,6 +18,8 @@ Running journal of how I work with AI tools on this project: what they got wrong
 
 **Why it matters:** the agent knew the weakness and documented it, but still shipped a check anyone can pass by changing one header. A scanner is unlikely to flag it because the code works as written, so it's a manual finding for the triage, and it lines up with the gap I predicted in PA1 (`known-gaps.md` #1 and #10).
 
+
+**Where the header name came from:** the attempt 1 transcript shows the agent only read the spec, the files in its folder, the Docker and build files and the README. Its only git commands were `git ls-files` and `git status`, and `X-User-Id` first appears in its own plan. It reused the name from my PA1 design without ever seeing that design, which suggests it's simply the conventional choice.
 ---
 
 ### 2026-11-14 — The assistant's version controls reached past the project
