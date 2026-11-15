@@ -56,7 +56,7 @@ Totals from `measures.json`: at `bf6674d`, 19 code smells, coverage 95.3%, 1,978
 
 ## 4. Vulnerabilities missed by the scanners (manual review)
 
-Candidates from the code review (chat review on 2026-11-14, plus my own review notes). **M1–M3 are validated below** (V1–V3), M5 as V5, and M4 with G2 and G4 as V6; M6–M9 remain candidates for the security analysis and PA3. G2 and G4 come from my review of the root `docker-compose.yml`, which `spec-domain2.md` (section 2) told the agent to run the service with, so these two were already in place before the PA2 build rather than written by the agent during it. `git log -- docker-compose.yml` shows the file was last changed in PA1 (commit `29c340a`, 2026-11-01) and no PA2 commit touches it. At least 3 distinct, multi-layer vulnerabilities with CWE and root cause are required.
+Candidates from the code review (chat review on 2026-11-14, plus my own review notes). **M1–M3 are validated below** (V1–V3), M5 as V5, and M4 with G2 and G4 as V6; M6–M8 remain candidates (M9 was reviewed and isn't a finding) for the security analysis and PA3. G2 and G4 come from my review of the root `docker-compose.yml`, which `spec-domain2.md` (section 2) told the agent to run the service with, so these two were already in place before the PA2 build rather than written by the agent during it. `git log -- docker-compose.yml` shows the file was last changed in PA1 (commit `29c340a`, 2026-11-01) and no PA2 commit touches it. At least 3 distinct, multi-layer vulnerabilities with CWE and root cause are required.
 
 I checked every CWE id against MITRE CWE 5.0 (released 2026-10-28) on 2026-11-15.
 
@@ -70,7 +70,7 @@ I checked every CWE id against MITRE CWE 5.0 (released 2026-10-28) on 2026-11-15
 | M6 | Deployment | Unpinned base images and runner (`sdk:10.0`, `aspnet:10.0`, `postgres:18`, `ubuntu-latest`) | `Dockerfile`, `docker-compose.yml`, `devsecops.yml` | CWE-494 (secondary: CWE-1357) |
 | M7 | Transport | Plain HTTP on 8080 | `Dockerfile`, `docker-compose.yml` | CWE-319 |
 | M8 | Error handling | The 401 response tells the caller how to get through: "Send the id of a known user in the X-User-Id header." | `Services/Actors.cs` line 31 | CWE-210 |
-| M9 | Robustness | Possible missing null checks when building asset responses (noted in my review) | `Services/AssetViews.cs` | CWE-476 |
+| M9 | Robustness | Possible missing null checks when building asset responses (noted in my review). Reviewed, not a finding: every nullable value has a default and the database has check constraints; see `security-analysis.md` §1.2 | `Services/AssetViews.cs` | CWE-476 |
 | G2 | Database privilege | (validated as V6) The API connects as `resourcehub`, the same user compose sets as `POSTGRES_USER`, and the official postgres image creates that user as a superuser, so the app holds full superuser rights on the database (it also applies migrations at startup). I confirmed the superuser role with `\du` on 2026-11-15 | `docker-compose.yml` L7, L24; `Program.cs` | CWE-250 |
 | G4 | Deployment / network | (validated as V6) PostgreSQL port 5432 is published on all host interfaces (`"5432:5432"`, no host IP), not only to the API container | `docker-compose.yml` L10 | CWE-1327 |
 
