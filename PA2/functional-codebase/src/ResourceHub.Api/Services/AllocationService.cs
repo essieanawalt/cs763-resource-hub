@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
+// Prompt Summary: "Replace primary constructors with regular constructors so Semgrep's C# parser can read the file"
 // AI Contribution: The allocation engine: atomic, all-or-nothing deductions that issue keys, credits and device tokens (~100%)
 // Human Modifications: None yet
-// Verification: AllocationTests (incl. concurrent allocations), SeededLicense*Tests
+// Verification: AllocationTests (incl. concurrent allocations), SeededLicense*Tests; full suite against PostgreSQL 18 (123 passed, 0 failed, 0 skipped); Semgrep 1.180.0 p/csharp: 0 parse errors
 // Confidence: High
 
 using System.Security.Cryptography;
@@ -20,8 +20,19 @@ namespace ResourceHub.Api.Services;
 /// allocations cannot deadlock) for one transaction. Stock is checked for every item
 /// before anything changes; if any item is short, nothing is written except a failure event.
 /// </summary>
-public sealed class AllocationService(HubDbContext db, TimeProvider clock, ILogger<AllocationService> log)
+public sealed class AllocationService
 {
+    private readonly HubDbContext db;
+    private readonly TimeProvider clock;
+    private readonly ILogger<AllocationService> log;
+
+    public AllocationService(HubDbContext db, TimeProvider clock, ILogger<AllocationService> log)
+    {
+        this.db = db;
+        this.clock = clock;
+        this.log = log;
+    }
+
     public async Task<IResult> AllocateAsync(Guid ticketId, Actor actor, CancellationToken ct)
     {
         var now = clock.GetUtcNow();

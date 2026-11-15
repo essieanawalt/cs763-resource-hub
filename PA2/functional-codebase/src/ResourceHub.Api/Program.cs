@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
+// Prompt Summary: "Remove 'public partial class Program;' so Semgrep's C# parser can read the file, if tests still build without it"
 // AI Contribution: Application entry point: services, JSON options, startup migration, routes (~100%)
 // Human Modifications: None yet
-// Verification: API integration tests in ResourceHub.Tests; docker compose up walkthrough
+// Verification: Release build (0 warnings); WebApplicationFactory<Program> tests against PostgreSQL 18 (123 passed, 0 failed, 0 skipped); Semgrep 1.180.0 p/csharp: 0 parse errors
 // Confidence: High
 
 using System.Text.Json;
@@ -56,5 +56,3 @@ app.MapTicketEndpoints();
 app.MapAllocationEndpoints();
 
 await app.RunAsync();
-
-public partial class Program;

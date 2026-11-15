@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
+// Prompt Summary: "Replace primary constructors with regular constructors so Semgrep's C# parser can read the file"
 // AI Contribution: EF Core model: tables, keys, constraints and seed data (~100%)
 // Human Modifications: None yet
-// Verification: EF migration generated from this model; API integration tests
+// Verification: dotnet test against PostgreSQL 18 (123 passed, 0 failed, 0 skipped); Semgrep 1.180.0 p/csharp: 0 parse errors
 // Confidence: High
 
 using Microsoft.EntityFrameworkCore;
@@ -11,8 +11,13 @@ using ResourceHub.Api.Domain;
 
 namespace ResourceHub.Api.Data;
 
-public class HubDbContext(DbContextOptions<HubDbContext> options) : DbContext(options)
+public class HubDbContext : DbContext
 {
+    public HubDbContext(DbContextOptions<HubDbContext> options)
+        : base(options)
+    {
+    }
+
     public DbSet<Course> Courses => Set<Course>();
     public DbSet<ResearchLab> ResearchLabs => Set<ResearchLab>();
     public DbSet<Project> Projects => Set<Project>();
