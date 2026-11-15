@@ -172,8 +172,8 @@ Status values: **Met (tested)**, **Met (review)** (read in the code, not yet run
 **SR15 — Confidentiality: license keys and tokens.** License keys and hardware tokens shall be protected at rest, so a database read doesn't expose them, and returned only to callers SR13 allows.
 - Source: protects license keys and hardware tokens, the highest-value data in the service
 - Depends on: SR12, SR13
-- How to verify: query the `license_keys` table directly; read allocations as a caller who shouldn't see them
-- Status: **Not met.** Keys are stored and returned in plain text (V3), and anyone using V1 can read them
+- How to verify: query the `license_keys` table directly; search the database volume's files on the host for a known key (`docker-compose.yml` L11, L31; section 5.2); read allocations as a caller who shouldn't see them
+- Status: **Not met.** Keys are stored and returned in plain text (V3), and anyone using V1 can read them. Reading the database volume's files directly found a known key in two table data files and in the write-ahead log (`evidence/abuse-case-checks-2026-11-15.txt`, check 3), so the keys are exposed at rest even without the port or a password
 
 **SR16 — Confidentiality: data minimization.** Each response shall carry only what that caller needs for that route. User ids of other people, notes and event actor ids shall not be returned to callers who don't need them, and secrets (SR15) only on the routes that issue them.
 - Source: V2 shows that even a correct authorization check (SR13) leaves this open: the ticket responses hand out the ids that V1 needs
@@ -477,40 +477,47 @@ Editing event rows is marked N because the update in the assistant's test script
 
 ## 5. Attack surface map
 
-Routes and caller rules read from the code (`Endpoints/*.cs`). "Any known user" means any id that exists in the users table, sent in `X-User-Id` (V1). Risk uses the scale in section 1.1. **Highest-risk vectors:** the `X-User-Id` header on every write (V1), the open ticket reads that supply the ids for it (V2), the two routes that return license keys and device tokens (allocate and the allocations listing, V3), and the database port (V6).
+Routes and caller rules read from the code (`Endpoints/*.cs`). "Any known user" means any id that exists in the users table, sent in `X-User-Id` (V1). Risk uses the scale in section 1.1. "No event" means the route changes stock, devices or the catalog without writing to the event log (SR11).
+
+**Highest-risk vectors:** the `X-User-Id` header on every write (V1); the five read routes that answer with no header at all (SR14), two of which hand out the ids V1 needs (V2); the two routes that return license keys and device tokens (allocate and the allocations listing, V3); and the database port (V6), which goes around every rule the API enforces (AC5).
 
 ### 5.1 HTTP entry points (port 8080, plain HTTP)
 
-| Method and route | Caller rule in the code | What it takes in | What it returns | Related findings | Risk |
-|---|---|---|---|---|---|
-| `GET /api/v1/health` | none | — | status | | Low |
-| `POST /api/v1/assets` | Administrator | body | asset (counts, no keys) | V1 | Medium |
-| `GET /api/v1/assets` | none | paging and filter query | asset list (counts, no keys) | G3 | Low |
-| `GET /api/v1/assets/{assetId}` | none | route id | asset (counts, no keys) | G3 | Low |
-| `PUT /api/v1/assets/{assetId}` | Administrator | route id, body | asset | V1 | Medium |
-| `DELETE /api/v1/assets/{assetId}` | Administrator | route id | — | V1 | Medium |
-| `POST /api/v1/assets/{assetId}/return` | Administrator | route id, device token in body | — | V1, M5 | Medium |
-| `POST /api/v1/assets/tickets` | Course instructor or lab advisor | body | ticket | V1 | Medium |
-| `GET /api/v1/assets/tickets` | none | paging and filter query | tickets with requester ids and notes | V2 | High |
-| `GET /api/v1/assets/tickets/{ticketId}` | none | route id | ticket with requester id, notes and event actor ids | V2 | High |
-| `PUT /api/v1/assets/tickets/{ticketId}` | any known user; contents: requester only; approve and reject: IT director; close: administrator | route id, body | ticket | V1 | High |
-| `DELETE /api/v1/assets/tickets/{ticketId}` | requester or administrator | route id | — | V1 | Medium |
-| `POST /api/v1/assets/tickets/{ticketId}/allocate` | Administrator | route id | allocation, including license keys and device tokens | V1, V3 | High |
-| `GET /api/v1/assets/allocations` | any known user; results only for the course's instructor, the lab's advisor, the IT director or an administrator | course or lab id query | active allocations, including license keys and device tokens | V1, V3 | High |
+| Method and route | Caller rule in the code | What it takes in | What it returns | Related findings | Abuse cases | Risk |
+|---|---|---|---|---|---|---|
+| `GET /api/v1/health` | none (public on purpose) | — | status | | | Low |
+| `POST /api/v1/assets` | Administrator | body | asset (counts, no keys) | V1; no event (SR11) | AC7 | Medium |
+| `GET /api/v1/assets` | none; answers with no header (SR14) | paging and filter query | asset list (counts, no keys) | G3 | | Low |
+| `GET /api/v1/assets/{assetId}` | none; answers with no header (SR14) | route id | asset (counts, no keys) | G3 | | Low |
+| `PUT /api/v1/assets/{assetId}` | Administrator | route id, body | asset | V1; no event (SR11) | AC7 | Medium |
+| `DELETE /api/v1/assets/{assetId}` | Administrator | route id | — | V1; no event (SR11) | | Medium |
+| `POST /api/v1/assets/{assetId}/return` | Administrator | route id, device token in body | — | V1, V5; no event (SR11); accepts any valid token (token-only return gap) | AC4, AC7 | Medium |
+| `POST /api/v1/assets/tickets` | Course instructor or lab advisor | body | ticket | V1; no share limit (SR7) | AC2, AC6 | Medium |
+| `GET /api/v1/assets/tickets` | none; answers with no header (SR14) | paging and filter query | tickets with requester ids and notes | V2 | AC1, AC2, AC4 | High |
+| `GET /api/v1/assets/tickets/{ticketId}` | none; answers with no header (SR14) | route id | ticket with requester id, notes and event actor ids | V2 | AC1, AC2, AC4 | High |
+| `PUT /api/v1/assets/tickets/{ticketId}` | any known user; contents: requester only; approve and reject: IT director; close: administrator | route id, body | ticket | V1; refused transitions leave no event (SR2) | AC2 | High |
+| `DELETE /api/v1/assets/tickets/{ticketId}` | requester or administrator | route id | — | V1, V4 | AC3, AC7 | Medium |
+| `POST /api/v1/assets/tickets/{ticketId}/allocate` | Administrator | route id | allocation, including license keys and device tokens | V1, V3 | AC1, AC2, AC7 | High |
+| `GET /api/v1/assets/allocations` | any known user; results only for the course's instructor, the lab's advisor, the IT director or an administrator; the only read route that refuses a missing header (401) | course or lab id query | active allocations, including license keys and device tokens | V1, V3 | AC1, AC4 | High |
 
 Port 8080 is published on all host interfaces (`docker-compose.yml` L26). That is intended for an API and is not a finding on its own; the risk on this port is plain HTTP (M7).
 
-Inputs common to all routes: the `X-User-Id` header (V1, M8), route ids (GUIDs, typed by the route), query values (page size capped at 100, P8), JSON bodies (validated, P4).
+Common to all routes:
+- **Inputs:** the `X-User-Id` header (V1, M8), route ids (GUIDs, typed by the route), query values (page size capped at 100, P8), JSON bodies (validated, P4; extra fields ignored, SR20)
+- **The ids for V1 are public anyway:** the seeded user ids are fixed in the spec (section 7) and unchanged in the running stack, so V1 works even without V2
+- **Every response:** no `Cache-Control: no-store` and no `X-Content-Type-Options: nosniff`, and `Server: Kestrel` names the web server (SR18). Tested on the allocations listing; nothing in the code sets these headers on any route (the only header code is the `X-User-Id` read in `Services/Actors.cs`); errors are problem details with no stack trace (P9), but the 401 explains how to get through (M8)
+- **No limits per caller:** no rate limiting (G5, SR26), and refused attempts aren't written to the application log (SR22)
 
 ### 5.2 Other entry points
 
-| Entry point | Detail | Related findings | Risk |
-|---|---|---|---|
-| PostgreSQL | Port 5432 published on all host interfaces; password from an environment variable with the fallback `resourcehub_dev`; the app's user is a superuser | G4, M4, G2, V3 | High |
-| Configuration | `appsettings.json`, `appsettings.Development.json`, compose environment | M4 | Medium |
-| Logs | Application log receives the full device token on return | M5 | Medium |
-| Container images and CI | Floating base image and runner tags; the CI pipeline builds and scans the code | M6 | Medium |
-| Startup | Migrations applied by the app at startup, using the superuser connection | G2 | Medium |
+| Entry point | Detail | Related findings | Abuse cases | Risk |
+|---|---|---|---|---|
+| PostgreSQL | Port 5432 published on all host interfaces; the stack uses the fallback password `resourcehub_dev`; the app's user is a superuser. Anyone who reaches it bypasses the API, and with it every rule in group A except the database's own check constraints, which a superuser can drop | V6, V3 | AC1, AC3, AC5 | High |
+| Configuration | `appsettings.json`; `appsettings.Development.json`, committed with the database password; compose environment with the fallback password | V6 (CWE-260 for the config file copy) | AC5 | Medium |
+| Logs | Application log receives the full device token on every return; returns and asset changes are recorded only here, not in the event log; refused attempts aren't recorded at all | V5; SR11, SR22 | AC3, AC4 | Medium |
+| Database volume | The data lives in a named volume on the host (`docker-compose.yml` L11, L31). Needs access to the host's files; anyone with that can read the license keys there in plain text without going through the port. Shown: a known key was found in two table data files and in the write-ahead log (`evidence/abuse-case-checks-2026-11-15.txt`, check 3) | V3 | | Medium |
+| Container images and CI | Floating base image and runner tags; the CI pipeline builds and scans the code, using `SONAR_TOKEN` from GitHub secrets (`devsecops.yml` L50), a scanner token rather than app data | M6 | | Medium |
+| Startup | Migrations applied by the app at startup, using the superuser connection | V6 | | Medium |
 
 ## 6. STRIDE threat model
 
