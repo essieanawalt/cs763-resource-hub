@@ -1,0 +1,96 @@
+Manual validation of manual-review candidates M1-M3 (sast-triage-report.md, section 4)
+Date: 2026-11-15, local docker compose stack built from commit 4d39740 (PA2/functional-codebase)
+Run by: me, from the repository root. Outputs copied as returned; shell prompts removed.
+
+Setup (ids from spec-domain2.md section 7):
+B=http://localhost:8080/api/v1
+CHEN=40000000-0000-4000-8000-000000000001     # course instructor, CS501 A1
+ITDIR=40000000-0000-4000-8000-000000000005    # IT director
+ADMIN=40000000-0000-4000-8000-000000000006    # administrator
+COURSE=10000000-0000-4000-8000-000000000001   # CS501 A1
+LICENSE=50000000-0000-4000-8000-000000000003  # JetBrains IDE license
+
+docker compose up --build -d
+(first health request returned "curl: (56) Recv failure: Connection reset by peer" while the api was still starting)
+
+$ sleep 5; curl -i $B/health
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Date: Sun, 15 Nov 2026 17:25:06 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+
+{"status":"healthy","database":"reachable"}
+
+------------------------------------------------------------------------
+Step 1 (normal use): Dr. Chen submits a ticket for one license key
+
+$ curl -i -X POST "$B/assets/tickets" -H "X-User-Id: $CHEN" -H "Content-Type: application/json" -d "{\"courseId\":\"$COURSE\",\"items\":[{\"assetId\":\"$LICENSE\",\"quantity\":1}]}"
+HTTP/1.1 201 Created
+Content-Type: application/json; charset=utf-8
+Date: Sun, 15 Nov 2026 17:25:40 GMT
+Server: Kestrel
+Location: /api/v1/assets/tickets/bd7d262c-7530-47a7-a1c8-385585516122
+Transfer-Encoding: chunked
+
+{"id":"bd7d262c-7530-47a7-a1c8-385585516122","status":"pending","requesterId":"40000000-0000-4000-8000-000000000001","courseId":"10000000-0000-4000-8000-000000000001","items":[{"assetId":"50000000-0000-4000-8000-000000000003","assetName":"JetBrains IDE license","assetType":"license","category":"IDE license","quantity":1}],"createdAt":"2026-11-15T17:25:41.198342+00:00","updatedAt":"2026-11-15T17:25:41.198342+00:00"}
+
+(setup mistake: the first approval attempt was sent before T was set, so it went to /assets/tickets/ and returned 405 Method Not Allowed, Allow: GET, POST)
+
+$ T=bd7d262c-7530-47a7-a1c8-385585516122
+
+------------------------------------------------------------------------
+Step 2 (normal use): the IT director approves
+
+$ curl -i -X PUT "$B/assets/tickets/$T" -H "X-User-Id: $ITDIR" -H "Content-Type: application/json" -d '{"status":"approved"}'
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Date: Sun, 15 Nov 2026 17:27:07 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+
+{"id":"bd7d262c-7530-47a7-a1c8-385585516122","status":"approved","requesterId":"40000000-0000-4000-8000-000000000001","courseId":"10000000-0000-4000-8000-000000000001","items":[{"assetId":"50000000-0000-4000-8000-000000000003","assetName":"JetBrains IDE license","assetType":"license","category":"IDE license","quantity":1}],"createdAt":"2026-11-15T17:25:41.198342+00:00","updatedAt":"2026-11-15T17:27:07.608385+00:00","approvedAt":"2026-11-15T17:27:07.608385+00:00"}
+
+------------------------------------------------------------------------
+Step 3 (M1, and M3 part 1): allocate without a header, then claiming to be the administrator
+
+$ curl -i -X POST "$B/assets/tickets/$T/allocate"
+HTTP/1.1 401 Unauthorized
+Content-Type: application/problem+json
+Date: Sun, 15 Nov 2026 17:28:11 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unknown caller.","status":401,"detail":"Send the id of a known user in the X-User-Id header.","traceId":"00-1b0a4bf3633bc43ef08fddc943ab2d1a-a3d43805522778ce-00"}
+
+$ curl -i -X POST "$B/assets/tickets/$T/allocate" -H "X-User-Id: $ADMIN"
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Date: Sun, 15 Nov 2026 17:28:11 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+
+{"ticketId":"bd7d262c-7530-47a7-a1c8-385585516122","status":"allocated","allocatedAt":"2026-11-15T17:28:11.5067333+00:00","allocations":[{"id":"2faa8433-1e67-4679-b4f2-2b7337e9512d","ticketId":"bd7d262c-7530-47a7-a1c8-385585516122","assetId":"50000000-0000-4000-8000-000000000003","assetName":"JetBrains IDE license","assetType":"license","category":"IDE license","allocatedAt":"2026-11-15T17:28:11.5067333+00:00","quantity":1,"licenseKeys":["JBIDE-7K2M-Q9XA"]}]}
+
+------------------------------------------------------------------------
+Step 4 (M2): read the ticket with no header
+
+$ curl -i "$B/assets/tickets/$T"
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Date: Sun, 15 Nov 2026 17:29:00 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+
+{"id":"bd7d262c-7530-47a7-a1c8-385585516122","status":"allocated","requesterId":"40000000-0000-4000-8000-000000000001","courseId":"10000000-0000-4000-8000-000000000001","items":[{"assetId":"50000000-0000-4000-8000-000000000003","assetName":"JetBrains IDE license","assetType":"license","category":"IDE license","quantity":1}],"createdAt":"2026-11-15T17:25:41.198342+00:00","updatedAt":"2026-11-15T17:28:11.506733+00:00","approvedAt":"2026-11-15T17:27:07.608385+00:00","allocatedAt":"2026-11-15T17:28:11.506733+00:00","events":[{"type":"submitted","toStatus":"pending","actorId":"40000000-0000-4000-8000-000000000001","detail":"1 asset(s) requested","occurredAt":"2026-11-15T17:25:41.198342+00:00"},{"type":"approved","fromStatus":"pending","toStatus":"approved","actorId":"40000000-0000-4000-8000-000000000005","occurredAt":"2026-11-15T17:27:07.608385+00:00"},{"type":"allocation_succeeded","fromStatus":"approved","toStatus":"allocated","actorId":"40000000-0000-4000-8000-000000000006","detail":"1 asset(s) allocated","occurredAt":"2026-11-15T17:28:11.506733+00:00"}],"metrics":{"submittedToDecisionSeconds":86.410043,"approvedToAllocatedSeconds":63.898348,"submittedToAllocatedSeconds":150.308391,"allocationAttempts":1,"failedAllocationAttempts":0}}
+
+------------------------------------------------------------------------
+Step 5 (M3 part 2): license keys in the database
+
+$ docker compose exec db psql -U resourcehub -d resourcehub -c 'SELECT "Key", "IssuedTicketId" FROM license_keys;'
+       Key       |            IssuedTicketId            
+-----------------+--------------------------------------
+ JBIDE-3PLR-8WVN | 
+ JBIDE-M4TD-2HCE | 
+ JBIDE-7K2M-Q9XA | bd7d262c-7530-47a7-a1c8-385585516122
+(3 rows)
