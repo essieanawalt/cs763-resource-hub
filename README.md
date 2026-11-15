@@ -14,8 +14,8 @@ Directory.Build.props        # turns on NuGet lock files (packages.lock.json)
 Dockerfile                   # multi-stage: SDK build -> ASP.NET runtime
 docker-compose.yml           # api (:8080) + db (PostgreSQL 18, :5432)
 ResourceHub.slnx
-functional-codebase/src/ResourceHub.Api/         # Web API (Controllers/, Data/, Program.cs)
-functional-codebase/tests/ResourceHub.Tests/     # xUnit integration tests (WebApplicationFactory)
+PA2/functional-codebase/src/ResourceHub.Api/     # Web API (Controllers/, Data/, Program.cs)
+PA2/functional-codebase/tests/ResourceHub.Tests/ # xUnit integration tests (WebApplicationFactory)
 ```
 
 ## Prerequisites
@@ -74,11 +74,11 @@ docker compose up -d db
 ```
 
 ```bash
-dotnet run --project functional-codebase/src/ResourceHub.Api
+dotnet run --project PA2/functional-codebase/src/ResourceHub.Api
 ```
 
 Local runs use the `Development` environment, which reads the connection string from
-`functional-codebase/src/ResourceHub.Api/appsettings.Development.json` (`localhost:5432`). The URL is printed on
+`PA2/functional-codebase/src/ResourceHub.Api/appsettings.Development.json` (`localhost:5432`). The URL is printed on
 start-up (default `http://localhost:5184/api/v1/health`).
 
 ## Test

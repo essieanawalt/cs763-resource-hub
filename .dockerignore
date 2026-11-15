@@ -6,7 +6,9 @@
 **/*.user
 .git/
 .github/
-functional-codebase/tests/
+PA2/functional-codebase/tests/
+PA1/
+**/.ai_logs/
 docker-compose.yml
 Dockerfile
 README.md

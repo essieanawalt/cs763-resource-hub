@@ -1,9 +1,9 @@
 <!-- AI Contribution Weight: [100%] AI Generated / [0%] Human Refactored -->
 <Solution>
   <Folder Name="/src/">
-    <Project Path="functional-codebase/src/ResourceHub.Api/ResourceHub.Api.csproj" />
+    <Project Path="PA2/functional-codebase/src/ResourceHub.Api/ResourceHub.Api.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="functional-codebase/tests/ResourceHub.Tests/ResourceHub.Tests.csproj" />
+    <Project Path="PA2/functional-codebase/tests/ResourceHub.Tests/ResourceHub.Tests.csproj" />
   </Folder>
 </Solution>

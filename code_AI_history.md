@@ -3,7 +3,7 @@
 Log of every AI interaction that generated or modified code in this repo, and how each result was modified and verified.
 
 > **AI Usage Log for this file:** drafted by the Claude chat assistant (claude.ai, not Claude Code) from my saved prompts, Claude Code's task notes and the exported transcripts; I reviewed and edited it. Conceptual AI contribution: ~80%. Design-aid prompts: see `AI_usage_appendix.md`.
-[* update, moved to `.ai_logs/PA1/AI_usage_appendix.md` start of PA2]
+[* update, moved to `PA1/.ai_logs/AI_usage_appendix.md` start of PA2]
 
 ## Setup
 
@@ -18,7 +18,7 @@ Log of every AI interaction that generated or modified code in this repo, and ho
 ## Exported agent history
 
 `/export` was unavailable, so the raw Claude Code session transcripts were copied from `~/.claude/projects/`.
-[* update, moved to `.ai_logs/PA1/` start of PA2]
+[* update, moved to `PA1/.ai_logs/` start of PA2]
 
 | File | Session | Contains |
 |---|---|---|
@@ -99,4 +99,4 @@ Commit labels: `AI AGENT BUILD:` (agent code), `HUMAN MOD:` (my hand edits). The
 | `*.md` | Documents: AI Usage Log on the first page instead |
 | `evidence/**`, `ai-history/**` | Tool output, not source code |
 
-[* update, `ai-history/**` moved to `.ai_logs/PA1/` start of PA2]
+[* update, `ai-history/**` moved to `PA1/.ai_logs/` start of PA2]

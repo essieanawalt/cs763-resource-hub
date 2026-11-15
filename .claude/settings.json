@@ -5,12 +5,13 @@
   },
   "permissions": {
     "deny": [
-      "Read(./.ai_logs/**)",
-      "Read(./evidence/**)",
-      "Read(./spec.md)",
-      "Read(./Prompt_test_log.md)",
-      "Read(./code_AI_history.md)",
-      "Read(./Agent_environment.md)"
+      "Read(/PA1/**)",
+      "Read(/PA2/.ai_logs/**)",
+      "Read(/evidence/**)",
+      "Read(/spec.md)",
+      "Read(/Prompt_test_log.md)",
+      "Read(/code_AI_history.md)",
+      "Read(/Agent_environment.md)"
     ]
   }
 }

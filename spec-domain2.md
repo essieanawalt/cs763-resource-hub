@@ -8,7 +8,7 @@
 | Conceptual AI contribution | ~35% AI / ~65% me |
 | My part | Copied the standardized Domain 2 text (section 5) unchanged; walked through each requirement and endpoint and made every interpretation decision in section 6; directed which PA1 spec sections to carry over (overview, tech stack, deployment, layout, roles, out of scope) and how to adapt them |
 | AI part (Claude chat assistant) | Listed open questions and options for each requirement and endpoint; drafted the wording of section 6 and the mock data from my decisions; adapted the carried-over PA1 sections to the standardized spec |
-| Design-aid prompts | `.ai_logs/PA2/2026-11-14_spec-walkthrough-log.md` |
+| Design-aid prompts | `PA2/.ai_logs/2026-11-14_spec-walkthrough-log.md` |
 
 ## 1. Overview
 
@@ -26,13 +26,15 @@ Section 5 is the standardized specification for this service, copied unchanged. 
 - Docker + Docker Compose
 - JSON REST API under `/api/v1`
 
-The service runs with the existing `Dockerfile` and `docker-compose.yml`: an `api` container (ASP.NET Core, port 8080) and a `db` container (PostgreSQL 18). The existing `GET /api/v1/health` endpoint stays.
+The service runs with the existing `Dockerfile` and `docker-compose.yml` at the repository root: an `api` container (ASP.NET Core, port 8080) and a `db` container (PostgreSQL 18). The api container receives the database connection string as `ConnectionStrings__HubDb` (configuration key `ConnectionStrings:HubDb`). In the CI pipeline, tests that need the database receive a connection string in the `RESOURCEHUB_TEST_DB` environment variable.
+
+The service also provides `GET /api/v1/health`, which returns 200 when the database is reachable and 503 when it is not.
 
 ## 3. Repository layout
 
-- Application code: `functional-codebase/src/ResourceHub.Api/`
-- Tests: `functional-codebase/tests/ResourceHub.Tests/`
-- Build and run files (`ResourceHub.slnx`, `Dockerfile`, `docker-compose.yml`, `global.json`, `Directory.Build.props`) stay at the repository root
+- Application code: project `ResourceHub.Api` in `PA2/functional-codebase/src/ResourceHub.Api/`
+- Tests: project `ResourceHub.Tests` in `PA2/functional-codebase/tests/ResourceHub.Tests/`
+- Build and run files (`ResourceHub.slnx`, `Dockerfile`, `docker-compose.yml`, `global.json`, `Directory.Build.props`) stay at the repository root and expect these project names and paths. `Directory.Build.props` turns on NuGet lock files (`packages.lock.json`), which the Dockerfile and pipeline restore in locked mode
 
 ## 4. Roles
 
