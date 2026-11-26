@@ -1,0 +1,34 @@
+<!--
+// Tool: Claude Code (Claude Opus 5.5)
+// Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
+// Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
+// AI Contribution: Project file for the API (~100%)
+// Human Modifications: None (review only)
+// Verification: dotnet build, locked-mode restore, docker build; reviewed by me 2026-11-15
+// Confidence: High
+-->
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.15">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <!-- Pinned to the same EF Core version as the Design package so the API and tests load one version. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.15" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ResourceHub.Tests" />
+  </ItemGroup>
+
+</Project>
