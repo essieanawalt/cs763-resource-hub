@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
-// AI Contribution: Tests for GET /api/v1/assets/allocations (spec 6.12) and who may read it (~100%)
-// Human Modifications: None (review only)
-// Verification: dotnet test (failed before the allocations route existed, passes after); reviewed by me 2026-11-15
+// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
+// AI Contribution: Active allocation view tests, updated for tokens, check-in codes and row-filtered listings (~100%)
+// Human Modifications: None yet
+// Verification: dotnet test against PostgreSQL 18
 // Confidence: High
 
 using System.Net;
@@ -43,14 +43,15 @@ public sealed class ActiveAllocationFixture : HubApiFactory
             new { assetId = license, quantity = 1 },
             new { assetId = credits, amount = 100m });
         var tokensA = Devices(a);
-        (ReturnedToken, KeptToken) = (tokensA[0], tokensA[1]);
-        var returned = await client.SendAsync(HttpMethod.Post, $"/api/v1/assets/{Device}/return", new { token = ReturnedToken }, Ids.Admin);
+        (ReturnedToken, KeptToken) = (tokensA[0].Token, tokensA[1].Token);
+        var returned = await client.SendAsync(HttpMethod.Post, $"/api/v1/assets/{Device}/return",
+            new { token = tokensA[0].Token, checkInCode = tokensA[0].CheckInCode }, Ids.Admin);
         await returned.AssertStatusAsync(HttpStatusCode.OK);
 
         var b = await AllocateForLabAsync(s,
             new { assetId = Device, quantity = 1 },
             new { assetId = credits, amount = 50m });
-        ClosedTicketToken = Devices(b)[0];
+        ClosedTicketToken = Devices(b)[0].Token;
         await (await s.SetStatusAsync(b.Id("ticketId"), "closed", Ids.Admin)).AssertStatusAsync(HttpStatusCode.OK);
 
         await s.AllocatedTicketAsync(new { assetId = Device, quantity = 1 });
@@ -65,11 +66,11 @@ public sealed class ActiveAllocationFixture : HubApiFactory
         return await response.JsonAsync();
     }
 
-    private static List<string> Devices(JsonElement allocation) =>
+    private static List<IssuedDevice> Devices(JsonElement allocation) =>
         allocation.GetProperty("allocations").EnumerateArray()
             .Where(a => a.Str("assetType") == "physical")
             .SelectMany(a => a.GetProperty("devices").EnumerateArray())
-            .Select(d => d.Str("token"))
+            .Select(d => new IssuedDevice(d.Str("token"), d.Str("checkInCode")))
             .ToList();
 }
 
@@ -125,12 +126,22 @@ public class ActiveAllocationTests(ActiveAllocationFixture fx) : IClassFixture<A
     }
 
     [DbFact]
-    public async Task Other_groups_and_anonymous_callers_cannot_read_allocations()
+    public async Task Other_groups_see_no_rows_and_anonymous_callers_get_401()
     {
         var url = $"/api/v1/assets/allocations?researchLabId={Ids.LabEmbedded}";
         await (await _client.SendAsync(HttpMethod.Get, url)).AssertStatusAsync(HttpStatusCode.Unauthorized);
-        await (await _client.SendAsync(HttpMethod.Get, url, user: Ids.AdvisorFerreira)).AssertStatusAsync(HttpStatusCode.Forbidden);
-        await (await _client.SendAsync(HttpMethod.Get, url, user: Ids.InstructorOkafor)).AssertStatusAsync(HttpStatusCode.Forbidden);
+
+        // Faculty from another lab or course may list allocations, but only rows of their own groups come back.
+        foreach (var outsider in new[] { Ids.AdvisorFerreira, Ids.InstructorOkafor })
+        {
+            var body = await GetAsync(url, outsider);
+            Assert.Empty(body.GetProperty("allocations").EnumerateArray());
+            Assert.Equal(0, body.GetProperty("summary").GetProperty("devicesCheckedOut").GetInt32());
+            Assert.DoesNotContain("LAB-KEY", body.GetRawText());
+        }
+
+        // A caller with no role has no right to list allocations at all.
+        await (await _client.SendAsync(HttpMethod.Get, url, user: Ids.NoRoleUser)).AssertStatusAsync(HttpStatusCode.Forbidden);
     }
 
     [DbTheory]

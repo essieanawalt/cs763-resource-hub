@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
-// AI Contribution: Tests for POST /api/v1/assets/tickets/{id}/allocate: issuing, all-or-nothing, concurrency, close (~100%)
-// Human Modifications: None (review only)
-// Verification: dotnet test (failed before the allocate route existed, passes after); reviewed by me 2026-11-15
+// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
+// AI Contribution: Allocate tests (issuing, all-or-nothing, concurrency, close), updated for token roles (~100%)
+// Human Modifications: None yet
+// Verification: dotnet test against PostgreSQL 18
 // Confidence: High
 
 using System.Net;
@@ -144,13 +144,13 @@ public class AllocationTests(HubApiFactory factory) : IClassFixture<HubApiFactor
     }
 
     [DbFact]
-    public async Task Only_administrators_allocate_and_unknown_ticket_is_404()
+    public async Task Only_admin_allocates_and_unknown_ticket_is_404()
     {
         var asset = await S.PhysicalAsync();
         var ticket = await S.SubmitForCourseAsync(new { assetId = asset, quantity = 1 });
         await S.ApproveAsync(ticket.Id());
 
-        var forbidden = await S.AllocateAsync(ticket.Id(), Ids.ItDirector);
+        var forbidden = await S.AllocateAsync(ticket.Id(), Ids.InstructorChen);
         await forbidden.AssertStatusAsync(HttpStatusCode.Forbidden);
 
         var missing = await S.AllocateAsync(Guid.NewGuid());
@@ -184,7 +184,7 @@ public class AllocationTests(HubApiFactory factory) : IClassFixture<HubApiFactor
         var result = await S.AllocatedTicketAsync(new { assetId = asset, amount = 10m });
         var ticketId = result.Id("ticketId");
 
-        var director = await S.SetStatusAsync(ticketId, "closed", Ids.ItDirector);
+        var director = await S.SetStatusAsync(ticketId, "closed", Ids.InstructorChen);
         await director.AssertStatusAsync(HttpStatusCode.Forbidden);
 
         var closed = await S.SetStatusAsync(ticketId, "closed", Ids.Admin);

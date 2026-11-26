@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
-// AI Contribution: Domain entities and enums for assets, tickets, allocations and mock data (~100%)
-// Human Modifications: None (review only)
-// Verification: API integration tests in ResourceHub.Tests; reviewed by me 2026-11-15
+// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
+// AI Contribution: Domain entities; PA3 adds encrypted license keys, ticket soft delete, device check-in code hash and the audit event (~100%)
+// Human Modifications: None yet
+// Verification: API integration tests in ResourceHub.Tests (dotnet test against PostgreSQL 18)
 // Confidence: High
 
 namespace ResourceHub.Api.Domain;
@@ -45,6 +45,9 @@ public enum TicketEventType
     AllocationSucceeded,
     AllocationFailed,
     Closed,
+
+    /// <summary>Pending ticket withdrawn by its requester or an admin; the ticket row and its history are kept (CWE-221).</summary>
+    Deleted,
 }
 
 // ---- Static mock data owned by other services (spec section 7) ----
@@ -117,7 +120,8 @@ public class LicenseKey
 {
     public Guid Id { get; set; }
     public Guid AssetId { get; set; }
-    public string Key { get; set; } = "";
+    /// <summary>AES-256-GCM ciphertext of the key value (see Security/FieldEncryptor). The plaintext is never stored.</summary>
+    public string KeyCiphertext { get; set; } = "";
     public Guid? IssuedTicketId { get; set; }
     public Guid? AllocationId { get; set; }
     public DateTimeOffset? IssuedAt { get; set; }
@@ -140,6 +144,9 @@ public class Ticket
     public DateTimeOffset? RejectedAt { get; set; }
     public DateTimeOffset? AllocatedAt { get; set; }
     public DateTimeOffset? ClosedAt { get; set; }
+
+    /// <summary>Set instead of deleting the row, so the ticket's event history survives (CWE-221).</summary>
+    public DateTimeOffset? DeletedAt { get; set; }
 
     public List<TicketItem> Items { get; set; } = [];
     public List<TicketEvent> Events { get; set; } = [];
@@ -203,4 +210,34 @@ public class DeviceAssignment
     public DateTimeOffset CheckedOutAt { get; set; }
     public DateTimeOffset DueAt { get; set; }
     public DateTimeOffset? ReturnedAt { get; set; }
+
+    /// <summary>
+    /// SHA-256 (hex) of the check-in code printed on the device label at hand-out. A return has to
+    /// present the code, which proves the device itself is at the desk (T1). Null only for devices
+    /// handed out before this column existed.
+    /// </summary>
+    public string? CheckInCodeHash { get; set; }
+}
+
+/// <summary>
+/// Append-only record of every change to tickets, stock and devices (T2): who (the token's sub),
+/// when, what and the outcome. The table has no foreign keys and a trigger refuses UPDATE and DELETE.
+/// </summary>
+public class AuditEvent
+{
+    public Guid Id { get; set; }
+
+    /// <summary>Insert order, for reading the trail back in sequence.</summary>
+    public long Seq { get; set; }
+
+    public DateTimeOffset OccurredAt { get; set; }
+    public string ActorSub { get; set; } = "";
+    public string ActorRoles { get; set; } = "";
+    public string Action { get; set; } = "";
+    public string EntityType { get; set; } = "";
+    public Guid? EntityId { get; set; }
+
+    /// <summary>succeeded, denied, not_found, conflict, invalid or failed.</summary>
+    public string Outcome { get; set; } = "";
+    public string? Detail { get; set; }
 }

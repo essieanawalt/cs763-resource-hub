@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Replace primary constructors with regular constructors so Semgrep's C# parser can read the file"
-// AI Contribution: The allocation engine: atomic, all-or-nothing deductions that issue keys, credits and device tokens (~100%)
-// Human Modifications: Editor reformatting on save, 2026-11-15 (line breaks only, no behaviour change)
-// Verification: AllocationTests (incl. concurrent allocations), SeededLicense*Tests; full suite against PostgreSQL 18 (123 passed, 0 failed, 0 skipped); Semgrep 1.180.0 p/csharp: 0 parse errors; reviewed by me 2026-11-15: appreciate the deadlock check
+// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
+// AI Contribution: The allocation engine: atomic, all-or-nothing deductions that issue keys, credits and device tokens; PA3 decrypts issued keys only for the admin response (CWE-312), issues device check-in codes (T1) and audits stock changes (T2) (~100%)
+// Human Modifications: None yet
+// Verification: AllocationTests, LicenseKeyProtectionTests, ReturnTests, AuditTrailTests
 // Confidence: High
 
 using System.Security.Cryptography;
@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using ResourceHub.Api.Contracts;
 using ResourceHub.Api.Data;
 using ResourceHub.Api.Domain;
+using ResourceHub.Api.Security;
 
 namespace ResourceHub.Api.Services;
 
@@ -25,15 +26,20 @@ public sealed class AllocationService
     private readonly HubDbContext db;
     private readonly TimeProvider clock;
     private readonly ILogger<AllocationService> log;
+    private readonly FieldEncryptor encryptor;
+    private readonly AuditTrail audit;
 
-    public AllocationService(HubDbContext db, TimeProvider clock, ILogger<AllocationService> log)
+    public AllocationService(HubDbContext db, TimeProvider clock, ILogger<AllocationService> log, FieldEncryptor encryptor, AuditTrail audit)
     {
         this.db = db;
         this.clock = clock;
         this.log = log;
+        this.encryptor = encryptor;
+        this.audit = audit;
     }
 
-    public async Task<IResult> AllocateAsync(Guid ticketId, Actor actor, CancellationToken ct)
+    /// <summary>Admin only (checked by the endpoint). The response carries decrypted keys and check-in codes for the admin.</summary>
+    public async Task<IResult> AllocateAsync(Guid ticketId, Caller actor, CancellationToken ct)
     {
         var now = clock.GetUtcNow();
         await using var tx = await db.Database.BeginTransactionAsync(ct);
@@ -100,6 +106,7 @@ public sealed class AllocationService
                         for (var n = 0; n < qty; n++)
                         {
                             var token = NewToken();
+                            var checkInCode = CheckInCodes.New();
                             db.DeviceAssignments.Add(new DeviceAssignment
                             {
                                 Id = Guid.NewGuid(),
@@ -109,8 +116,9 @@ public sealed class AllocationService
                                 TicketId = ticketId,
                                 CheckedOutAt = now,
                                 DueAt = due,
+                                CheckInCodeHash = CheckInCodes.Hash(checkInCode),
                             });
-                            devices.Add(new DeviceDto(token, now, due, null, "checkedout"));
+                            devices.Add(new DeviceDto(token, now, due, null, "checkedout", checkInCode));
                         }
                         break;
                     }
@@ -129,7 +137,8 @@ public sealed class AllocationService
                             key.IssuedAt = now;
                         }
                         asset.RemainingUnits -= qty;
-                        keys = free.Select(k => k.Key).ToList();
+                        // Decrypted only for this admin response; stored values stay ciphertext.
+                        keys = free.Select(k => encryptor.Decrypt(k.KeyCiphertext, k.Id)).ToList();
                         break;
                     }
                 case AssetType.Voucher:
@@ -137,6 +146,11 @@ public sealed class AllocationService
                     break;
             }
             asset.UpdatedAt = now;
+            audit.Record(actor, "asset.stock", "asset", asset.Id, detail: asset.Type switch
+            {
+                AssetType.Voucher => $"{item.Amount} credits allocated to ticket {ticketId}",
+                _ => $"{item.Quantity} unit(s) allocated to ticket {ticketId}",
+            });
 
             results.Add(new AllocationDto(
                 allocation.Id, ticketId, asset.Id, asset.Name, asset.Type, asset.Category, now,
@@ -148,11 +162,12 @@ public sealed class AllocationService
         ticket.UpdatedAt = now;
         db.TicketEvents.Add(TicketEvents.Create(ticketId, TicketEventType.AllocationSucceeded,
             TicketStatus.Approved, TicketStatus.Allocated, actor.Id, now, $"{results.Count} asset(s) allocated"));
+        audit.Record(actor, "ticket.allocate", "ticket", ticketId, detail: $"{results.Count} asset(s) allocated");
 
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
-        log.LogInformation("Ticket {TicketId} allocated by {ActorId}: {AssetCount} asset(s), {DeviceCount} device(s), {KeyCount} key(s), {Credits} credits",
-            ticketId, actor.Id, results.Count,
+        log.LogInformation("Ticket {TicketId} allocated by {Sub}: {AssetCount} asset(s), {DeviceCount} device(s), {KeyCount} key(s), {Credits} credits",
+            ticketId, actor.Sub, results.Count,
             results.Sum(r => r.Devices?.Count ?? 0), results.Sum(r => r.LicenseKeys?.Count ?? 0), results.Sum(r => r.Amount ?? 0m));
 
         return Results.Ok(new AllocationResultDto(ticketId, TicketStatus.Allocated, now, results));
@@ -177,7 +192,7 @@ public sealed class AllocationService
 
     /// <summary>Rolls back anything pending, then logs the failed attempt (spec 6.13).</summary>
     private async Task RecordFailureAsync(
-        Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction tx, Ticket ticket, Actor actor, DateTimeOffset now, string detail, CancellationToken ct)
+        Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction tx, Ticket ticket, Caller actor, DateTimeOffset now, string detail, CancellationToken ct)
     {
         await tx.RollbackAsync(ct);
         db.ChangeTracker.Clear();

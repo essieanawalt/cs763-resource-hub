@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
-// AI Contribution: Tests for the events and timing metrics on GET /api/v1/assets/tickets/{id} (spec 6.13) (~100%)
-// Human Modifications: None (review only)
-// Verification: dotnet test; reviewed by me 2026-11-15; these test names are hilarious
+// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
+// AI Contribution: Tests for the events and timing metrics on GET /api/v1/assets/tickets/{id} (spec 6.13); reads now send a bearer token (~100%)
+// Human Modifications: None yet
+// Verification: dotnet test against PostgreSQL 18
 // Confidence: High
 
 using System.Net;
@@ -76,7 +76,7 @@ public class TicketMetricsTests(HubApiFactory factory) : IClassFixture<HubApiFac
     {
         var ticket = await S.SubmitForCourseAsync(new { assetId = Ids.AssetLaptop, quantity = 1 });
 
-        var page = await (await _client.GetAsync($"/api/v1/assets/tickets?courseId={Ids.CourseCs501}&pageSize=100")).JsonAsync();
+        var page = await (await _client.GetAsync($"/api/v1/assets/tickets?courseId={Ids.CourseCs501}&pageSize=100", Ids.Admin)).JsonAsync();
 
         var listed = page.GetProperty("items").EnumerateArray().Single(t => t.Id() == ticket.Id());
         Assert.False(listed.TryGetProperty("events", out _));

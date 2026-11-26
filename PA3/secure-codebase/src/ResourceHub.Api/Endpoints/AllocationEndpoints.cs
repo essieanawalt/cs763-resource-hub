@@ -1,15 +1,16 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
-// AI Contribution: GET /api/v1/assets/allocations: active allocations and metrics for one course or lab (~100%)
-// Human Modifications: None (review only)
-// Verification: ActiveAllocationTests; reviewed by me 2026-11-15: lists only certain roles can view things, but roles can be spoofed
+// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
+// AI Contribution: GET /api/v1/assets/allocations with row-level filtering (faculty see only their own courses and labs) and license keys decrypted only for admins and the allocation's requester (CWE-312, CWE-862) (~100%)
+// Human Modifications: None yet
+// Verification: ActiveAllocationTests, LicenseKeyProtectionTests, ReturnTests
 // Confidence: High
 
 using Microsoft.EntityFrameworkCore;
 using ResourceHub.Api.Contracts;
 using ResourceHub.Api.Data;
 using ResourceHub.Api.Domain;
+using ResourceHub.Api.Security;
 using ResourceHub.Api.Services;
 
 namespace ResourceHub.Api.Endpoints;
@@ -23,15 +24,18 @@ public static class AllocationEndpoints
 
     /// <summary>
     /// Active means (spec 6.12): physical devices not yet returned, and license and voucher
-    /// allocations whose ticket is not closed. Issued license keys are shown, so only the
-    /// group's own requester role, the IT director and administrators may read this.
+    /// allocations whose ticket is not closed.
+    /// Row-level rule: admins see every course and lab; a faculty member sees only rows for the
+    /// course or lab they are associated with (another group's query returns no rows); any other
+    /// role gets 403. License key values are decrypted only for admins and for the requester of
+    /// the allocation's ticket; device check-in codes are never listed.
     /// </summary>
     private static async Task<IResult> ListActiveAsync(
-        HttpContext http, HubDbContext db, TimeProvider clock, CancellationToken ct,
+        HttpContext http, HubDbContext db, FieldEncryptor encryptor, TimeProvider clock, CancellationToken ct,
         Guid? courseId = null, Guid? researchLabId = null)
     {
-        var (actor, denied) = await Actors.RequireAsync(http, db, ct);
-        if (denied is not null)
+        var caller = await Callers.ResolveAsync(http, db, ct);
+        if (Callers.RequireRole(caller, Roles.Admin, Roles.Faculty) is { } denied)
         {
             return denied;
         }
@@ -48,35 +52,29 @@ public static class AllocationEndpoints
             return Problems.BadRequest(courseId is not null ? "courseId" : "researchLabId", "Unknown course or research lab.");
         }
 
-        var allowed = actor!.Role switch
-        {
-            UserRole.Administrator or UserRole.ItDirector => true,
-            UserRole.CourseInstructor => courseId is not null && actor.CourseId == courseId,
-            UserRole.LabAdvisor => researchLabId is not null && actor.ResearchLabId == researchLabId,
-            _ => false,
-        };
-        if (!allowed)
-        {
-            return Problems.Forbidden("Only the course's instructor, the lab's advisor, the IT director or an administrator can read these allocations.");
-        }
-
-        var rows = await db.Allocations.AsNoTracking()
-            .Include(a => a.Asset)
-            .Include(a => a.Devices.Where(d => d.ReturnedAt == null))
-            .Include(a => a.LicenseKeys)
-            .Where(a => courseId != null ? a.Ticket!.CourseId == courseId : a.Ticket!.ResearchLabId == researchLabId)
-            .Where(a => a.AssetType == AssetType.Physical
-                ? a.Devices.Any(d => d.ReturnedAt == null)
-                : a.Ticket!.Status != TicketStatus.Closed)
-            .OrderByDescending(a => a.AllocatedAt).ThenBy(a => a.Id)
-            .AsSplitQuery()
-            .ToListAsync(ct);
+        var mayReadGroup = caller.IsAdmin || caller.IsAssociatedWith(courseId, researchLabId);
+        var rows = !mayReadGroup
+            ? []
+            : await db.Allocations.AsNoTracking()
+                .Include(a => a.Asset)
+                .Include(a => a.Ticket)
+                .Include(a => a.Devices.Where(d => d.ReturnedAt == null))
+                .Include(a => a.LicenseKeys)
+                .Where(a => courseId != null ? a.Ticket!.CourseId == courseId : a.Ticket!.ResearchLabId == researchLabId)
+                .Where(a => a.AssetType == AssetType.Physical
+                    ? a.Devices.Any(d => d.ReturnedAt == null)
+                    : a.Ticket!.Status != TicketStatus.Closed)
+                .OrderByDescending(a => a.AllocatedAt).ThenBy(a => a.Id)
+                .AsSplitQuery()
+                .ToListAsync(ct);
 
         var now = clock.GetUtcNow();
         var allocations = rows.Select(a => new AllocationDto(
             a.Id, a.TicketId, a.AssetId, a.Asset!.Name, a.AssetType, a.Asset.Category, a.AllocatedAt,
             a.Quantity, a.Amount,
-            a.AssetType == AssetType.License ? a.LicenseKeys.Select(k => k.Key).Order(StringComparer.Ordinal).ToList() : null,
+            a.AssetType == AssetType.License && MaySeeKeys(caller, a)
+                ? a.LicenseKeys.Select(k => encryptor.Decrypt(k.KeyCiphertext, k.Id)).Order(StringComparer.Ordinal).ToList()
+                : null,
             a.AssetType == AssetType.Physical
                 ? a.Devices.OrderBy(d => d.Token, StringComparer.Ordinal)
                     .Select(d => new DeviceDto(d.Token, d.CheckedOutAt, d.DueAt, null, d.DueAt < now ? "overdue" : "checkedout"))
@@ -87,9 +85,13 @@ public static class AllocationEndpoints
         var summary = new AllocationSummaryDto(
             DevicesCheckedOut: devices.Count,
             DevicesOverdue: devices.Count(d => d.Status == "overdue"),
-            LicenseKeysAssigned: allocations.Sum(a => a.LicenseKeys?.Count ?? 0),
+            LicenseKeysAssigned: rows.Where(a => a.AssetType == AssetType.License).Sum(a => a.LicenseKeys.Count),
             VoucherCreditsAllocated: allocations.Where(a => a.AssetType == AssetType.Voucher).Sum(a => a.Amount ?? 0m));
 
         return Results.Ok(new ActiveAllocationsDto(courseId, researchLabId, summary, allocations));
     }
+
+    /// <summary>Sensitive-field rule: admins, and the requester of the ticket the key was issued to.</summary>
+    private static bool MaySeeKeys(Caller caller, Allocation allocation) =>
+        caller.IsAdmin || allocation.Ticket!.RequesterId == caller.Id;
 }

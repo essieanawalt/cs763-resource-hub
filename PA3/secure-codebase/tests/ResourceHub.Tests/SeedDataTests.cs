@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
-// AI Contribution: Tests that the starting assets in spec section 7 are seeded with their fixed ids (~100%)
-// Human Modifications: None (review only)
-// Verification: dotnet test (failed before GET /api/v1/assets/{id} existed, passes after); reviewed by me 2026-11-15
+// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
+// AI Contribution: Tests that the starting assets in spec section 7 are seeded with their fixed ids; reads now send a bearer token (~100%)
+// Human Modifications: None yet
+// Verification: dotnet test against PostgreSQL 18
 // Confidence: High
 
 using System.Net;
@@ -73,7 +73,7 @@ public class SeedDataTests(HubApiFactory factory) : IClassFixture<HubApiFactory>
 
     private async Task<System.Text.Json.JsonElement> GetAsset(Guid id)
     {
-        var response = await _client.GetAsync($"/api/v1/assets/{id}");
+        var response = await _client.GetAsync($"/api/v1/assets/{id}", Ids.Admin);
         await response.AssertStatusAsync(HttpStatusCode.OK);
         var asset = await response.JsonAsync();
         Assert.Equal(id, asset.Id());

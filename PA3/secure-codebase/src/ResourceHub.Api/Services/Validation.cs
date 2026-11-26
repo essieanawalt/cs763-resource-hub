@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
-// AI Contribution: Input validation for asset bodies, plus shared limits (~100%)
-// Human Modifications: None (review only)
-// Verification: Create_with_invalid_body_is_400 theory and ticket validation tests; reviewed by me 2026-11-15: decent error handling
+// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
+// AI Contribution: Input validation for asset bodies, plus shared limits; PA3 adds control-character rejection and device token / check-in code checks (~100%)
+// Human Modifications: None yet
+// Verification: AssetCrudTests, TicketSubmitTests, WriteValidationTests, ReturnTests
 // Confidence: High
 
 using System.Text.RegularExpressions;
@@ -42,6 +42,27 @@ public static partial class Validation
     [GeneratedRegex("^[A-Za-z0-9][A-Za-z0-9-]{0,99}$")]
     private static partial Regex LicenseKeyPattern();
 
+    /// <summary>Device tokens (HW-...) and check-in codes (CI-...): letters, digits and dashes, at most 40.</summary>
+    [GeneratedRegex("^[A-Za-z0-9][A-Za-z0-9-]{0,39}$")]
+    private static partial Regex DeviceCodePattern();
+
+    /// <summary>A required device token or check-in code; null (with an error added) when missing or malformed.</summary>
+    public static string? DeviceCode(Errors errors, string field, string? value)
+    {
+        var trimmed = value?.Trim();
+        if (string.IsNullOrEmpty(trimmed))
+        {
+            errors.Add(field, "Required.");
+            return null;
+        }
+        if (!DeviceCodePattern().IsMatch(trimmed))
+        {
+            errors.Add(field, "1 to 40 letters, digits or dashes.");
+            return null;
+        }
+        return trimmed;
+    }
+
     public static string? Text(Errors errors, string field, string? value, int maxLength, bool required = true)
     {
         var trimmed = value?.Trim();
@@ -56,6 +77,10 @@ public static partial class Validation
         if (trimmed.Length > maxLength)
         {
             errors.Add(field, $"At most {maxLength} characters.");
+        }
+        if (trimmed.Any(ch => char.IsControl(ch) && ch is not ('\n' or '\r' or '\t')))
+        {
+            errors.Add(field, "Control characters are not allowed.");
         }
         return trimmed;
     }

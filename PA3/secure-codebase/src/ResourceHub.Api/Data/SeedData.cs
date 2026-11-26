@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
-// AI Contribution: Static mock data from spec section 7, seeded with its fixed ids (~100%)
-// Human Modifications: Editor reformatting on save, 2026-11-15 (line breaks only, no behaviour change)
-// Verification: SeedDataTests read every seeded asset and user back by id; reviewed by me 2026-11-15
+// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
+// AI Contribution: Static mock data from spec section 7; seeded license keys moved out of HasData so they are only ever stored encrypted (~100%)
+// Human Modifications: None yet
+// Verification: SeedDataTests, LicenseKeyProtectionTests (seeded keys encrypted at rest)
 // Confidence: High
 
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +17,7 @@ public static class SeedData
     public static readonly Guid CourseEe580 = Guid.Parse("10000000-0000-4000-8000-000000000002");
     public static readonly Guid LabDataScience = Guid.Parse("20000000-0000-4000-8000-000000000001");
     public static readonly Guid LabEmbedded = Guid.Parse("20000000-0000-4000-8000-000000000002");
+    public static readonly Guid JetBrains = Guid.Parse("50000000-0000-4000-8000-000000000003");
 
     private const string ComputerScience = "Computer Science";
     private const string ElectricalEngineering = "Electrical Engineering";
@@ -46,7 +47,6 @@ public static class SeedData
             new User { Id = Guid.Parse("40000000-0000-4000-8000-000000000005"), Name = "Jordan Blake", Role = UserRole.ItDirector },
             new User { Id = Guid.Parse("40000000-0000-4000-8000-000000000006"), Name = "Sam Rivera", Role = UserRole.Administrator });
 
-        var jetBrains = Guid.Parse("50000000-0000-4000-8000-000000000003");
         model.Entity<Asset>().HasData(
             new Asset
             {
@@ -76,7 +76,7 @@ public static class SeedData
             },
             new Asset
             {
-                Id = jetBrains,
+                Id = JetBrains,
                 Name = "JetBrains IDE license",
                 Type = AssetType.License,
                 Category = "IDE license",
@@ -99,9 +99,16 @@ public static class SeedData
                 UpdatedAt = SeededAt.AddMinutes(3),
             });
 
-        model.Entity<LicenseKey>().HasData(
-            new LicenseKey { Id = Guid.Parse("51000000-0000-4000-8000-000000000001"), AssetId = jetBrains, Key = "JBIDE-7K2M-Q9XA" },
-            new LicenseKey { Id = Guid.Parse("51000000-0000-4000-8000-000000000002"), AssetId = jetBrains, Key = "JBIDE-3PLR-8WVN" },
-            new LicenseKey { Id = Guid.Parse("51000000-0000-4000-8000-000000000003"), AssetId = jetBrains, Key = "JBIDE-M4TD-2HCE" });
     }
+
+    /// <summary>
+    /// Seeded JetBrains license keys. Not in HasData, because the migration would then store them in
+    /// plaintext: LicenseKeySeeder encrypts and inserts them once at startup (CWE-312).
+    /// </summary>
+    public static readonly IReadOnlyList<(Guid Id, Guid AssetId, string Key)> LicenseKeys =
+    [
+        (Guid.Parse("51000000-0000-4000-8000-000000000001"), JetBrains, "JBIDE-7K2M-Q9XA"),
+        (Guid.Parse("51000000-0000-4000-8000-000000000002"), JetBrains, "JBIDE-3PLR-8WVN"),
+        (Guid.Parse("51000000-0000-4000-8000-000000000003"), JetBrains, "JBIDE-M4TD-2HCE"),
+    ];
 }

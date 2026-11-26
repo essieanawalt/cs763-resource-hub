@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
-// AI Contribution: Response shapes for allocation, return and active-allocation routes (~100%)
-// Human Modifications: None (review only)
-// Verification: AllocationTests, ReturnTests, ActiveAllocationTests; reviewed by me 2026-11-15: shortage dto was a solid choice
+// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
+// AI Contribution: Response shapes for allocation, return and active-allocation routes; PA3 adds the device check-in code to the allocate response and the return request (~100%)
+// Human Modifications: None yet
+// Verification: AllocationTests, ReturnTests, ActiveAllocationTests
 // Confidence: High
 
 using ResourceHub.Api.Domain;
@@ -15,7 +15,8 @@ public sealed record DeviceDto(
     DateTimeOffset CheckedOutAt,
     DateTimeOffset DueAt,
     DateTimeOffset? ReturnedAt,
-    string Status);
+    string Status,
+    string? CheckInCode = null);   // only in the admin-only allocate response (T1)
 
 public sealed record AllocationDto(
     Guid Id,
@@ -39,7 +40,8 @@ public sealed record AllocationResultDto(
 /// <summary>One requested asset that did not have enough stock or balance.</summary>
 public sealed record ShortageDto(Guid AssetId, string AssetName, decimal Requested, decimal Available);
 
-public sealed record ReturnRequest(string? Token);
+/// <summary>A return names the device by its token and proves it is present with its check-in code (T1).</summary>
+public sealed record ReturnRequest(string? Token, string? CheckInCode);
 
 public sealed record ReturnResultDto(
     string Token,

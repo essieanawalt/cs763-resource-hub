@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
-// AI Contribution: Shared steps for ticket and allocation tests (create asset, submit, approve, allocate) (~100%)
-// Human Modifications: None (review only)
-// Verification: Used by TicketTests, TicketQueryTests, AllocationTests, ReturnTests, ActiveAllocationTests; reviewed by me 2026-11-15
+// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
+// AI Contribution: Shared steps for ticket and allocation tests; reads now send an admin token (~100%)
+// Human Modifications: None yet
+// Verification: Used by the ticket, allocation, return and security tests (dotnet test against PostgreSQL 18)
 // Confidence: High
 
 using System.Net;
@@ -95,14 +95,14 @@ public sealed class Scenario(HttpClient client)
 
     public async Task<JsonElement> GetTicketAsync(Guid ticketId)
     {
-        var response = await client.GetAsync($"/api/v1/assets/tickets/{ticketId}");
+        var response = await client.GetAsync($"/api/v1/assets/tickets/{ticketId}", Ids.Admin);
         await response.AssertStatusAsync(HttpStatusCode.OK);
         return await response.JsonAsync();
     }
 
     public async Task<JsonElement> GetAssetAsync(Guid assetId)
     {
-        var response = await client.GetAsync($"/api/v1/assets/{assetId}");
+        var response = await client.GetAsync($"/api/v1/assets/{assetId}", Ids.Admin);
         await response.AssertStatusAsync(HttpStatusCode.OK);
         return await response.JsonAsync();
     }

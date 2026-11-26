@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
-// AI Contribution: Validates ticket content (spec 6.7) and the requester's right to ask for that course or lab (~100%)
-// Human Modifications: Editor reformatting on save, 2026-11-15 (line breaks only, no behaviour change)
-// Verification: Submit_with_invalid_body_is_400 theory, role tests in TicketSubmitTests and TicketLifecycleTests; reviewed by me 2026-11-15: dislike the nesting of if/else
+// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
+// AI Contribution: Validates ticket content (spec 6.7) and the requester's right to ask for that course or lab; the course/lab check now uses the token caller's seeded association (~100%)
+// Human Modifications: None yet
+// Verification: TicketSubmitTests, TicketAuthorizationTests, WriteValidationTests
 // Confidence: High
 
 using Microsoft.EntityFrameworkCore;
@@ -23,7 +23,7 @@ public static class TicketContent
 
     /// <summary>Returns the cleaned content, or a 400/403 result.</summary>
     public static async Task<(ValidTicketContent? Content, IResult? Error)> ValidateAsync(
-        HubDbContext db, Actor requester, TicketRequest body, CancellationToken ct)
+        HubDbContext db, Caller requester, TicketRequest body, CancellationToken ct)
     {
         var errors = new Errors();
 
@@ -123,16 +123,10 @@ public static class TicketContent
             return (null, errors.ToResult());
         }
 
-        // Instructors ask for their own course, lab advisors for their own lab.
-        var allowed = requester.Role switch
+        // Faculty ask only for a course or lab they are associated with in the seeded data.
+        if (!requester.IsAssociatedWith(body.CourseId, body.ResearchLabId))
         {
-            UserRole.CourseInstructor => body.CourseId is not null && body.CourseId == requester.CourseId,
-            UserRole.LabAdvisor => body.ResearchLabId is not null && body.ResearchLabId == requester.ResearchLabId,
-            _ => false,
-        };
-        if (!allowed)
-        {
-            return (null, Problems.Forbidden("Course instructors request for their own course and lab advisors for their own research lab."));
+            return (null, Problems.Forbidden("Faculty may request only for a course or research lab they are associated with."));
         }
 
         return (new ValidTicketContent(body.CourseId, body.ResearchLabId, body.ProjectId, notes, items), null);

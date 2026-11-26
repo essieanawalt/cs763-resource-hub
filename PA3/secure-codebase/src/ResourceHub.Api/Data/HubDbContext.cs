@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Replace primary constructors with regular constructors so Semgrep's C# parser can read the file"
-// AI Contribution: EF Core model: tables, keys, constraints and seed data (~100%)
-// Human Modifications: None (review only)
-// Verification: dotnet test against PostgreSQL 18 (123 passed, 0 failed, 0 skipped); Semgrep 1.180.0 p/csharp: 0 parse errors; reviewed by me 2026-11-15
+// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
+// AI Contribution: EF Core model; PA3 stores license keys as ciphertext, keeps ticket events (restrict + soft delete), adds check-in hashes and the audit table (~100%)
+// Human Modifications: None yet
+// Verification: dotnet test against PostgreSQL 18 (migrations applied per test database); AuditTrailTests, LicenseKeyProtectionTests
 // Confidence: High
 
 using Microsoft.EntityFrameworkCore;
@@ -29,6 +29,7 @@ public class HubDbContext : DbContext
     public DbSet<TicketEvent> TicketEvents => Set<TicketEvent>();
     public DbSet<Allocation> Allocations => Set<Allocation>();
     public DbSet<DeviceAssignment> DeviceAssignments => Set<DeviceAssignment>();
+    public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -88,9 +89,11 @@ public class HubDbContext : DbContext
 
         model.Entity<LicenseKey>(e =>
         {
-            e.ToTable("license_keys");
-            e.Property(x => x.Key).HasMaxLength(100);
-            e.HasIndex(x => new { x.AssetId, x.Key }).IsUnique();
+            // Only ciphertext is stored (CWE-312). Uniqueness of key values is checked in the service,
+            // because random-nonce ciphertexts of equal keys differ.
+            e.ToTable("license_keys", t => t.HasCheckConstraint("ck_license_keys_ciphertext_format", "\"KeyCiphertext\" LIKE 'v1.%'"));
+            e.Property(x => x.KeyCiphertext).HasMaxLength(400);
+            e.HasIndex(x => x.AssetId);
             e.HasIndex(x => x.IssuedTicketId);
             e.HasOne<Ticket>().WithMany().HasForeignKey(x => x.IssuedTicketId).OnDelete(DeleteBehavior.Restrict);
         });
@@ -99,6 +102,8 @@ public class HubDbContext : DbContext
         {
             e.ToTable("tickets", t =>
                 t.HasCheckConstraint("ck_tickets_course_xor_lab", "(\"CourseId\" IS NULL) <> (\"ResearchLabId\" IS NULL)"));
+            // Deleted tickets disappear from every query but keep their row and events (CWE-221).
+            e.HasQueryFilter(x => x.DeletedAt == null);
             e.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
             e.Property(x => x.Notes).HasMaxLength(2000);
             e.HasIndex(x => x.Status);
@@ -111,7 +116,7 @@ public class HubDbContext : DbContext
             e.HasOne<ResearchLab>().WithMany().HasForeignKey(x => x.ResearchLabId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<Project>().WithMany().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Restrict);
             e.HasMany(x => x.Items).WithOne().HasForeignKey(x => x.TicketId).OnDelete(DeleteBehavior.Cascade);
-            e.HasMany(x => x.Events).WithOne().HasForeignKey(x => x.TicketId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(x => x.Events).WithOne().HasForeignKey(x => x.TicketId).OnDelete(DeleteBehavior.Restrict);
         });
 
         model.Entity<TicketItem>(e =>
@@ -151,9 +156,25 @@ public class HubDbContext : DbContext
         {
             e.ToTable("device_assignments");
             e.Property(x => x.Token).HasMaxLength(40);
+            e.Property(x => x.CheckInCodeHash).HasMaxLength(64);
             e.HasIndex(x => x.Token).IsUnique();
             e.HasIndex(x => new { x.AssetId, x.ReturnedAt });
             e.HasOne<Asset>().WithMany().HasForeignKey(x => x.AssetId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        model.Entity<AuditEvent>(e =>
+        {
+            e.ToTable("audit_events");
+            e.Property(x => x.Seq).UseIdentityAlwaysColumn();
+            e.Property(x => x.ActorSub).HasMaxLength(100);
+            e.Property(x => x.ActorRoles).HasMaxLength(200);
+            e.Property(x => x.Action).HasMaxLength(60);
+            e.Property(x => x.EntityType).HasMaxLength(40);
+            e.Property(x => x.Outcome).HasMaxLength(20);
+            e.Property(x => x.Detail).HasMaxLength(2000);
+            e.HasIndex(x => x.EntityId);
+            e.HasIndex(x => x.OccurredAt);
+            e.HasIndex(x => x.ActorSub);
         });
 
         SeedData.Apply(model);

@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
-// AI Contribution: /api/v1/assets/tickets routes: submit, list, read, update/transition, delete (~100%)
-// Human Modifications: None (review only)
-// Verification: TicketSubmitTests, TicketQueryTests, TicketLifecycleTests, TicketMetricsTests; reviewed by me 2026-11-15
+// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
+// AI Contribution: Ticket endpoints with role checks (403) and row-level checks (404) on every read, update, delete and listing (CWE-862); soft delete keeps history (CWE-221); audited writes (T2) (~100%)
+// Human Modifications: None yet
+// Verification: TicketAuthorizationTests, TicketLifecycleTests, TicketSubmitTests, TicketQueryTests, AuditTrailTests
 // Confidence: High
 
 using Microsoft.EntityFrameworkCore;
@@ -14,39 +14,56 @@ using ResourceHub.Api.Services;
 
 namespace ResourceHub.Api.Endpoints;
 
+/// <summary>
+/// Authorization rule for tickets: a role that may never do an action gets 403 before any record
+/// is looked at. Otherwise the record is checked against the caller, and a ticket the caller may
+/// not touch answers 404, exactly like one that does not exist.
+/// admin: read, list, approve, reject, close, allocate and delete (pending) any ticket.
+/// faculty_instructor: submit for their own course or lab; read and list only tickets they
+/// submitted; edit or delete those only while pending.
+/// </summary>
 public static class TicketEndpoints
 {
+    private const string Entity = "ticket";
+
     public static void MapTicketEndpoints(this IEndpointRouteBuilder app)
     {
         var tickets = app.MapGroup("/api/v1/assets/tickets");
 
-        tickets.MapPost("/", SubmitAsync);
+        tickets.MapPost("/", SubmitAsync).Audited("ticket.submit", Entity);
         tickets.MapGet("/", ListAsync);
         tickets.MapGet("/{ticketId:guid}", GetAsync);
-        tickets.MapPut("/{ticketId:guid}", UpdateAsync);
-        tickets.MapDelete("/{ticketId:guid}", DeleteAsync);
-        tickets.MapPost("/{ticketId:guid}/allocate", AllocateAsync);
+        tickets.MapPut("/{ticketId:guid}", UpdateAsync).Audited("ticket.update", Entity, "ticketId");
+        tickets.MapDelete("/{ticketId:guid}", DeleteAsync).Audited("ticket.delete", Entity, "ticketId");
+        tickets.MapPost("/{ticketId:guid}/allocate", AllocateAsync).Audited("ticket.allocate", Entity, "ticketId");
     }
+
+    /// <summary>Row-level read rule: admins read every ticket, faculty only the ones they submitted.</summary>
+    public static bool CanRead(Caller caller, Ticket ticket) =>
+        caller.IsAdmin || (caller.IsFaculty && ticket.RequesterId == caller.Id);
+
+    /// <summary>Row-level edit/delete rule for faculty: only their own tickets.</summary>
+    private static bool IsOwnTicket(Caller caller, Ticket ticket) =>
+        caller.IsFaculty && ticket.RequesterId == caller.Id;
+
+    private static IResult TicketNotFound() => Problems.NotFound("Ticket not found.");
 
     private static async Task<IResult> AllocateAsync(
         Guid ticketId, HttpContext http, HubDbContext db, AllocationService allocations, CancellationToken ct)
     {
-        var (actor, denied) = await Actors.RequireAsync(http, db, ct, UserRole.Administrator);
-        return denied ?? await allocations.AllocateAsync(ticketId, actor!, ct);
+        var caller = await Callers.ResolveAsync(http, db, ct);
+        return Callers.RequireRole(caller, Roles.Admin) ?? await allocations.AllocateAsync(ticketId, caller, ct);
     }
 
-    /// <summary>Locks the ticket row for the rest of the transaction so concurrent changes queue up.</summary>
+    /// <summary>Locks the ticket row for the rest of the transaction so concurrent changes queue up. Deleted tickets are not found.</summary>
     private static Task<Ticket?> LockTicketAsync(HubDbContext db, Guid ticketId, CancellationToken ct) =>
         db.Tickets.FromSql($"SELECT * FROM tickets WHERE \"Id\" = {ticketId} FOR UPDATE").FirstOrDefaultAsync(ct);
 
     private static async Task<IResult> UpdateAsync(
-        Guid ticketId, TicketRequest body, HttpContext http, HubDbContext db, TimeProvider clock, ILogger<TicketRequest> log, CancellationToken ct)
+        Guid ticketId, TicketRequest body, HttpContext http, HubDbContext db, AuditTrail audit, TimeProvider clock,
+        ILogger<TicketRequest> log, CancellationToken ct)
     {
-        var (actor, denied) = await Actors.RequireAsync(http, db, ct);
-        if (denied is not null)
-        {
-            return denied;
-        }
+        var caller = await Callers.ResolveAsync(http, db, ct);
 
         if (body.Status is not null)
         {
@@ -56,25 +73,29 @@ public static class TicketEndpoints
             {
                 return Problems.BadRequest("status", "Send either a status change or new content, not both.");
             }
-            return await TransitionAsync(ticketId, body.Status.Value, body.Reason, actor!, db, clock, log, ct);
+            // Approve, reject and close are admin-only: 403 for any other role, whatever the ticket.
+            return Callers.RequireRole(caller, Roles.Admin)
+                   ?? await TransitionAsync(ticketId, body.Status.Value, body.Reason, caller, db, audit, clock, log, ct);
+        }
+
+        // Content edits: only the faculty requester, only while pending.
+        if (Callers.RequireRole(caller, Roles.Faculty) is { } denied)
+        {
+            return denied;
         }
 
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         var ticket = await LockTicketAsync(db, ticketId, ct);
-        if (ticket is null)
+        if (ticket is null || !IsOwnTicket(caller, ticket))
         {
-            return Problems.NotFound("Ticket not found.");
-        }
-        if (ticket.RequesterId != actor!.Id)
-        {
-            return Problems.Forbidden("Only the requester can change a ticket's contents.");
+            return TicketNotFound();
         }
         if (ticket.Status != TicketStatus.Pending)
         {
-            return Problems.Conflict("Only pending tickets can be changed.", $"The ticket is {ticket.Status.ToString().ToLowerInvariant()}.");
+            return Problems.Conflict("Only pending tickets can be changed.", $"The ticket is {Lower(ticket.Status)}.");
         }
 
-        var (content, invalid) = await TicketContent.ValidateAsync(db, actor, body, ct);
+        var (content, invalid) = await TicketContent.ValidateAsync(db, caller, body, ct);
         if (invalid is not null)
         {
             return invalid;
@@ -94,22 +115,24 @@ public static class TicketEndpoints
         ticket.ProjectId = content.ProjectId;
         ticket.Notes = content.Notes;
         ticket.UpdatedAt = now;
-        db.TicketEvents.Add(TicketEvents.Create(ticketId, TicketEventType.Updated, TicketStatus.Pending, TicketStatus.Pending, actor.Id, now,
-            $"{content.Items.Count} asset(s) requested"));
+        var summary = $"{content.Items.Count} asset(s) requested";
+        db.TicketEvents.Add(TicketEvents.Create(ticketId, TicketEventType.Updated, TicketStatus.Pending, TicketStatus.Pending, caller.Id, now, summary));
+        audit.Record(caller, "ticket.update", Entity, ticketId, detail: summary);
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
-        log.LogInformation("Ticket {TicketId} content updated by {ActorId}", ticketId, actor.Id);
+        log.LogInformation("Ticket {TicketId} content updated by {Sub}", ticketId, caller.Sub);
 
         var saved = await WithItems(db).AsNoTracking().FirstAsync(t => t.Id == ticketId, ct);
         return Results.Ok(TicketViews.ToDto(saved));
     }
 
     /// <summary>
-    /// pending -> approved | rejected (IT director sign-off) and allocated -> closed (administrator).
+    /// pending -> approved | rejected and allocated -> closed (admin; checked by the caller).
     /// approved -> allocated only happens through POST .../allocate (spec 6.8).
     /// </summary>
     private static async Task<IResult> TransitionAsync(
-        Guid ticketId, TicketStatus target, string? reason, Actor actor, HubDbContext db, TimeProvider clock, ILogger log, CancellationToken ct)
+        Guid ticketId, TicketStatus target, string? reason, Caller caller, HubDbContext db, AuditTrail audit, TimeProvider clock,
+        ILogger log, CancellationToken ct)
     {
         var errors = new Errors();
         reason = Validation.Text(errors, "reason", reason, 500, required: false);
@@ -120,24 +143,23 @@ public static class TicketEndpoints
 
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         var ticket = await LockTicketAsync(db, ticketId, ct);
-        if (ticket is null)
+        if (ticket is null || !CanRead(caller, ticket))
         {
-            return Problems.NotFound("Ticket not found.");
+            return TicketNotFound();
         }
 
         TicketStatus requiredFrom;
-        UserRole requiredRole;
         TicketEventType eventType;
         switch (target)
         {
             case TicketStatus.Approved:
-                (requiredFrom, requiredRole, eventType) = (TicketStatus.Pending, UserRole.ItDirector, TicketEventType.Approved);
+                (requiredFrom, eventType) = (TicketStatus.Pending, TicketEventType.Approved);
                 break;
             case TicketStatus.Rejected:
-                (requiredFrom, requiredRole, eventType) = (TicketStatus.Pending, UserRole.ItDirector, TicketEventType.Rejected);
+                (requiredFrom, eventType) = (TicketStatus.Pending, TicketEventType.Rejected);
                 break;
             case TicketStatus.Closed:
-                (requiredFrom, requiredRole, eventType) = (TicketStatus.Allocated, UserRole.Administrator, TicketEventType.Closed);
+                (requiredFrom, eventType) = (TicketStatus.Allocated, TicketEventType.Closed);
                 break;
             case TicketStatus.Allocated:
                 return Problems.Conflict("Use the allocate command.", "Tickets become allocated only through POST /api/v1/assets/tickets/{ticket_id}/allocate.");
@@ -145,10 +167,6 @@ public static class TicketEndpoints
                 return Problems.Conflict("Tickets cannot move back to pending.");
         }
 
-        if (actor.Role != requiredRole)
-        {
-            return Problems.Forbidden($"Moving a ticket to {Lower(target)} needs the {requiredRole} role.");
-        }
         if (ticket.Status != requiredFrom)
         {
             return Problems.Conflict($"Cannot move a {Lower(ticket.Status)} ticket to {Lower(target)}.",
@@ -165,53 +183,70 @@ public static class TicketEndpoints
             case TicketStatus.Rejected: ticket.RejectedAt = now; break;
             case TicketStatus.Closed: ticket.ClosedAt = now; break;
         }
-        db.TicketEvents.Add(TicketEvents.Create(ticketId, eventType, from, target, actor.Id, now, reason));
+        db.TicketEvents.Add(TicketEvents.Create(ticketId, eventType, from, target, caller.Id, now, reason));
+        audit.Record(caller, target switch
+        {
+            TicketStatus.Approved => "ticket.approve",
+            TicketStatus.Rejected => "ticket.reject",
+            _ => "ticket.close",
+        }, Entity, ticketId, detail: $"{Lower(from)} -> {Lower(target)}");
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
-        log.LogInformation("Ticket {TicketId} moved from {From} to {To} by {ActorId}", ticketId, from, target, actor.Id);
+        log.LogInformation("Ticket {TicketId} moved from {From} to {To} by {Sub}", ticketId, from, target, caller.Sub);
 
         var saved = await WithItems(db).AsNoTracking().FirstAsync(t => t.Id == ticketId, ct);
         return Results.Ok(TicketViews.ToDto(saved));
     }
 
+    /// <summary>
+    /// Withdraws a pending ticket. The row is kept with DeletedAt set and a "deleted" event, so the
+    /// ticket's event history is never removed (CWE-221); the API then treats it as not found.
+    /// </summary>
     private static async Task<IResult> DeleteAsync(
-        Guid ticketId, HttpContext http, HubDbContext db, ILogger<TicketRequest> log, CancellationToken ct)
+        Guid ticketId, HttpContext http, HubDbContext db, AuditTrail audit, TimeProvider clock, ILogger<TicketRequest> log, CancellationToken ct)
     {
-        var (actor, denied) = await Actors.RequireAsync(http, db, ct);
-        if (denied is not null)
+        var caller = await Callers.ResolveAsync(http, db, ct);
+        if (Callers.RequireRole(caller, Roles.Admin, Roles.Faculty) is { } denied)
         {
             return denied;
         }
 
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         var ticket = await LockTicketAsync(db, ticketId, ct);
-        if (ticket is null)
+        if (ticket is null || !(caller.IsAdmin || IsOwnTicket(caller, ticket)))
         {
-            return Problems.NotFound("Ticket not found.");
-        }
-        if (ticket.RequesterId != actor!.Id && actor.Role != UserRole.Administrator)
-        {
-            return Problems.Forbidden("Only the requester or an administrator can delete a ticket.");
+            return TicketNotFound();
         }
         if (ticket.Status != TicketStatus.Pending)
         {
             return Problems.Conflict("Only pending tickets can be deleted.", $"The ticket is {Lower(ticket.Status)}.");
         }
 
-        db.Tickets.Remove(ticket);
+        var now = clock.GetUtcNow();
+        ticket.DeletedAt = now;
+        ticket.UpdatedAt = now;
+        db.TicketEvents.Add(TicketEvents.Create(ticketId, TicketEventType.Deleted, TicketStatus.Pending, TicketStatus.Pending, caller.Id, now,
+            "Pending ticket withdrawn"));
+        audit.Record(caller, "ticket.delete", Entity, ticketId);
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
-        log.LogInformation("Pending ticket {TicketId} deleted by {ActorId}", ticketId, actor.Id);
+        log.LogInformation("Pending ticket {TicketId} deleted by {Sub}", ticketId, caller.Sub);
         return Results.NoContent();
     }
 
     private static string Lower(TicketStatus status) => status.ToString().ToLowerInvariant();
 
     private static async Task<IResult> ListAsync(
-        HubDbContext db, CancellationToken ct,
+        HttpContext http, HubDbContext db, CancellationToken ct,
         string? status = null, string? assetCategory = null, Guid? courseId = null, Guid? researchLabId = null,
         Guid? projectId = null, int? page = null, int? pageSize = null)
     {
+        var caller = await Callers.ResolveAsync(http, db, ct);
+        if (Callers.RequireRole(caller, Roles.Admin, Roles.Faculty) is { } denied)
+        {
+            return denied;
+        }
+
         var errors = new Errors();
         var statuses = new List<TicketStatus>();
         foreach (var part in (status ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
@@ -227,7 +262,14 @@ public static class TicketEndpoints
             return errors.ToResult();
         }
 
+        // Row-level filter first: the listing (and its total) only ever covers rows the caller may read.
         var q = db.Tickets.AsNoTracking();
+        if (!caller.IsAdmin)
+        {
+            var me = caller.Id;
+            q = q.Where(t => t.RequesterId == me);
+        }
+
         if (statuses.Count > 0)
         {
             q = q.Where(t => statuses.Contains(t.Status));
@@ -266,15 +308,15 @@ public static class TicketEndpoints
         db.Tickets.Include(t => t.Items).ThenInclude(i => i.Asset);
 
     private static async Task<IResult> SubmitAsync(
-        TicketRequest body, HttpContext http, HubDbContext db, TimeProvider clock, ILogger<TicketRequest> log, CancellationToken ct)
+        TicketRequest body, HttpContext http, HubDbContext db, AuditTrail audit, TimeProvider clock, ILogger<TicketRequest> log, CancellationToken ct)
     {
-        var (actor, denied) = await Actors.RequireAsync(http, db, ct, UserRole.CourseInstructor, UserRole.LabAdvisor);
-        if (denied is not null)
+        var caller = await Callers.ResolveAsync(http, db, ct);
+        if (Callers.RequireRole(caller, Roles.Faculty) is { } denied)
         {
             return denied;
         }
 
-        var (content, invalid) = await TicketContent.ValidateAsync(db, actor!, body, ct);
+        var (content, invalid) = await TicketContent.ValidateAsync(db, caller, body, ct);
         if (invalid is not null)
         {
             return invalid;
@@ -284,7 +326,7 @@ public static class TicketEndpoints
         var ticket = new Ticket
         {
             Id = Guid.NewGuid(),
-            RequesterId = actor!.Id,
+            RequesterId = caller.Id,   // always the token's sub, never a body field
             CourseId = content!.CourseId,
             ResearchLabId = content.ResearchLabId,
             ProjectId = content.ProjectId,
@@ -294,23 +336,30 @@ public static class TicketEndpoints
             UpdatedAt = now,
             Items = content.Items,
         };
-        ticket.Events.Add(TicketEvents.Create(ticket.Id, TicketEventType.Submitted, null, TicketStatus.Pending, actor.Id, now,
-            $"{content.Items.Count} asset(s) requested"));
+        var summary = $"{content.Items.Count} asset(s) requested";
+        ticket.Events.Add(TicketEvents.Create(ticket.Id, TicketEventType.Submitted, null, TicketStatus.Pending, caller.Id, now, summary));
 
         db.Tickets.Add(ticket);
+        audit.Record(caller, "ticket.submit", Entity, ticket.Id, detail: summary);
         await db.SaveChangesAsync(ct);
-        log.LogInformation("Ticket {TicketId} submitted by {ActorId} with {ItemCount} item(s)", ticket.Id, actor.Id, ticket.Items.Count);
+        log.LogInformation("Ticket {TicketId} submitted by {Sub} with {ItemCount} item(s)", ticket.Id, caller.Sub, ticket.Items.Count);
 
         var saved = await WithItems(db).AsNoTracking().FirstAsync(t => t.Id == ticket.Id, ct);
         return Results.Created($"/api/v1/assets/tickets/{ticket.Id}", TicketViews.ToDto(saved));
     }
 
-    private static async Task<IResult> GetAsync(Guid ticketId, HubDbContext db, CancellationToken ct)
+    private static async Task<IResult> GetAsync(Guid ticketId, HttpContext http, HubDbContext db, CancellationToken ct)
     {
+        var caller = await Callers.ResolveAsync(http, db, ct);
+        if (Callers.RequireRole(caller, Roles.Admin, Roles.Faculty) is { } denied)
+        {
+            return denied;
+        }
+
         var ticket = await WithItems(db).Include(t => t.Events).AsNoTracking().AsSplitQuery()
             .FirstOrDefaultAsync(t => t.Id == ticketId, ct);
-        return ticket is null
-            ? Problems.NotFound("Ticket not found.")
+        return ticket is null || !CanRead(caller, ticket)
+            ? TicketNotFound()
             : Results.Ok(TicketViews.ToDto(ticket, detail: true));
     }
 }

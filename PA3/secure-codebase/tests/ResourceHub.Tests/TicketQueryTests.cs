@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
-// AI Contribution: Tests for GET /api/v1/assets/tickets filters, paging and order (~100%)
-// Human Modifications: None (review only)
-// Verification: dotnet test (failed before the listing route existed, passes after); reviewed by me 2026-11-15
+// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
+// AI Contribution: Tests for GET /api/v1/assets/tickets filters, paging and order; reads now send a bearer token (~100%)
+// Human Modifications: None yet
+// Verification: dotnet test against PostgreSQL 18
 // Confidence: High
 
 using System.Net;
@@ -113,13 +113,13 @@ public class TicketQueryTests(HubApiFactory factory) : IClassFixture<HubApiFacto
     [InlineData("pageSize=500")]
     public async Task Invalid_query_parameters_are_400(string query)
     {
-        var response = await _client.GetAsync($"/api/v1/assets/tickets?{query}");
+        var response = await _client.GetAsync($"/api/v1/assets/tickets?{query}", Ids.Admin);
         await response.AssertStatusAsync(HttpStatusCode.BadRequest);
     }
 
     private async Task<JsonElement> ListAsync(string url)
     {
-        var response = await _client.GetAsync(url);
+        var response = await _client.GetAsync(url, Ids.Admin);
         await response.AssertStatusAsync(HttpStatusCode.OK);
         return await response.JsonAsync();
     }

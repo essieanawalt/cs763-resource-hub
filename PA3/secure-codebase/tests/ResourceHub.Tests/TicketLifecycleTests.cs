@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
-// AI Contribution: Tests for PUT/DELETE on /api/v1/assets/tickets/{id}: edits, sign-off transitions, deletes (~100%)
-// Human Modifications: None (review only)
-// Verification: dotnet test (failed before PUT/DELETE existed, passes after); reviewed by me 2026-11-15, tests for making edits by requestor here, but no tests anywhere that would have hinted at the spoof loophole 
+// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
+// AI Contribution: Ticket edit, sign-off and delete tests, updated for token roles and the 404 rule for other users' tickets (~100%)
+// Human Modifications: None yet
+// Verification: dotnet test against PostgreSQL 18
 // Confidence: High
 
 using System.Net;
@@ -42,9 +42,9 @@ public class TicketLifecycleTests(HubApiFactory factory) : IClassFixture<HubApiF
     }
 
     [DbTheory]
-    [InlineData("40000000-0000-4000-8000-000000000002")] // another instructor
-    [InlineData("40000000-0000-4000-8000-000000000005")] // IT director
-    public async Task Only_the_requester_edits_content(string user)
+    [InlineData("40000000-0000-4000-8000-000000000002", HttpStatusCode.NotFound)]  // another instructor: not their record
+    [InlineData("40000000-0000-4000-8000-000000000005", HttpStatusCode.Forbidden)] // admin role may not edit ticket content
+    public async Task Only_the_requester_edits_content(string user, HttpStatusCode expected)
     {
         var ticket = await S.SubmitForCourseAsync(new { assetId = Ids.AssetLaptop, quantity = 1 });
 
@@ -54,7 +54,7 @@ public class TicketLifecycleTests(HubApiFactory factory) : IClassFixture<HubApiF
             items = new[] { new { assetId = Ids.AssetLaptop, quantity = 2 } },
         }, Guid.Parse(user));
 
-        await response.AssertStatusAsync(HttpStatusCode.Forbidden);
+        await response.AssertStatusAsync(expected);
     }
 
     [DbFact]
@@ -91,7 +91,7 @@ public class TicketLifecycleTests(HubApiFactory factory) : IClassFixture<HubApiF
         Assert.Equal(5, after.GetProperty("remainingStock").GetDecimal());
         Assert.Equal(2, after.GetProperty("availability").GetProperty("reserved").GetInt32());
 
-        var reserved = await (await _client.GetAsync("/api/v1/assets?availability=reserved&pageSize=100")).JsonAsync();
+        var reserved = await (await _client.GetAsync("/api/v1/assets?availability=reserved&pageSize=100", Ids.Admin)).JsonAsync();
         Assert.Contains(reserved.GetProperty("items").EnumerateArray(), a => a.Id() == asset);
 
         var detail = await S.GetTicketAsync(ticket.Id());
@@ -116,9 +116,9 @@ public class TicketLifecycleTests(HubApiFactory factory) : IClassFixture<HubApiF
     }
 
     [DbTheory]
-    [InlineData("40000000-0000-4000-8000-000000000001")] // the requester
-    [InlineData("40000000-0000-4000-8000-000000000006")] // administrator
-    public async Task Only_the_it_director_signs_off(string user)
+    [InlineData("40000000-0000-4000-8000-000000000001")] // the requester (faculty_instructor)
+    [InlineData("40000000-0000-4000-8000-000000000002")] // another faculty_instructor
+    public async Task Only_admin_signs_off(string user)
     {
         var ticket = await S.SubmitForCourseAsync(new { assetId = Ids.AssetLaptop, quantity = 1 });
 
@@ -167,12 +167,12 @@ public class TicketLifecycleTests(HubApiFactory factory) : IClassFixture<HubApiF
         var ticket = await S.SubmitForCourseAsync(new { assetId = Ids.AssetLaptop, quantity = 1 });
 
         var other = await _client.SendAsync(HttpMethod.Delete, $"/api/v1/assets/tickets/{ticket.Id()}", user: Ids.InstructorOkafor);
-        await other.AssertStatusAsync(HttpStatusCode.Forbidden);
+        await other.AssertStatusAsync(HttpStatusCode.NotFound);
 
         var deleted = await _client.SendAsync(HttpMethod.Delete, $"/api/v1/assets/tickets/{ticket.Id()}", user: Ids.InstructorChen);
         await deleted.AssertStatusAsync(HttpStatusCode.NoContent);
 
-        var fetched = await _client.GetAsync($"/api/v1/assets/tickets/{ticket.Id()}");
+        var fetched = await _client.GetAsync($"/api/v1/assets/tickets/{ticket.Id()}", Ids.Admin);
         await fetched.AssertStatusAsync(HttpStatusCode.NotFound);
     }
 

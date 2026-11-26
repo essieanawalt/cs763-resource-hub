@@ -1,45 +1,61 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
-// AI Contribution: /api/v1/assets routes: create, list with filters, read, update, delete (~100%)
-// Human Modifications: Editor reformatting on save, 2026-11-15 (line breaks only, no behaviour change)
-// Verification: SeedDataTests, AssetCrudTests, AssetQueryTests; reviewed by me 2026-11-15
+// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
+// AI Contribution: Asset catalog (any authenticated caller) and admin-only writes and returns; keys encrypted before storage (CWE-312); returns need the check-in code (T1); no device token in logs (CWE-532); audited changes (T2) (~100%)
+// Human Modifications: None yet
+// Verification: AssetCrudTests, AssetQueryTests, ReturnTests, LicenseKeyProtectionTests, AuditTrailTests
 // Confidence: High
 
 using Microsoft.EntityFrameworkCore;
 using ResourceHub.Api.Contracts;
 using ResourceHub.Api.Data;
 using ResourceHub.Api.Domain;
+using ResourceHub.Api.Security;
 using ResourceHub.Api.Services;
 
 namespace ResourceHub.Api.Endpoints;
 
 public static class AssetEndpoints
 {
+    private const string Entity = "asset";
+
     public static void MapAssetEndpoints(this IEndpointRouteBuilder app)
     {
         var assets = app.MapGroup("/api/v1/assets");
 
-        assets.MapPost("/", CreateAsync);
+        assets.MapPost("/", CreateAsync).Audited("asset.create", Entity);
         assets.MapGet("/", ListAsync);
         assets.MapGet("/{assetId:guid}", GetAsync);
-        assets.MapPut("/{assetId:guid}", UpdateAsync);
-        assets.MapDelete("/{assetId:guid}", DeleteAsync);
-        assets.MapPost("/{assetId:guid}/return", ReturnAsync);
+        assets.MapPut("/{assetId:guid}", UpdateAsync).Audited("asset.update", Entity, "assetId");
+        assets.MapDelete("/{assetId:guid}", DeleteAsync).Audited("asset.delete", Entity, "assetId");
+        assets.MapPost("/{assetId:guid}/return", ReturnAsync).Audited("device.return", Entity, "assetId");
     }
 
-    /// <summary>One device per call, identified by its hardware assignment token (spec 6.11).</summary>
-    private static async Task<IResult> ReturnAsync(
-        Guid assetId, ReturnRequest body, HttpContext http, HubDbContext db, TimeProvider clock, ILogger<ReturnRequest> log, CancellationToken ct)
+    private static async Task<(Caller Caller, IResult? Denied)> AdminAsync(HttpContext http, HubDbContext db, CancellationToken ct)
     {
-        var (actor, denied) = await Actors.RequireAsync(http, db, ct, UserRole.Administrator);
+        var caller = await Callers.ResolveAsync(http, db, ct);
+        return (caller, Callers.RequireRole(caller, Roles.Admin));
+    }
+
+    /// <summary>
+    /// One device per call (spec 6.11). A return must prove three things (T1): the caller is an
+    /// admin (verified token), the token names a device of this asset that is still out, and the
+    /// check-in code from the device's label matches the hash stored at hand-out. The token alone,
+    /// which the borrower can see, is not enough.
+    /// </summary>
+    private static async Task<IResult> ReturnAsync(
+        Guid assetId, ReturnRequest body, HttpContext http, HubDbContext db, AuditTrail audit, TimeProvider clock,
+        ILogger<ReturnRequest> log, CancellationToken ct)
+    {
+        var (caller, denied) = await AdminAsync(http, db, ct);
         if (denied is not null)
         {
             return denied;
         }
 
         var errors = new Errors();
-        var token = Validation.Text(errors, "token", body.Token, 40);
+        var token = Validation.DeviceCode(errors, "token", body.Token);
+        var checkInCode = Validation.DeviceCode(errors, "checkInCode", body.CheckInCode);
         if (errors.Any)
         {
             return errors.ToResult();
@@ -65,16 +81,25 @@ public static class AssetEndpoints
         {
             return Problems.Conflict("Device already returned.", $"It was returned at {device.ReturnedAt:O}.");
         }
+        if (!CheckInCodes.Matches(checkInCode!, device.CheckInCodeHash))
+        {
+            log.LogWarning("Return of device {DeviceId} of asset {AssetId} refused: check-in code did not match (by {Sub})", device.Id, assetId, caller.Sub);
+            return Problems.Unprocessable("Check-in code does not match this device.",
+                "Read the check-in code from the device's label; the device stays checked out.");
+        }
 
         var now = clock.GetUtcNow();
         device.ReturnedAt = now;
         asset.RemainingUnits += 1;
         asset.UpdatedAt = now;
+        var wasOverdue = now > device.DueAt;
+        audit.Record(caller, "device.return", Entity, assetId,
+            detail: $"Device {device.Id} of ticket {device.TicketId} returned; overdue: {wasOverdue}; stock now {asset.RemainingUnits}");
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
 
-        var wasOverdue = now > device.DueAt;
-        log.LogInformation("Device {Token} of asset {AssetId} returned by {ActorId} (overdue: {Overdue})", token, assetId, actor!.Id, wasOverdue);
+        // CWE-532: log the device's internal id, never its token or check-in code.
+        log.LogInformation("Device {DeviceId} of asset {AssetId} returned by {Sub} (overdue: {Overdue})", device.Id, assetId, caller.Sub, wasOverdue);
 
         return Results.Ok(new ReturnResultDto(
             device.Token, assetId, device.TicketId, device.CheckedOutAt, device.DueAt, now,
@@ -90,6 +115,7 @@ public static class AssetEndpoints
         Overdue,
     }
 
+    /// <summary>Any authenticated caller may read and search the catalog. Search covers names only, never key values.</summary>
     private static async Task<IResult> ListAsync(
         HubDbContext db, TimeProvider clock, CancellationToken ct,
         string? category = null, string? departmentProgram = null, string? availability = null,
@@ -158,9 +184,10 @@ public static class AssetEndpoints
     }
 
     private static async Task<IResult> CreateAsync(
-        AssetRequest body, HttpContext http, HubDbContext db, TimeProvider clock, ILogger<AssetRequest> log, CancellationToken ct)
+        AssetRequest body, HttpContext http, HubDbContext db, FieldEncryptor encryptor, AuditTrail audit, TimeProvider clock,
+        ILogger<AssetRequest> log, CancellationToken ct)
     {
-        var (actor, denied) = await Actors.RequireAsync(http, db, ct, UserRole.Administrator);
+        var (caller, denied) = await AdminAsync(http, db, ct);
         if (denied is not null)
         {
             return denied;
@@ -193,7 +220,7 @@ public static class AssetEndpoints
                 break;
             case AssetType.License:
                 asset.TotalUnits = asset.RemainingUnits = keys.Count;
-                asset.LicenseKeys = keys.Select(k => new LicenseKey { Id = Guid.NewGuid(), AssetId = asset.Id, Key = k }).ToList();
+                asset.LicenseKeys = keys.Select(k => NewKey(encryptor, asset.Id, k)).ToList();
                 break;
             case AssetType.Voucher:
                 asset.TotalBalance = asset.Balance = body.Balance;
@@ -201,16 +228,18 @@ public static class AssetEndpoints
         }
 
         db.Assets.Add(asset);
+        audit.Record(caller, "asset.create", Entity, asset.Id, detail: $"{asset.Type} '{asset.Name}', stock {StockText(asset)}");
         await db.SaveChangesAsync(ct);
-        log.LogInformation("Asset {AssetId} ({Type}) created by {ActorId}", asset.Id, asset.Type, actor!.Id);
+        log.LogInformation("Asset {AssetId} ({Type}) created by {Sub}", asset.Id, asset.Type, caller.Sub);
 
         return Results.Created($"/api/v1/assets/{asset.Id}", await AssetViews.ToDtoAsync(db, asset, now, ct));
     }
 
     private static async Task<IResult> UpdateAsync(
-        Guid assetId, AssetRequest body, HttpContext http, HubDbContext db, TimeProvider clock, ILogger<AssetRequest> log, CancellationToken ct)
+        Guid assetId, AssetRequest body, HttpContext http, HubDbContext db, FieldEncryptor encryptor, AuditTrail audit, TimeProvider clock,
+        ILogger<AssetRequest> log, CancellationToken ct)
     {
-        var (actor, denied) = await Actors.RequireAsync(http, db, ct, UserRole.Administrator);
+        var (caller, denied) = await AdminAsync(http, db, ct);
         if (denied is not null)
         {
             return denied;
@@ -238,6 +267,7 @@ public static class AssetEndpoints
             return Problems.BadRequest("type", "An asset's type cannot be changed.");
         }
 
+        var before = StockText(asset);
         switch (asset.Type)
         {
             case AssetType.Physical:
@@ -255,20 +285,22 @@ public static class AssetEndpoints
                 }
             case AssetType.License:
                 {
+                    // Stored values are ciphertext; compare on the decrypted values in memory.
+                    var stored = asset.LicenseKeys.Select(k => (Row: k, Plain: encryptor.Decrypt(k.KeyCiphertext, k.Id))).ToList();
                     var wanted = keys.ToHashSet(StringComparer.Ordinal);
-                    var missingIssued = asset.LicenseKeys.Where(k => k.IssuedTicketId is not null && !wanted.Contains(k.Key)).ToList();
+                    var missingIssued = stored.Where(k => k.Row.IssuedTicketId is not null && !wanted.Contains(k.Plain)).ToList();
                     if (missingIssued.Count > 0)
                     {
                         return Problems.Conflict("Issued license keys cannot be removed.",
                             $"{missingIssued.Count} of the keys left out have already been issued.");
                     }
-                    db.LicenseKeys.RemoveRange(asset.LicenseKeys.Where(k => k.IssuedTicketId is null && !wanted.Contains(k.Key)));
-                    var existing = asset.LicenseKeys.Select(k => k.Key).ToHashSet(StringComparer.Ordinal);
+                    db.LicenseKeys.RemoveRange(stored.Where(k => k.Row.IssuedTicketId is null && !wanted.Contains(k.Plain)).Select(k => k.Row));
+                    var existing = stored.Select(k => k.Plain).ToHashSet(StringComparer.Ordinal);
                     foreach (var key in keys.Where(k => !existing.Contains(k)))
                     {
-                        db.LicenseKeys.Add(new LicenseKey { Id = Guid.NewGuid(), AssetId = asset.Id, Key = key });
+                        db.LicenseKeys.Add(NewKey(encryptor, asset.Id, key));
                     }
-                    var issued = asset.LicenseKeys.Count(k => k.IssuedTicketId is not null);
+                    var issued = stored.Count(k => k.Row.IssuedTicketId is not null);
                     asset.TotalUnits = keys.Count;
                     asset.RemainingUnits = keys.Count - issued;
                     break;
@@ -291,17 +323,18 @@ public static class AssetEndpoints
         asset.Category = category;
         asset.DepartmentProgram = department;
         asset.UpdatedAt = clock.GetUtcNow();
+        audit.Record(caller, "asset.update", Entity, asset.Id, detail: $"stock {before} -> {StockText(asset)}");
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
-        log.LogInformation("Asset {AssetId} updated by {ActorId}", asset.Id, actor!.Id);
+        log.LogInformation("Asset {AssetId} updated by {Sub}", asset.Id, caller.Sub);
 
         return Results.Ok(await AssetViews.ToDtoAsync(db, asset, clock.GetUtcNow(), ct));
     }
 
     private static async Task<IResult> DeleteAsync(
-        Guid assetId, HttpContext http, HubDbContext db, ILogger<AssetRequest> log, CancellationToken ct)
+        Guid assetId, HttpContext http, HubDbContext db, AuditTrail audit, ILogger<AssetRequest> log, CancellationToken ct)
     {
-        var (actor, denied) = await Actors.RequireAsync(http, db, ct, UserRole.Administrator);
+        var (caller, denied) = await AdminAsync(http, db, ct);
         if (denied is not null)
         {
             return denied;
@@ -321,8 +354,21 @@ public static class AssetEndpoints
         }
 
         db.Assets.Remove(asset);
+        audit.Record(caller, "asset.delete", Entity, assetId, detail: $"{asset.Type} '{asset.Name}', stock {StockText(asset)}");
         await db.SaveChangesAsync(ct);
-        log.LogInformation("Asset {AssetId} deleted by {ActorId}", assetId, actor!.Id);
+        log.LogInformation("Asset {AssetId} deleted by {Sub}", assetId, caller.Sub);
         return Results.NoContent();
     }
+
+    /// <summary>Encrypts a key value bound to its own row id before it is stored (CWE-312).</summary>
+    private static LicenseKey NewKey(FieldEncryptor encryptor, Guid assetId, string key)
+    {
+        var id = Guid.NewGuid();
+        return new LicenseKey { Id = id, AssetId = assetId, KeyCiphertext = encryptor.Encrypt(key, id) };
+    }
+
+    /// <summary>Counts only: never key values.</summary>
+    private static string StockText(Asset a) => a.Type == AssetType.Voucher
+        ? $"{a.Balance}/{a.TotalBalance} credits"
+        : $"{a.RemainingUnits}/{a.TotalUnits} units";
 }

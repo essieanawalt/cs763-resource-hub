@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
-// AI Contribution: Tests for POST/GET/PUT/DELETE on /api/v1/assets, validation and role checks (~100%)
-// Human Modifications: None (review only)
-// Verification: dotnet test (failed before the create/update/delete routes existed, passes after); reviewed by me 2026-11-15
+// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
+// AI Contribution: Asset create, read, update and delete tests, updated for bearer tokens and admin-only writes (~100%)
+// Human Modifications: None yet
+// Verification: dotnet test against PostgreSQL 18
 // Confidence: High
 
 using System.Net;
@@ -37,7 +37,7 @@ public class AssetCrudTests(HubApiFactory factory) : IClassFixture<HubApiFactory
         Assert.Equal(21, created.GetProperty("defaultLoanDays").GetInt32());
         Assert.Equal(8, created.GetProperty("availability").GetProperty("available").GetInt32());
 
-        var fetched = await (await _client.GetAsync($"/api/v1/assets/{created.Id()}")).JsonAsync();
+        var fetched = await (await _client.GetAsync($"/api/v1/assets/{created.Id()}", Ids.Admin)).JsonAsync();
         Assert.Equal("Arduino Uno R4", fetched.Str("name"));
     }
 
@@ -79,16 +79,16 @@ public class AssetCrudTests(HubApiFactory factory) : IClassFixture<HubApiFactory
     }
 
     [DbFact]
-    public async Task Create_without_user_header_is_401()
+    public async Task Create_without_token_is_401()
     {
         var response = await _client.SendAsync(HttpMethod.Post, "/api/v1/assets", ValidPhysical());
         await response.AssertStatusAsync(HttpStatusCode.Unauthorized);
     }
 
     [DbFact]
-    public async Task Create_with_unknown_user_is_401()
+    public async Task Create_with_invalid_token_is_401()
     {
-        var response = await _client.SendAsync(HttpMethod.Post, "/api/v1/assets", ValidPhysical(), Guid.NewGuid());
+        var response = await _client.SendAsync(HttpMethod.Post, "/api/v1/assets", ValidPhysical(), token: "not-a-token");
         await response.AssertStatusAsync(HttpStatusCode.Unauthorized);
     }
 
@@ -123,7 +123,7 @@ public class AssetCrudTests(HubApiFactory factory) : IClassFixture<HubApiFactory
     [DbFact]
     public async Task Get_unknown_asset_is_404()
     {
-        var response = await _client.GetAsync($"/api/v1/assets/{Guid.NewGuid()}");
+        var response = await _client.GetAsync($"/api/v1/assets/{Guid.NewGuid()}", Ids.Admin);
         await response.AssertStatusAsync(HttpStatusCode.NotFound);
     }
 
@@ -201,7 +201,7 @@ public class AssetCrudTests(HubApiFactory factory) : IClassFixture<HubApiFactory
     {
         var id = await CreateAsync(ValidPhysical());
 
-        var forbidden = await _client.SendAsync(HttpMethod.Put, $"/api/v1/assets/{id}", ValidPhysical(), Ids.ItDirector);
+        var forbidden = await _client.SendAsync(HttpMethod.Put, $"/api/v1/assets/{id}", ValidPhysical(), Ids.InstructorChen);
         await forbidden.AssertStatusAsync(HttpStatusCode.Forbidden);
 
         var missing = await _client.SendAsync(HttpMethod.Put, $"/api/v1/assets/{Guid.NewGuid()}", ValidPhysical(), Ids.Admin);
@@ -219,7 +219,7 @@ public class AssetCrudTests(HubApiFactory factory) : IClassFixture<HubApiFactory
         var deleted = await _client.SendAsync(HttpMethod.Delete, $"/api/v1/assets/{id}", user: Ids.Admin);
         await deleted.AssertStatusAsync(HttpStatusCode.NoContent);
 
-        var fetched = await _client.GetAsync($"/api/v1/assets/{id}");
+        var fetched = await _client.GetAsync($"/api/v1/assets/{id}", Ids.Admin);
         await fetched.AssertStatusAsync(HttpStatusCode.NotFound);
 
         var again = await _client.SendAsync(HttpMethod.Delete, $"/api/v1/assets/{id}", user: Ids.Admin);

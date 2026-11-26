@@ -1,11 +1,12 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "Build the Resource Allocation & Help Desk Hub from spec-domain2.md, test first"
-// AI Contribution: Mock data ids from spec section 7 and HTTP helpers for the tests (~100%)
-// Human Modifications: None (review only)
-// Verification: Used by every test in ResourceHub.Tests; reviewed by me 2026-11-15 
+// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
+// AI Contribution: Mock data ids and HTTP helpers; callers now authenticate with signed bearer tokens instead of X-User-Id (~100%)
+// Human Modifications: None yet
+// Verification: Used by every test in ResourceHub.Tests (dotnet test against PostgreSQL 18)
 // Confidence: High
 
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -30,14 +31,19 @@ public static class Ids
     public static readonly Guid AssetLaptop = Guid.Parse("50000000-0000-4000-8000-000000000002");
     public static readonly Guid AssetJetBrains = Guid.Parse("50000000-0000-4000-8000-000000000003");
     public static readonly Guid AssetCloudCredits = Guid.Parse("50000000-0000-4000-8000-000000000004");
+
+    /// <summary>A valid identity that is not a seeded user and has no roles.</summary>
+    public static readonly Guid NoRoleUser = Guid.Parse("49999999-0000-4000-8000-000000000001");
 }
 
 public static class ApiHelpers
 {
-    public const string UserHeader = "X-User-Id";
-
+    /// <summary>
+    /// Sends a request as <paramref name="user"/> (a bearer token signed for that seeded user and
+    /// their roles) or with a raw <paramref name="token"/>; neither means no Authorization header.
+    /// </summary>
     public static async Task<HttpResponseMessage> SendAsync(
-        this HttpClient client, HttpMethod method, string url, object? body = null, Guid? user = null)
+        this HttpClient client, HttpMethod method, string url, object? body = null, Guid? user = null, string? token = null)
     {
         using var request = new HttpRequestMessage(method, url);
         if (body is string raw)
@@ -49,12 +55,17 @@ public static class ApiHelpers
         {
             request.Content = JsonContent.Create(body);
         }
-        if (user is not null)
+        token ??= user is null ? null : TestTokens.For(user.Value);
+        if (token is not null)
         {
-            request.Headers.Add(UserHeader, user.Value.ToString());
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
         return await client.SendAsync(request);
     }
+
+    /// <summary>GET as a seeded user.</summary>
+    public static Task<HttpResponseMessage> GetAsync(this HttpClient client, string url, Guid user) =>
+        client.SendAsync(HttpMethod.Get, url, user: user);
 
     public static async Task<JsonElement> JsonAsync(this HttpResponseMessage response)
     {
