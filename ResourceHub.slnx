@@ -1,9 +1,17 @@
-<!-- AI Contribution Weight: [100%] AI Generated / [0%] Human Refactored -->
+<!--
+  Tool: Claude Code (PA1 barebones app, 2026-10-31)
+  Language stack: .NET 10 solution file (C# / ASP.NET Core)
+  Prompt Summary: "Barebones API: health check, Docker, compose, tests"
+  AI Contribution: Solution structure (~75%)
+  Human Modifications: PA2 (2026-11-14): project paths moved to PA2/functional-codebase. PA3 (2026-11-26): project paths moved to PA3/secure-codebase (~25%)
+  Verification: dotnet build and test in the pipeline run on the pa3-own pull request
+  Confidence: Medium (until that run passes)
+-->
 <Solution>
   <Folder Name="/src/">
-    <Project Path="PA2/functional-codebase/src/ResourceHub.Api/ResourceHub.Api.csproj" />
+    <Project Path="PA3/secure-codebase/src/ResourceHub.Api/ResourceHub.Api.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="PA2/functional-codebase/tests/ResourceHub.Tests/ResourceHub.Tests.csproj" />
+    <Project Path="PA3/secure-codebase/tests/ResourceHub.Tests/ResourceHub.Tests.csproj" />
   </Folder>
 </Solution>

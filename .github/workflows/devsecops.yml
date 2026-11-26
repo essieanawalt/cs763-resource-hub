@@ -1,4 +1,10 @@
-# AI Contribution Weight: [100%] AI Generated / [0%] Human Refactored
+# Tool: Claude Code (PA1 pipeline task, 2026-10-31; scan exclusions 2026-11-01)
+# Language stack: GitHub Actions YAML / .NET 10 / Docker
+# Prompt Summary: "DevSecOps pipeline: build, test, Docker image, Trivy, Semgrep, SonarQube Cloud"
+# AI Contribution: Pipeline structure, steps and scanner setup (~90%)
+# Human Modifications: PA2 (2026-11-14): paths moved to PA2/functional-codebase. PA3 (2026-11-26): pointed at PA3/secure-codebase (Sonar report paths, test results, Docker build context) and PA2 excluded from all scans (~10%)
+# Verification: pipeline run on the pa3-own pull request
+# Confidence: Medium (until that run passes)
 # DevSecOps pipeline: build + test, Docker image, Trivy, Semgrep, SonarQube Cloud.
 #
 # Only a broken build, a failing test or a failing Docker build fails the run.
@@ -103,9 +109,9 @@ jobs:
             /o:"essieanawalt" \
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.exclusions="PA1/**,PA2/evidence/**" \
-            /d:sonar.cs.opencover.reportsPaths="PA2/functional-codebase/tests/**/TestResults/**/coverage.opencover.xml" \
-            /d:sonar.cs.vstest.reportsPaths="PA2/functional-codebase/tests/**/TestResults/*.trx"
+            /d:sonar.exclusions="PA1/**,PA2/**" \
+            /d:sonar.cs.opencover.reportsPaths="PA3/secure-codebase/tests/**/TestResults/**/coverage.opencover.xml" \
+            /d:sonar.cs.vstest.reportsPaths="PA3/secure-codebase/tests/**/TestResults/*.trx"
 
       - name: Build
         run: dotnet build ResourceHub.slnx --configuration Release --no-restore
@@ -128,7 +134,7 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: test-results
-          path: PA2/functional-codebase/tests/**/TestResults/
+          path: PA3/secure-codebase/tests/**/TestResults/
           if-no-files-found: ignore
 
       - name: Upload SonarQube report task
@@ -142,7 +148,7 @@ jobs:
 
       # ---- Docker image ----
       - name: Build Docker image
-        run: docker build --tag "$API_IMAGE" .
+        run: docker build --tag "$API_IMAGE" PA3/secure-codebase
 
       # ---- Trivy: dependencies (packages.lock.json) and image ----
       - name: Trivy dependency scan
@@ -156,7 +162,7 @@ jobs:
             -v trivy-cache:/root/.cache \
             "$TRIVY_IMAGE" fs /src \
               --scanners vuln \
-              --skip-dirs '**/bin' --skip-dirs '**/obj' --skip-dirs 'reports' --skip-dirs '.sonarqube' --skip-dirs 'PA2/evidence' --skip-dirs 'PA1' \
+              --skip-dirs '**/bin' --skip-dirs '**/obj' --skip-dirs 'reports' --skip-dirs '.sonarqube' --skip-dirs 'PA2' --skip-dirs 'PA1' \
               --list-all-pkgs \
               --exit-code 0 \
               --format json --output /out/trivy-deps.json
@@ -216,7 +222,7 @@ jobs:
             -w /src \
             "$SEMGREP_IMAGE" semgrep scan \
               --config p/csharp \
-              --exclude 'PA2/evidence' \
+              --exclude 'PA2' \
               --exclude 'PA1' \
               --metrics=off \
               --sarif-output=reports/semgrep/semgrep.sarif \
