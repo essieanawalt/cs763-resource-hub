@@ -8,7 +8,9 @@
       "Read(/PA1/**)",
       "Read(/PA2/.ai_logs/**)",
       "Read(/PA2/evidence/**)",
-      "Read(/PA2/Agent_environment.md)"
+      "Read(/PA2/Agent_environment.md)",
+      "Read(/PA3/.ai_logs/**)",
+      "Read(/PA3/*.md)"
     ]
   }
 }
