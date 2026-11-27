@@ -1,5 +1,7 @@
 # Resource Allocation & Help Desk Hub — secure codebase (PA3)
 
+> **AI Usage Log:** written by Claude Code (Claude Opus 5.5) during the PA3 measured run, iteration 1 (~100% AI). Human changes: this note only, added after `pa3-measured`. Verification: the file paths and line ranges below were spot-checked against the code, and I reviewed the authentication, authorization and encryption sections (`PA3/.ai_logs/conceptual_journal.md` §2.1).
+
 Help desk tickets request hardware, software licenses and cloud credit vouchers for courses and
 research labs; approved tickets are allocated from asset pools. This copy is the PA2 service
 hardened to be secure by design. C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core.
