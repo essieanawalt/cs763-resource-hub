@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
-// AI Contribution: Asset catalog (any authenticated caller) and admin-only writes and returns; keys encrypted before storage (CWE-312); returns need the check-in code (T1); no device token in logs (CWE-532); audited changes (T2) (~100%)
+// Prompt Summary: "PA3 hardening: separate owner and runtime database roles, API health check, field key as a secret file, SonarQube smells, test first"
+// AI Contribution: Asset catalog (any authenticated caller) and admin-only writes and returns; keys encrypted before storage (CWE-312); returns need the check-in code (T1); no device token in logs (CWE-532); audited changes (T2); log lines through the generated HubLog methods (CA1873) (~100%)
 // Human Modifications: None yet
-// Verification: AssetCrudTests, AssetQueryTests, ReturnTests, LicenseKeyProtectionTests, AuditTrailTests
+// Verification: AssetCrudTests, AssetQueryTests, ReturnTests, LicenseKeyProtectionTests, AuditTrailTests (all run as the runtime database role); dotnet build with CA1873 as a warning
 // Confidence: High
 
 using Microsoft.EntityFrameworkCore;
@@ -83,7 +83,7 @@ public static class AssetEndpoints
         }
         if (!CheckInCodes.Matches(checkInCode!, device.CheckInCodeHash))
         {
-            log.LogWarning("Return of device {DeviceId} of asset {AssetId} refused: check-in code did not match (by {Sub})", device.Id, assetId, caller.Sub);
+            log.DeviceReturnRefused(device.Id, assetId, caller.Id);
             return Problems.Unprocessable("Check-in code does not match this device.",
                 "Read the check-in code from the device's label; the device stays checked out.");
         }
@@ -99,7 +99,7 @@ public static class AssetEndpoints
         await tx.CommitAsync(ct);
 
         // CWE-532: log the device's internal id, never its token or check-in code.
-        log.LogInformation("Device {DeviceId} of asset {AssetId} returned by {Sub} (overdue: {Overdue})", device.Id, assetId, caller.Sub, wasOverdue);
+        log.DeviceReturned(device.Id, assetId, caller.Id, wasOverdue);
 
         return Results.Ok(new ReturnResultDto(
             device.Token, assetId, device.TicketId, device.CheckedOutAt, device.DueAt, now,
@@ -230,7 +230,7 @@ public static class AssetEndpoints
         db.Assets.Add(asset);
         audit.Record(caller, "asset.create", Entity, asset.Id, detail: $"{asset.Type} '{asset.Name}', stock {StockText(asset)}");
         await db.SaveChangesAsync(ct);
-        log.LogInformation("Asset {AssetId} ({Type}) created by {Sub}", asset.Id, asset.Type, caller.Sub);
+        log.AssetCreated(asset.Id, asset.Type, caller.Id);
 
         return Results.Created($"/api/v1/assets/{asset.Id}", await AssetViews.ToDtoAsync(db, asset, now, ct));
     }
@@ -326,7 +326,7 @@ public static class AssetEndpoints
         audit.Record(caller, "asset.update", Entity, asset.Id, detail: $"stock {before} -> {StockText(asset)}");
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
-        log.LogInformation("Asset {AssetId} updated by {Sub}", asset.Id, caller.Sub);
+        log.AssetUpdated(asset.Id, caller.Id);
 
         return Results.Ok(await AssetViews.ToDtoAsync(db, asset, clock.GetUtcNow(), ct));
     }
@@ -356,7 +356,7 @@ public static class AssetEndpoints
         db.Assets.Remove(asset);
         audit.Record(caller, "asset.delete", Entity, assetId, detail: $"{asset.Type} '{asset.Name}', stock {StockText(asset)}");
         await db.SaveChangesAsync(ct);
-        log.LogInformation("Asset {AssetId} deleted by {Sub}", assetId, caller.Sub);
+        log.AssetDeleted(assetId, caller.Id);
         return Results.NoContent();
     }
 

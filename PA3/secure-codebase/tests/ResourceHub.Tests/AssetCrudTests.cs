@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
-// AI Contribution: Asset create, read, update and delete tests, updated for bearer tokens and admin-only writes (~100%)
+// Prompt Summary: "PA3 hardening: separate owner and runtime database roles, API health check, field key as a secret file, SonarQube smells, test first"
+// AI Contribution: Asset create, read, update and delete tests, updated for bearer tokens and admin-only writes; constant key arrays are static fields (CA1861) (~100%)
 // Human Modifications: None yet
-// Verification: dotnet test against PostgreSQL 18
+// Verification: dotnet test against PostgreSQL 18; dotnet build with CA1861 as a warning
 // Confidence: High
 
 using System.Net;
@@ -13,6 +13,10 @@ namespace ResourceHub.Tests;
 
 public class AssetCrudTests(HubApiFactory factory) : IClassFixture<HubApiFactory>
 {
+    private static readonly string[] MatlabKeys = ["MATLAB-AAAA-1111", "MATLAB-BBBB-2222"];
+    private static readonly string[] FigmaKey = ["FIGMA-0001"];
+    private static readonly string[] FigmaKeys = ["FIGMA-0001", "FIGMA-0002"];
+
     private readonly HttpClient _client = factory.CreateClient();
 
     [DbFact]
@@ -50,7 +54,7 @@ public class AssetCrudTests(HubApiFactory factory) : IClassFixture<HubApiFactory
             type = "license",
             category = "Analysis license",
             departmentProgram = "Electrical Engineering",
-            licenseKeys = new[] { "MATLAB-AAAA-1111", "MATLAB-BBBB-2222" },
+            licenseKeys = MatlabKeys,
         }, Ids.Admin);
 
         await response.AssertStatusAsync(HttpStatusCode.Created);
@@ -160,7 +164,7 @@ public class AssetCrudTests(HubApiFactory factory) : IClassFixture<HubApiFactory
             type = "license",
             category = "Design license",
             departmentProgram = "Computer Science",
-            licenseKeys = new[] { "FIGMA-0001" },
+            licenseKeys = FigmaKey,
         }, Ids.Admin);
         var id = (await created.JsonAsync()).Id();
 
@@ -170,7 +174,7 @@ public class AssetCrudTests(HubApiFactory factory) : IClassFixture<HubApiFactory
             type = "license",
             category = "Design license",
             departmentProgram = "Computer Science",
-            licenseKeys = new[] { "FIGMA-0001", "FIGMA-0002" },
+            licenseKeys = FigmaKeys,
         }, Ids.Admin);
 
         await response.AssertStatusAsync(HttpStatusCode.OK);

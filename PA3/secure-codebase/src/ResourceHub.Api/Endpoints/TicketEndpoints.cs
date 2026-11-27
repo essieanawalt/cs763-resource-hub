@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
-// AI Contribution: Ticket endpoints with role checks (403) and row-level checks (404) on every read, update, delete and listing (CWE-862); soft delete keeps history (CWE-221); audited writes (T2) (~100%)
+// Prompt Summary: "PA3 hardening: separate owner and runtime database roles, API health check, field key as a secret file, SonarQube smells, test first"
+// AI Contribution: Ticket endpoints with role checks (403) and row-level checks (404) on every read, update, delete and listing (CWE-862); soft delete keeps history (CWE-221); audited writes (T2); log lines through the generated HubLog methods (CA1873) (~100%)
 // Human Modifications: None yet
-// Verification: TicketAuthorizationTests, TicketLifecycleTests, TicketSubmitTests, TicketQueryTests, AuditTrailTests
+// Verification: TicketAuthorizationTests, TicketLifecycleTests, TicketSubmitTests, TicketQueryTests, AuditTrailTests (all run as the runtime database role); dotnet build with CA1873 as a warning
 // Confidence: High
 
 using Microsoft.EntityFrameworkCore;
@@ -120,7 +120,7 @@ public static class TicketEndpoints
         audit.Record(caller, "ticket.update", Entity, ticketId, detail: summary);
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
-        log.LogInformation("Ticket {TicketId} content updated by {Sub}", ticketId, caller.Sub);
+        log.TicketContentUpdated(ticketId, caller.Id);
 
         var saved = await WithItems(db).AsNoTracking().FirstAsync(t => t.Id == ticketId, ct);
         return Results.Ok(TicketViews.ToDto(saved));
@@ -192,7 +192,7 @@ public static class TicketEndpoints
         }, Entity, ticketId, detail: $"{Lower(from)} -> {Lower(target)}");
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
-        log.LogInformation("Ticket {TicketId} moved from {From} to {To} by {Sub}", ticketId, from, target, caller.Sub);
+        log.TicketMoved(ticketId, from, target, caller.Id);
 
         var saved = await WithItems(db).AsNoTracking().FirstAsync(t => t.Id == ticketId, ct);
         return Results.Ok(TicketViews.ToDto(saved));
@@ -230,7 +230,7 @@ public static class TicketEndpoints
         audit.Record(caller, "ticket.delete", Entity, ticketId);
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
-        log.LogInformation("Pending ticket {TicketId} deleted by {Sub}", ticketId, caller.Sub);
+        log.PendingTicketDeleted(ticketId, caller.Id);
         return Results.NoContent();
     }
 
@@ -342,7 +342,7 @@ public static class TicketEndpoints
         db.Tickets.Add(ticket);
         audit.Record(caller, "ticket.submit", Entity, ticket.Id, detail: summary);
         await db.SaveChangesAsync(ct);
-        log.LogInformation("Ticket {TicketId} submitted by {Sub} with {ItemCount} item(s)", ticket.Id, caller.Sub, ticket.Items.Count);
+        log.TicketSubmitted(ticket.Id, caller.Id, ticket.Items.Count);
 
         var saved = await WithItems(db).AsNoTracking().FirstAsync(t => t.Id == ticket.Id, ct);
         return Results.Created($"/api/v1/assets/tickets/{ticket.Id}", TicketViews.ToDto(saved));

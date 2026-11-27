@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
-// AI Contribution: Entry point: field key and JWT setup (fail fast), deny-by-default authorization, rate limiting, request size limit, startup migration, routes (~100%)
+// Prompt Summary: "PA3 hardening: separate owner and runtime database roles, API health check, field key as a secret file, SonarQube smells, test first"
+// AI Contribution: Entry point: --healthcheck probe and --migrate job modes, field key (secret file or value) and JWT setup (fail fast), deny-by-default authorization, rate limiting, request size limit, migration only over the owner connection, routes (~100%)
 // Human Modifications: None yet
-// Verification: Every WebApplicationFactory<Program> test in ResourceHub.Tests; ComposeStackTests against docker compose
+// Verification: Every WebApplicationFactory<Program> test in ResourceHub.Tests; HealthProbeTests, MigrationJobTests, NoOwnerConnectionTests; ComposeStackTests against docker compose
 // Confidence: High
 
 using System.Text.Json;
@@ -15,6 +15,22 @@ using ResourceHub.Api.Endpoints;
 using ResourceHub.Api.Security;
 using ResourceHub.Api.Services;
 
+// Container health check: no host, no configuration, just GET /api/v1/health on loopback.
+if (args.Contains(HealthProbe.Argument))
+{
+    return await HealthProbe.RunAsync(Environment.GetEnvironmentVariable("ASPNETCORE_HTTP_PORTS"));
+}
+
+// One-shot migration job, run as the schema owner in its own container (never in the API's).
+if (args.Contains(MigrationJob.Argument))
+{
+    var jobConfig = new ConfigurationBuilder()
+        .AddJsonFile("appsettings.json", optional: true)
+        .AddEnvironmentVariables()
+        .Build();
+    return await MigrationJob.RunAsync(jobConfig, Console.Out, CancellationToken.None);
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("HubDb");
@@ -24,7 +40,10 @@ if (string.IsNullOrWhiteSpace(connectionString))
 }
 
 // Refuse to start without a valid field key, issuer, audience and JWKS file.
-var encryptor = FieldEncryptor.FromBase64(builder.Configuration[FieldEncryptor.ConfigKey]);
+var encryptor = FieldEncryptor.FromConfiguration(builder.Configuration);
+
+// Only set where this process may change the schema (tests, local runs); never in the API container.
+var ownerConnectionString = builder.Configuration.GetConnectionString(DatabaseStartup.OwnerConnectionName);
 
 builder.WebHost.ConfigureKestrel(kestrel =>
 {
@@ -39,11 +58,9 @@ builder.Services.AddScoped<AllocationService>();
 builder.Services.AddScoped<AuditTrail>();
 builder.Services.AddProblemDetails();
 builder.Services.AddLocalJwtAuthentication(builder.Configuration);
-builder.Services.AddAuthorization(options =>
-{
-    // Deny by default: every endpoint needs a valid token unless it opts out (only health does).
-    options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
-});
+// Deny by default: every endpoint needs a valid token unless it opts out (only health does).
+builder.Services.AddAuthorizationBuilder()
+    .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
 builder.Services.AddHubRateLimiting(builder.Configuration);
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -59,14 +76,21 @@ app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();
 
-// Create or upgrade the schema (and the static mock data) before serving requests.
-// If the database is down, keep running so /api/v1/health can report 503.
-using (var scope = app.Services.CreateScope())
+// With an owner connection, create or upgrade the schema (and the static mock data) as the owner
+// and grant the runtime role its data access, before serving requests. Without one (Compose), the
+// migration job has already done this. If the database is down, keep running so /api/v1/health
+// can report 503.
+if (string.IsNullOrWhiteSpace(ownerConnectionString))
 {
-    var db = scope.ServiceProvider.GetRequiredService<HubDbContext>();
+    app.Logger.LogInformation("No owner connection configured; schema migrations are left to the migration job (--migrate).");
+}
+else
+{
     try
     {
-        await DatabaseStartup.MigrateAsync(db, encryptor, CancellationToken.None);
+        var runtimeRole = DatabaseStartup.RuntimeRoleFrom(builder.Configuration)
+            ?? throw new InvalidOperationException($"{DatabaseStartup.RuntimeRoleKey} is not set and ConnectionStrings:HubDb names no user.");
+        await DatabaseStartup.MigrateAsOwnerAsync(ownerConnectionString, runtimeRole, encryptor, CancellationToken.None);
     }
     catch (Exception ex) when (ex is Npgsql.NpgsqlException or TimeoutException or InvalidOperationException)
     {
@@ -80,3 +104,4 @@ app.MapTicketEndpoints();
 app.MapAllocationEndpoints();
 
 await app.RunAsync();
+return 0;

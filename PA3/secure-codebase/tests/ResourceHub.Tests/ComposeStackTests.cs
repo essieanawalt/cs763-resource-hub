@@ -1,7 +1,7 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
-// AI Contribution: Static checks of the Compose and settings files (CWE-1392/1327/250/260) and live tests against the Compose stack with a test JWKS (~100%)
+// Prompt Summary: "PA3 hardening: separate owner and runtime database roles, API health check, field key as a secret file, SonarQube smells, test first"
+// AI Contribution: Static checks of the Compose and settings files (CWE-1392/1327/250/260/269/526) and live tests against the Compose stack with a test JWKS: owner-only migrations, a runtime role that cannot change the schema or triggers, no owner credentials or plain key in the API container, the key read from a secret file, and a healthy API (~100%)
 // Human Modifications: None yet
 // Verification: dotnet test; live part with RESOURCEHUB_COMPOSE_TESTS=1 against docker compose
 // Confidence: Medium (live part depends on Docker being available)
@@ -60,11 +60,13 @@ public class ComposeConfigTests
         Assert.Contains("internal: true", Compose);
     }
 
+    private static string Init => WorkingFolder.Read(System.IO.Path.Combine("db", "init", "01-app-role.sh"));
+
     [Fact]
     public void No_password_has_a_committed_fallback()
     {
         Assert.DoesNotContain("resourcehub_dev", Compose);
-        foreach (var variable in new[] { "POSTGRES_PASSWORD", "APP_DB_PASSWORD", "FIELD_ENCRYPTION_KEY", "JWKS_HOST_PATH" })
+        foreach (var variable in new[] { "POSTGRES_PASSWORD", "APP_DB_PASSWORD", "OWNER_DB_PASSWORD", "FIELD_ENCRYPTION_KEY_HOST_FILE", "JWKS_HOST_PATH" })
         {
             Assert.Contains($"${{{variable}:?", Compose);
             Assert.DoesNotContain($"${{{variable}:-", Compose);
@@ -77,10 +79,37 @@ public class ComposeConfigTests
         var api = Service("api");
         Assert.Contains("Username=${APP_DB_USER", api);
         Assert.DoesNotContain("POSTGRES_PASSWORD", api);
-        var init = WorkingFolder.Read(System.IO.Path.Combine("db", "init", "01-app-role.sh"));
-        Assert.Contains("NOSUPERUSER", init);
-        Assert.Contains("NOCREATEROLE", init);
-        Assert.Contains("NOCREATEDB", init);
+        Assert.Contains("NOSUPERUSER", Init);
+        Assert.Contains("NOCREATEROLE", Init);
+        Assert.Contains("NOCREATEDB", Init);
+    }
+
+    [Fact]
+    public void Only_the_migration_job_gets_the_owner_role_and_the_api_waits_for_it()
+    {
+        var api = Service("api");
+        Assert.DoesNotContain("OWNER_DB", api);
+        Assert.DoesNotContain("HubDbOwner", api);
+        Assert.Contains("service_completed_successfully", api);
+
+        var migrate = Service("migrate");
+        Assert.Contains("--migrate", migrate);
+        Assert.Contains("ConnectionStrings__HubDbOwner", migrate);
+        Assert.Contains("Username=${OWNER_DB_USER", migrate);
+        Assert.Contains("Database__RuntimeRole: ${APP_DB_USER", migrate);
+        Assert.DoesNotContain("APP_DB_PASSWORD", migrate);
+        Assert.DoesNotContain("POSTGRES_PASSWORD", migrate);
+        Assert.DoesNotContain("ports:", migrate);
+    }
+
+    [Fact]
+    public void Database_belongs_to_the_owner_role_not_the_app_role()
+    {
+        Assert.Contains("CREATE DATABASE :\"app_db\" OWNER :\"owner_user\"", Init);
+        Assert.Contains("ALTER SCHEMA public OWNER TO :\"owner_user\"", Init);
+        Assert.DoesNotContain("OWNER :\"app_user\"", Init);
+        Assert.DoesNotContain("OWNER TO :\"app_user\"", Init);
+        Assert.DoesNotContain("TEMPORARY", Init);
     }
 
     [Fact]
@@ -91,21 +120,55 @@ public class ComposeConfigTests
         Assert.Contains("JWT_JWKS_PATH", api);
         Assert.Contains("JWT_ISSUER", api);
         Assert.Contains("JWT_AUDIENCE", api);
-        Assert.Contains("FIELD_ENCRYPTION_KEY", api);
         Assert.Contains("127.0.0.1:", api);
+    }
+
+    [Fact]
+    public void Field_key_reaches_the_containers_only_as_a_secret_file()
+    {
+        foreach (var name in new[] { "api", "migrate" })
+        {
+            var service = Service(name);
+            Assert.Contains("FIELD_ENCRYPTION_KEY_FILE: /run/secrets/field_encryption_key", service);
+            Assert.Contains("- field_encryption_key", service);
+            Assert.DoesNotContain("FIELD_ENCRYPTION_KEY:", service);
+            Assert.DoesNotContain("${FIELD_ENCRYPTION_KEY}", service);
+        }
+        Assert.Contains("file: ${FIELD_ENCRYPTION_KEY_HOST_FILE:?", Compose);
+    }
+
+    [Fact]
+    public void Api_has_a_health_check_that_needs_no_extra_packages()
+    {
+        var api = Service("api");
+        Assert.Contains("healthcheck:", api);
+        Assert.Contains("\"--healthcheck\"", api);
+        var dockerfile = WorkingFolder.Read("Dockerfile");
+        foreach (var tool in new[] { "curl", "wget", "apt-get", "apk " })
+        {
+            Assert.DoesNotContain(tool, api);
+            Assert.DoesNotContain(tool, dockerfile);
+        }
     }
 
     [Fact]
     public void Env_example_lists_every_variable_with_placeholders_only()
     {
         var example = WorkingFolder.Read(".env.example");
-        foreach (var variable in new[] { "POSTGRES_PASSWORD", "APP_DB_USER", "APP_DB_PASSWORD", "FIELD_ENCRYPTION_KEY", "JWKS_HOST_PATH", "JWT_JWKS_PATH", "JWT_ISSUER", "JWT_AUDIENCE", "API_PORT" })
+        foreach (var variable in new[] { "POSTGRES_PASSWORD", "OWNER_DB_USER", "OWNER_DB_PASSWORD", "APP_DB_USER", "APP_DB_PASSWORD", "FIELD_ENCRYPTION_KEY_HOST_FILE", "JWKS_HOST_PATH", "JWT_JWKS_PATH", "JWT_ISSUER", "JWT_AUDIENCE", "API_PORT" })
         {
             Assert.Contains(variable + "=", example);
         }
-        var key = example.Split('\n').Single(l => l.StartsWith("FIELD_ENCRYPTION_KEY=", StringComparison.Ordinal))["FIELD_ENCRYPTION_KEY=".Length..].Trim();
-        Assert.ThrowsAny<Exception>(() => ResourceHub.Api.Security.FieldEncryptor.FromBase64(key));
-        Assert.Contains(".env", WorkingFolder.Read(".gitignore").Split('\n').Select(l => l.Trim()));
+        var lines = example.Split('\n').Select(l => l.Trim()).ToList();
+        // The key itself is no longer an environment value for Compose, not even a placeholder.
+        Assert.DoesNotContain(lines, l => l.StartsWith("FIELD_ENCRYPTION_KEY=", StringComparison.Ordinal));
+        foreach (var secret in new[] { "POSTGRES_PASSWORD=", "OWNER_DB_PASSWORD=", "APP_DB_PASSWORD=", "FIELD_ENCRYPTION_KEY_HOST_FILE=" })
+        {
+            Assert.StartsWith(secret + "<", lines.Single(l => l.StartsWith(secret, StringComparison.Ordinal)));
+        }
+        var gitignore = WorkingFolder.Read(".gitignore").Split('\n').Select(l => l.Trim()).ToList();
+        Assert.Contains(".env", gitignore);
+        Assert.Contains("secrets/", gitignore);
     }
 
     [Fact]
@@ -128,8 +191,13 @@ public sealed class ComposeStack : IAsyncLifetime
     private readonly string _project = $"rh-pa3-e2e-{Guid.NewGuid():N}"[..20];
     private readonly Dictionary<string, string> _env = [];
 
+    public const string OwnerUser = "resourcehub_owner";
+    public const string AppUser = "resourcehub_app";
+
     public HttpClient Client { get; } = new();
     public string FieldKey { get; } = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+    public string OwnerPassword { get; } = Convert.ToHexString(RandomNumberGenerator.GetBytes(16));
+    public string AppPassword { get; } = Convert.ToHexString(RandomNumberGenerator.GetBytes(16));
 
     public async Task InitializeAsync()
     {
@@ -145,11 +213,21 @@ public sealed class ComposeStack : IAsyncLifetime
         TestTokens.WriteJwks(jwks);
 
         var port = FreePort();
+        // The field key goes in as a secret file, readable only by the current user.
+        var keyFile = System.IO.Path.Combine(jwksDir, "field_encryption_key");
+        File.WriteAllText(keyFile, FieldKey + "\n");
+        if (!OperatingSystem.IsWindows())
+        {
+            File.SetUnixFileMode(keyFile, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+        }
+
         _env["JWKS_HOST_PATH"] = jwks;
-        _env["FIELD_ENCRYPTION_KEY"] = FieldKey;
+        _env["FIELD_ENCRYPTION_KEY_HOST_FILE"] = keyFile;
         _env["POSTGRES_PASSWORD"] = Convert.ToHexString(RandomNumberGenerator.GetBytes(16));
-        _env["APP_DB_USER"] = "resourcehub_app";
-        _env["APP_DB_PASSWORD"] = Convert.ToHexString(RandomNumberGenerator.GetBytes(16));
+        _env["OWNER_DB_USER"] = OwnerUser;
+        _env["OWNER_DB_PASSWORD"] = OwnerPassword;
+        _env["APP_DB_USER"] = AppUser;
+        _env["APP_DB_PASSWORD"] = AppPassword;
         _env["JWT_JWKS_PATH"] = "/etc/resourcehub/jwks.json";
         _env["JWT_ISSUER"] = TestTokens.Issuer;
         _env["JWT_AUDIENCE"] = TestTokens.Audience;
@@ -172,7 +250,7 @@ public sealed class ComposeStack : IAsyncLifetime
             }
             if (DateTime.UtcNow > deadline)
             {
-                var logs = await RunAsync("logs", "--no-color", "api");
+                var logs = await RunAsync("logs", "--no-color", "migrate", "api");
                 throw new InvalidOperationException("Compose stack did not become healthy:\n" + logs.Output);
             }
             await Task.Delay(1000);
@@ -210,6 +288,27 @@ public sealed class ComposeStack : IAsyncLifetime
         await process.WaitForExitAsync();
         return (process.ExitCode, await stdout + await stderr);
     }
+
+    /// <summary>docker inspect of a service's container (also finds the exited migration job).</summary>
+    public async Task<string> InspectAsync(string service, string format)
+    {
+        var (_, id) = await RunAsync("ps", "-a", "-q", service);
+        Assert.False(string.IsNullOrWhiteSpace(id), $"no container for {service}");
+        var psi = new ProcessStartInfo("docker") { RedirectStandardOutput = true, RedirectStandardError = true };
+        foreach (var a in new[] { "inspect", "--format", format, id.Trim() })
+        {
+            psi.ArgumentList.Add(a);
+        }
+        using var process = Process.Start(psi)!;
+        var output = await process.StandardOutput.ReadToEndAsync();
+        await process.WaitForExitAsync();
+        return output;
+    }
+
+    /// <summary>Runs one statement with psql inside the db container, logged in over TCP as <paramref name="user"/>.</summary>
+    public Task<(int Exit, string Output)> PsqlAsAsync(string user, string password, string sql) =>
+        RunAsync("exec", "-T", "-e", "PGPASSWORD=" + password, "db",
+            "psql", "-h", "127.0.0.1", "-U", user, "-d", "resourcehub", "-v", "ON_ERROR_STOP=1", "-At", "-c", sql);
 
     private static int FreePort()
     {
@@ -301,9 +400,111 @@ public class ComposeStackTests(ComposeStack stack) : IClassFixture<ComposeStack>
         Assert.DoesNotContain("->", ports);
 
         var (exit, output) = await stack.RunAsync("exec", "-T", "-u", "postgres", "db", "psql", "-d", "resourcehub", "-At", "-c",
-            "SELECT rolsuper::text || ',' || rolcreaterole::text || ',' || rolcreatedb::text FROM pg_roles WHERE rolname = 'resourcehub_app'");
+            $"SELECT rolsuper::text || ',' || rolcreaterole::text || ',' || rolcreatedb::text FROM pg_roles WHERE rolname = '{ComposeStack.AppUser}'");
         Assert.Equal(0, exit);
         Assert.Equal("false,false,false", output.Trim());
+    }
+
+    [ComposeFact]
+    public async Task Api_container_reports_healthy()
+    {
+        var deadline = DateTime.UtcNow.AddMinutes(2);
+        string status;
+        while ((status = (await stack.InspectAsync("api", "{{.State.Health.Status}}")).Trim()) != "healthy" && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(1000);
+        }
+        Assert.Equal("healthy", status);
+        var log = await stack.InspectAsync("api", "{{range .State.Health.Log}}{{.ExitCode}} {{end}}");
+        Assert.EndsWith("0", log.Trim());
+    }
+
+    [ComposeFact]
+    public async Task Migration_job_ran_as_the_owner_and_exited_cleanly()
+    {
+        Assert.Equal("exited 0", (await stack.InspectAsync("migrate", "{{.State.Status}} {{.State.ExitCode}}")).Trim());
+
+        var (exit, owners) = await stack.RunAsync("exec", "-T", "-u", "postgres", "db", "psql", "-d", "resourcehub", "-At", "-c",
+            "SELECT DISTINCT tableowner FROM pg_tables WHERE schemaname = 'public' UNION SELECT pg_get_userbyid(datdba) FROM pg_database WHERE datname = 'resourcehub'");
+        Assert.Equal(0, exit);
+        Assert.Equal(ComposeStack.OwnerUser, owners.Trim());
+
+        var (_, flags) = await stack.RunAsync("exec", "-T", "-u", "postgres", "db", "psql", "-d", "resourcehub", "-At", "-c",
+            $"SELECT rolsuper::text || ',' || rolcreaterole::text || ',' || rolcreatedb::text FROM pg_roles WHERE rolname = '{ComposeStack.OwnerUser}'");
+        Assert.Equal("false,false,false", flags.Trim());
+    }
+
+    [ComposeFact]
+    public async Task Runtime_role_cannot_alter_or_drop_tables_or_triggers()
+    {
+        // The runtime role can do its job...
+        var (ok, count) = await stack.PsqlAsAsync(ComposeStack.AppUser, stack.AppPassword, "SELECT count(*) FROM assets");
+        Assert.Equal(0, ok);
+        Assert.True(int.Parse(count.Trim(), System.Globalization.CultureInfo.InvariantCulture) >= 4);
+
+        // ...but not change the schema or switch the history triggers off.
+        foreach (var sql in new[]
+        {
+            "ALTER TABLE ticket_events DISABLE TRIGGER ALL",
+            "ALTER TABLE audit_events DISABLE TRIGGER audit_events_append_only",
+            "DROP TRIGGER audit_events_append_only ON audit_events",
+            "DROP TABLE audit_events",
+            "DROP TABLE ticket_events CASCADE",
+            "ALTER TABLE tickets ADD COLUMN sneaky integer",
+            "CREATE TABLE sneaky (id integer)",
+            "TRUNCATE audit_events",
+            "SET session_replication_role = replica",
+        })
+        {
+            var (exit, output) = await stack.PsqlAsAsync(ComposeStack.AppUser, stack.AppPassword, sql);
+            Assert.True(exit != 0, $"{sql} should have failed: {output}");
+            Assert.True(output.Contains("must be owner", StringComparison.Ordinal) || output.Contains("permission denied", StringComparison.Ordinal),
+                $"{sql}: {output}");
+        }
+    }
+
+    [ComposeFact]
+    public async Task Api_container_holds_no_owner_credentials_and_no_plain_key()
+    {
+        var env = await stack.InspectAsync("api", "{{json .Config.Env}}");
+        var inspect = await stack.InspectAsync("api", "{{json .}}");
+        foreach (var text in new[] { env, inspect })
+        {
+            Assert.DoesNotContain(stack.OwnerPassword, text);
+            Assert.DoesNotContain(stack.FieldKey, text);
+            Assert.DoesNotContain(ComposeStack.OwnerUser, text);
+            Assert.DoesNotContain("HubDbOwner", text);
+            Assert.DoesNotContain("\"FIELD_ENCRYPTION_KEY=", text);
+        }
+        Assert.Contains("\"FIELD_ENCRYPTION_KEY_FILE=/run/secrets/field_encryption_key\"", env);
+
+        // Nor in the running process's environment.
+        var (_, processEnv) = await stack.RunAsync("exec", "-T", "api", "sh", "-c", "tr '\\0' '\\n' < /proc/1/environ");
+        Assert.DoesNotContain(stack.OwnerPassword, processEnv);
+        Assert.DoesNotContain(stack.FieldKey, processEnv);
+        Assert.Contains("FIELD_ENCRYPTION_KEY_FILE=", processEnv);
+
+        // The migration job got the key the same way.
+        var migrateEnv = await stack.InspectAsync("migrate", "{{json .Config.Env}}");
+        Assert.DoesNotContain(stack.FieldKey, migrateEnv);
+        Assert.Contains("FIELD_ENCRYPTION_KEY_FILE=/run/secrets/field_encryption_key", migrateEnv);
+    }
+
+    [ComposeFact]
+    public async Task Field_key_is_read_from_the_secret_file()
+    {
+        // The secret is mounted as a file at the path the API is told about...
+        var (exit, mounted) = await stack.RunAsync("exec", "-T", "api", "sh", "-c", "test -r \"$FIELD_ENCRYPTION_KEY_FILE\" && wc -c < \"$FIELD_ENCRYPTION_KEY_FILE\"");
+        Assert.True(exit == 0, mounted);
+        Assert.True(int.Parse(mounted.Trim(), System.Globalization.CultureInfo.InvariantCulture) >= 44);
+        // ...and the seeded keys, encrypted by the migration job, decrypt with it in the API
+        // (Ticket_flow_works_end_to_end_with_row_level_checks issues one); a stored key also
+        // decrypts with the test's copy of the key, so both used the file's key.
+        var (_, stored) = await stack.RunAsync("exec", "-T", "-u", "postgres", "db", "psql", "-d", "resourcehub", "-At", "-c",
+            "SELECT \"Id\" || ' ' || \"KeyCiphertext\" FROM license_keys LIMIT 1");
+        var parts = stored.Trim().Split(' ');
+        var plain = ResourceHub.Api.Security.FieldEncryptor.FromBase64(stack.FieldKey).Decrypt(parts[1], Guid.Parse(parts[0]));
+        Assert.StartsWith("JBIDE-", plain);
     }
 
     [ComposeFact]

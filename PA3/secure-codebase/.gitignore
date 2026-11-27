@@ -5,6 +5,7 @@
 *.pem
 *.key
 jwks.json
+secrets/
 
 # Build output
 bin/

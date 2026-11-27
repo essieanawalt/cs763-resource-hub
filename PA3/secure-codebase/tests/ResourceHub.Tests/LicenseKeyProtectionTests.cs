@@ -1,15 +1,17 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
-// AI Contribution: License key encryption at rest (AES-256-GCM) and decrypt-on-return rules (CWE-312), plus FieldEncryptor unit tests (~100%)
+// Prompt Summary: "PA3 hardening: separate owner and runtime database roles, API health check, field key as a secret file, SonarQube smells, test first"
+// AI Contribution: License key encryption at rest (AES-256-GCM) and decrypt-on-return rules (CWE-312), plus FieldEncryptor unit tests, including the key read from a secret file (FIELD_ENCRYPTION_KEY_FILE); CA1861 and CA1859 fixes (~100%)
 // Human Modifications: None yet
-// Verification: dotnet test against PostgreSQL 18
+// Verification: dotnet test against PostgreSQL 18 (secret-file tests failed to compile before FromConfiguration existed; pass after); dotnet build with CA1861/CA1859 as warnings
 // Confidence: High
 
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using ResourceHub.Api.Domain;
 using ResourceHub.Api.Security;
 using ResourceHub.Tests.Infrastructure;
@@ -20,6 +22,8 @@ public class LicenseKeyProtectionTests(HubApiFactory factory) : IClassFixture<Hu
 {
     private readonly HttpClient _client = factory.CreateClient();
     private Scenario S => new(_client);
+
+    private static readonly string[] UpdatedKeys = ["SAME-KEY-VALUE", "OTHER-KEY-1", "ADDED-KEY-2"];
 
     private static readonly Guid SharedLabAdvisor = Guid.Parse("48888888-0000-4000-8000-000000000001");
 
@@ -63,7 +67,7 @@ public class LicenseKeyProtectionTests(HubApiFactory factory) : IClassFixture<Hu
             type = "license",
             category = "Test license",
             departmentProgram = "Computer Science",
-            licenseKeys = new[] { "SAME-KEY-VALUE", "OTHER-KEY-1", "ADDED-KEY-2" },
+            licenseKeys = UpdatedKeys,
         }, Ids.Admin);
         await update.AssertStatusAsync(HttpStatusCode.OK);
 
@@ -200,7 +204,7 @@ public class LicenseKeyProtectionTests(HubApiFactory factory) : IClassFixture<Hu
         return false;
     }
 
-    private Task AddLabAdvisorAsync(Guid id, Guid lab) => factory.WithDbAsync(async db =>
+    private Task<int> AddLabAdvisorAsync(Guid id, Guid lab) => factory.WithDbAsync(async db =>
     {
         if (!await db.Users.AnyAsync(u => u.Id == id))
         {
@@ -273,15 +277,157 @@ public class FieldEncryptorTests
         Assert.Contains("FIELD_ENCRYPTION_KEY", ex.ToString());
     }
 
-    private sealed class NoFieldKeyFactory : HubApiFactory
+    private class NoFieldKeyFactory : HubApiFactory
     {
-        protected override string ConnectionString =>
-            "Host=127.0.0.1;Port=1;Database=nowhere;Username=nobody;Password=none;Timeout=2";
+        private const string Nowhere = "Host=127.0.0.1;Port=1;Database=nowhere;Username=nobody;Password=none;Timeout=2";
+
+        protected override string ConnectionString => Nowhere;
+
+        protected override string? OwnerConnectionString => null;
+
+        protected override bool CreatesDatabase => false;
 
         protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
         {
             base.ConfigureWebHost(builder);
             builder.UseSetting("FIELD_ENCRYPTION_KEY", "");
+        }
+    }
+
+    // ---- H3: the key comes from a secret file named by FIELD_ENCRYPTION_KEY_FILE ----
+
+    private static IConfiguration KeyConfig(string? value, string? file) =>
+        new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            [FieldEncryptor.ConfigKey] = value,
+            [FieldEncryptor.FileConfigKey] = file,
+        }).Build();
+
+    private static string SecretFile(string content)
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"rh-test-field-key-{Guid.NewGuid():N}");
+        File.WriteAllText(path, content);
+        return path;
+    }
+
+    [Fact]
+    public void Key_is_read_from_the_secret_file()
+    {
+        // Docker secret files usually end with a newline.
+        var path = SecretFile(Key + "\n");
+        try
+        {
+            var fromFile = FieldEncryptor.FromConfiguration(KeyConfig(null, path));
+            var row = Guid.NewGuid();
+            Assert.Equal("JBIDE-1", FieldEncryptor.FromBase64(Key).Decrypt(fromFile.Encrypt("JBIDE-1", row), row));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void Plain_key_value_still_works_for_tests_and_local_runs()
+    {
+        var row = Guid.NewGuid();
+        var encryptor = FieldEncryptor.FromConfiguration(KeyConfig(Key, null));
+        Assert.Equal("K", FieldEncryptor.FromBase64(Key).Decrypt(encryptor.Encrypt("K", row), row));
+    }
+
+    [Fact]
+    public void Missing_or_unreadable_secret_file_is_refused()
+    {
+        var missing = Path.Combine(Path.GetTempPath(), $"rh-test-no-such-key-{Guid.NewGuid():N}");
+        var ex = Assert.Throws<InvalidOperationException>(() => FieldEncryptor.FromConfiguration(KeyConfig(null, missing)));
+        Assert.Contains(FieldEncryptor.FileConfigKey, ex.Message);
+
+        var directory = Directory.CreateTempSubdirectory("rh-test-key-dir-").FullName;
+        try
+        {
+            Assert.Throws<InvalidOperationException>(() => FieldEncryptor.FromConfiguration(KeyConfig(null, directory)));
+        }
+        finally
+        {
+            Directory.Delete(directory);
+        }
+    }
+
+    [Fact]
+    public void Placeholder_or_short_key_in_the_secret_file_is_refused_without_echoing_it()
+    {
+        foreach (var content in new[] { "<generate: openssl rand -base64 32>", "AAAAAAAAAAAAAAAAAAAAAA==", "", Convert.ToBase64String(new byte[32]) })
+        {
+            var path = SecretFile(content);
+            try
+            {
+                var ex = Assert.Throws<InvalidOperationException>(() => FieldEncryptor.FromConfiguration(KeyConfig(null, path)));
+                Assert.Contains(FieldEncryptor.FileConfigKey, ex.Message);
+                if (content.Length > 0)
+                {
+                    Assert.DoesNotContain(content, ex.Message);
+                }
+            }
+            finally
+            {
+                File.Delete(path);
+            }
+        }
+    }
+
+    [Fact]
+    public void Setting_both_the_value_and_the_file_is_refused()
+    {
+        var path = SecretFile(Key);
+        try
+        {
+            var ex = Assert.Throws<InvalidOperationException>(() => FieldEncryptor.FromConfiguration(KeyConfig(Key, path)));
+            Assert.Contains(FieldEncryptor.FileConfigKey, ex.Message);
+            Assert.DoesNotContain(Key, ex.Message);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void Oversized_secret_file_is_refused()
+    {
+        var path = SecretFile(Key + new string(' ', 8192));
+        try
+        {
+            Assert.Throws<InvalidOperationException>(() => FieldEncryptor.FromConfiguration(KeyConfig(null, path)));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void Service_reads_its_key_from_the_secret_file()
+    {
+        var path = SecretFile(HubApiFactory.FieldKey + "\n");
+        try
+        {
+            using var factory = new SecretFileKeyFactory(path);
+            var encryptor = factory.Services.GetRequiredService<FieldEncryptor>();
+            var row = Guid.NewGuid();
+            Assert.Equal("FROM-FILE", FieldEncryptor.FromBase64(HubApiFactory.FieldKey).Decrypt(encryptor.Encrypt("FROM-FILE", row), row));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    private sealed class SecretFileKeyFactory(string keyFile) : NoFieldKeyFactory
+    {
+        protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
+        {
+            base.ConfigureWebHost(builder);   // FIELD_ENCRYPTION_KEY is empty here
+            builder.UseSetting(FieldEncryptor.FileConfigKey, keyFile);
         }
     }
 

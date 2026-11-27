@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
-// AI Contribution: The allocation engine: atomic, all-or-nothing deductions that issue keys, credits and device tokens; PA3 decrypts issued keys only for the admin response (CWE-312), issues device check-in codes (T1) and audits stock changes (T2) (~100%)
+// Prompt Summary: "PA3 hardening: separate owner and runtime database roles, API health check, field key as a secret file, SonarQube smells, test first"
+// AI Contribution: The allocation engine: atomic, all-or-nothing deductions that issue keys, credits and device tokens; PA3 decrypts issued keys only for the admin response (CWE-312), issues device check-in codes (T1) and audits stock changes (T2); the allocation log line adds up its totals only when Information is on (CA1873) (~100%)
 // Human Modifications: None yet
-// Verification: AllocationTests, LicenseKeyProtectionTests, ReturnTests, AuditTrailTests
+// Verification: AllocationTests, LicenseKeyProtectionTests, ReturnTests, AuditTrailTests (all run as the runtime database role); dotnet build with CA1873 as a warning
 // Confidence: High
 
 using System.Security.Cryptography;
@@ -70,7 +70,7 @@ public sealed class AllocationService
         {
             var detail = string.Join("; ", shortages.Select(s => $"{s.AssetName}: requested {s.Requested}, available {s.Available}"));
             await RecordFailureAsync(tx, ticket, actor, now, "Not enough stock. " + detail, ct);
-            log.LogWarning("Allocation of ticket {TicketId} failed for lack of stock on {ShortCount} asset(s)", ticketId, shortages.Count);
+            log.AllocationShort(ticketId, shortages.Count);
             return Problems.Conflict(
                 "Not enough stock to allocate this ticket.",
                 "Nothing was allocated; the ticket stays approved and allocation can be run again later.",
@@ -166,9 +166,12 @@ public sealed class AllocationService
 
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
-        log.LogInformation("Ticket {TicketId} allocated by {Sub}: {AssetCount} asset(s), {DeviceCount} device(s), {KeyCount} key(s), {Credits} credits",
-            ticketId, actor.Sub, results.Count,
-            results.Sum(r => r.Devices?.Count ?? 0), results.Sum(r => r.LicenseKeys?.Count ?? 0), results.Sum(r => r.Amount ?? 0m));
+        // The totals are only worth adding up when the line will be written.
+        if (log.IsEnabled(LogLevel.Information))
+        {
+            log.TicketAllocated(ticketId, actor.Id, results.Count,
+                results.Sum(r => r.Devices?.Count ?? 0), results.Sum(r => r.LicenseKeys?.Count ?? 0), results.Sum(r => r.Amount ?? 0m));
+        }
 
         return Results.Ok(new AllocationResultDto(ticketId, TicketStatus.Allocated, now, results));
     }

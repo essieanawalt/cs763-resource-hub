@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
-// AI Contribution: Allocate tests (issuing, all-or-nothing, concurrency, close), updated for token roles (~100%)
+// Prompt Summary: "PA3 hardening: separate owner and runtime database roles, API health check, field key as a secret file, SonarQube smells, test first"
+// AI Contribution: Allocate tests (issuing, all-or-nothing, concurrency, close), updated for token roles; constant key arrays are static fields (CA1861) (~100%)
 // Human Modifications: None yet
-// Verification: dotnet test against PostgreSQL 18
+// Verification: dotnet test against PostgreSQL 18; dotnet build with CA1861 as a warning
 // Confidence: High
 
 using System.Net;
@@ -14,6 +14,8 @@ namespace ResourceHub.Tests;
 
 public class AllocationTests(HubApiFactory factory) : IClassFixture<HubApiFactory>
 {
+    private static readonly string[] OtherKey = ["OTHER-KEY-2"];
+
     private readonly HttpClient _client = factory.CreateClient();
     private Scenario S => new(_client);
 
@@ -228,7 +230,7 @@ public class AllocationTests(HubApiFactory factory) : IClassFixture<HubApiFactor
             type = "license",
             category = "Test license",
             departmentProgram = "Computer Science",
-            licenseKeys = new[] { "OTHER-KEY-2" },
+            licenseKeys = OtherKey,
         }, Ids.Admin);
 
         await response.AssertStatusAsync(HttpStatusCode.Conflict);

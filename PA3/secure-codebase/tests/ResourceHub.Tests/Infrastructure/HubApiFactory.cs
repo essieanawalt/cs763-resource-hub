@@ -1,9 +1,9 @@
 // Tool: Claude Code (Claude Opus 5.5)
 // Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
-// Prompt Summary: "PA3: harden the Resource Hub with local RS256 JWT auth, row-level authz, AES-GCM field encryption, audit and rate limits, test first"
-// AI Contribution: Test host with a fresh database per class, a controllable clock, the test JWKS, a throwaway field key and captured logs (~100%)
+// Prompt Summary: "PA3 hardening: separate owner and runtime database roles, API health check, field key as a secret file, SonarQube smells, test first"
+// AI Contribution: Test host with a fresh database per class owned by its own owner role, the API connected as a separate runtime role (migrations run as the owner), a controllable clock, the test JWKS, a throwaway field key and captured logs (~100%)
 // Human Modifications: None yet
-// Verification: Used by every database test in ResourceHub.Tests (dotnet test against PostgreSQL 18)
+// Verification: Used by every database test in ResourceHub.Tests (dotnet test against PostgreSQL 18); DatabaseRoleTests
 // Confidence: High
 
 using System.Collections.Concurrent;
@@ -53,8 +53,10 @@ public sealed class CapturedLogs : ILoggerProvider
 }
 
 /// <summary>
-/// Runs the API in memory against its own PostgreSQL database, created (and migrated and
-/// seeded) at startup and dropped when the test class finishes.
+/// Runs the API in memory against its own PostgreSQL database. The database belongs to an owner
+/// role made for this class, which applies the migrations and seed data at startup; the API itself
+/// connects as a separate runtime role with data access only, as in Compose. Everything is dropped
+/// when the test class finishes.
 /// </summary>
 public class HubApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
@@ -67,12 +69,28 @@ public class HubApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
     public CapturedLogs Logs { get; } = new();
 
-    protected virtual string ConnectionString => TestDb.ForDatabase(_databaseName);
+    /// <summary>Owns the database and its tables; runs the migrations.</summary>
+    public DbRole Owner { get; } = DbRole.New("owner");
+
+    /// <summary>The role the API connects as.</summary>
+    public DbRole Runtime { get; } = DbRole.New("app");
+
+    public string DatabaseName => _databaseName;
+
+    /// <summary>The API's connection: the runtime role.</summary>
+    protected virtual string ConnectionString => TestDb.ForRole(_databaseName, Runtime.Name, Runtime.Password);
+
+    /// <summary>The migration connection: the owner role. Null means the API gets none.</summary>
+    protected virtual string? OwnerConnectionString => TestDb.ForRole(_databaseName, Owner.Name, Owner.Password);
+
+    /// <summary>False for factories that point at a server that does not exist.</summary>
+    protected virtual bool CreatesDatabase => true;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
         builder.UseSetting("ConnectionStrings:HubDb", ConnectionString);
+        builder.UseSetting("ConnectionStrings:HubDbOwner", OwnerConnectionString ?? "");
         builder.UseSetting("JWT_JWKS_PATH", TestTokens.JwksPath);
         builder.UseSetting("JWT_ISSUER", TestTokens.Issuer);
         builder.UseSetting("JWT_AUDIENCE", TestTokens.Audience);
@@ -85,22 +103,37 @@ public class HubApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         });
     }
 
-    public virtual Task InitializeAsync()
+    public virtual async Task InitializeAsync()
     {
-        // Starting the host applies the migrations and seed data.
+        if (CreatesDatabase && TestDb.BaseConnectionString is not null)
+        {
+            await TestDb.CreateDatabaseWithRolesAsync(_databaseName, Owner, Runtime);
+        }
+
+        // Starting the host applies the migrations and seed data (as the owner role).
         _ = Server;
-        return Task.CompletedTask;
     }
 
-    /// <summary>Runs <paramref name="work"/> with a DbContext on this class's database.</summary>
+    /// <summary>Runs <paramref name="work"/> with the API's own DbContext (the runtime role).</summary>
     public async Task<T> WithDbAsync<T>(Func<HubDbContext, Task<T>> work)
     {
         using var scope = Services.CreateScope();
         return await work(scope.ServiceProvider.GetRequiredService<HubDbContext>());
     }
 
-    /// <summary>Opens a raw connection to this class's database (for looking at stored bytes).</summary>
+    /// <summary>
+    /// Opens a connection as the test server's superuser (for looking at stored bytes and for
+    /// tampering tests that must get past table privileges to reach the triggers).
+    /// </summary>
     public async Task<NpgsqlConnection> OpenRawAsync()
+    {
+        var connection = new NpgsqlConnection(TestDb.ForDatabase(_databaseName));
+        await connection.OpenAsync();
+        return connection;
+    }
+
+    /// <summary>Opens a connection as the runtime role, with the same rights as the API.</summary>
+    public async Task<NpgsqlConnection> OpenAsRuntimeRoleAsync()
     {
         var connection = new NpgsqlConnection(ConnectionString);
         await connection.OpenAsync();
@@ -110,24 +143,21 @@ public class HubApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
     async Task IAsyncLifetime.DisposeAsync()
     {
         await base.DisposeAsync();
-        if (TestDb.BaseConnectionString is null)
+        if (CreatesDatabase)
         {
-            return;
+            await TestDb.DropDatabaseAndRolesAsync(_databaseName, Owner.Name, Runtime.Name);
         }
-
-        NpgsqlConnection.ClearAllPools();
-        await using var connection = new NpgsqlConnection(TestDb.BaseConnectionString);
-        await connection.OpenAsync();
-        await using var command = connection.CreateCommand();
-        // The name is generated above from a GUID, never from input.
-        command.CommandText = $"DROP DATABASE IF EXISTS \"{_databaseName}\" WITH (FORCE)";
-        await command.ExecuteNonQueryAsync();
     }
 }
 
 /// <summary>Points the API at a database server that does not exist.</summary>
 public sealed class UnreachableDbFactory : HubApiFactory
 {
-    protected override string ConnectionString =>
-        "Host=127.0.0.1;Port=1;Database=nowhere;Username=nobody;Password=none;Timeout=2";
+    private const string Nowhere = "Host=127.0.0.1;Port=1;Database=nowhere;Username=nobody;Password=none;Timeout=2";
+
+    protected override string ConnectionString => Nowhere;
+
+    protected override string? OwnerConnectionString => Nowhere;
+
+    protected override bool CreatesDatabase => false;
 }

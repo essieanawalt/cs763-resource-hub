@@ -9,34 +9,74 @@ hardened to be secure by design. C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF 
 - Service: `src/ResourceHub.Api/`
 - Tests: `tests/ResourceHub.Tests/`
 - Build and run: `Dockerfile`, `docker-compose.yml`, `db/init/01-app-role.sh`, `.env.example`
+- Analyzer settings: `.editorconfig` (the rules SonarQube reported fail the build)
 
 ## Configure and run with Docker Compose
 
 1. Get the token issuer's public keys as a JWKS file (`{"keys":[{"kty":"RSA","kid":"…","n":"…","e":"…"}]}`).
    The service never fetches keys over the network.
-2. Copy `.env.example` to `.env` (`.env` is git-ignored) and fill in every `<…>` value:
+2. Create the field encryption key as a file (the `secrets/` folder is git-ignored and kept out of
+   the image build):
+
+   ```bash
+   mkdir -p secrets && (umask 077 && openssl rand -base64 32 > secrets/field_encryption_key)
+   ```
+
+   Compose passes it to the containers as the Docker secret `field_encryption_key`, mounted at
+   `/run/secrets/field_encryption_key`; the containers only get `FIELD_ENCRYPTION_KEY_FILE` (that
+   path), so `docker inspect` never shows the key. On Docker Desktop a file readable only by you
+   works. On Linux, Compose bind-mounts the file with its host owner and mode, so the API's
+   non-root user (UID 1654 in the .NET images) must be able to read it, for example
+   `sudo chown 1654 secrets/field_encryption_key && chmod 0400 secrets/field_encryption_key`.
+3. Copy `.env.example` to `.env` (`.env` is git-ignored) and fill in every `<…>` value:
 
    | Variable | Meaning |
    |---|---|
    | `POSTGRES_USER`, `POSTGRES_PASSWORD` | Database superuser, used only by the database container at first start |
-   | `APP_DB_USER`, `APP_DB_PASSWORD` | Non-superuser role the API connects as (created by `db/init/01-app-role.sh`) |
-   | `FIELD_ENCRYPTION_KEY` | Base64 of 32 random bytes (`openssl rand -base64 32`): the AES-256 key for license key values |
+   | `OWNER_DB_USER`, `OWNER_DB_PASSWORD` | **Owner role**: owns the `resourcehub` database, its schema, tables and triggers. Only the one-shot `migrate` container gets it |
+   | `APP_DB_USER`, `APP_DB_PASSWORD` | **Runtime role** the API connects as: owns nothing, reads and writes data only (must differ from the owner) |
+   | `FIELD_ENCRYPTION_KEY_HOST_FILE` | Absolute host path of the key file from step 2 |
    | `JWKS_HOST_PATH` | Absolute host path of the JWKS file; mounted read-only into the API container |
    | `JWT_JWKS_PATH` | Where the API reads the JWKS inside the container (default `/etc/resourcehub/jwks.json`) |
    | `JWT_ISSUER` | Required `iss`: `http://localhost:9000` |
    | `JWT_AUDIENCE` | Required `aud`: `cs763-api` |
    | `API_PORT` | Host port, bound to `127.0.0.1` only (default 8080) |
 
-   Compose stops with an error if a password, the field key or `JWKS_HOST_PATH` is missing; there
+   Compose stops with an error if a password, the key file or `JWKS_HOST_PATH` is missing; there
    are no fallback values.
-3. Start it: `docker compose up -d --build`. The API listens on `http://127.0.0.1:${API_PORT}`.
-4. Call it with a bearer token from the issuer:
+4. Start it: `docker compose up -d --build`. Compose starts the database, then runs `migrate`
+   (`dotnet ResourceHub.Api.dll --migrate` as the owner role: applies the migrations, encrypts any
+   plaintext license keys, grants the runtime role its data access and exits), then starts the API
+   once `migrate` has exited with 0. The API listens on `http://127.0.0.1:${API_PORT}`, and
+   `docker compose ps` shows it as `healthy` once `/api/v1/health` answers 200. The health check
+   runs `dotnet ResourceHub.Api.dll --healthcheck` inside the container, so the image needs no
+   extra packages.
+5. Call it with a bearer token from the issuer:
 
    ```bash
    curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8080/api/v1/assets
    ```
 
    `GET /api/v1/health` is the only endpoint that works without a token.
+
+**Upgrading a database volume created before the owner/runtime split.** `db/init/01-app-role.sh`
+runs only on an empty volume, so an older volume has no owner role and its tables still belong to
+the runtime role. With throwaway data, recreate it (`docker compose down -v`, then step 4). To keep
+the data, as the superuser create the owner role, then run `REASSIGN OWNED BY resourcehub_app TO
+resourcehub_owner;`, `ALTER DATABASE resourcehub OWNER TO resourcehub_owner;` and `ALTER SCHEMA
+public OWNER TO resourcehub_owner;` in `resourcehub`, and start the stack. `migrate` then grants
+the runtime role its data access. (This in-place path is not covered by the tests; the fresh-volume
+path is.)
+
+### Configuration outside Compose
+
+| Setting | Meaning |
+|---|---|
+| `ConnectionStrings:HubDb` | The runtime connection the API serves requests with (required) |
+| `ConnectionStrings:HubDbOwner` | The owner connection. Only where the process may change the schema (tests, a local run): the API then migrates at startup as the owner and grants the runtime role. Not set in the API container; without it the API never runs DDL |
+| `Database:RuntimeRole` | The role `--migrate` grants data access to; in-process startup takes the user name from `HubDb` when this is not set |
+| `FIELD_ENCRYPTION_KEY_FILE` | Path of the key file (containers) |
+| `FIELD_ENCRYPTION_KEY` | The base64 key itself, for tests and local runs. Setting both this and the file is refused |
 
 ### Tokens the service accepts
 
@@ -56,16 +96,20 @@ hardened to be secure by design. C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF 
 ### Running the tests
 
 The database tests need PostgreSQL; set `RESOURCEHUB_TEST_DB` to a connection string for a user
-that may create databases (each test class creates and drops its own database). The tests create a
-throwaway RSA key pair in memory, write a test JWKS file and sign their own tokens.
+that may create databases and roles (a superuser of a throwaway server). Each test class creates
+its own database owned by its own owner role and runs the API as a separate runtime role, like
+Compose; it drops the database and both roles afterwards. The tests create a throwaway RSA key pair
+in memory, write a test JWKS file and sign their own tokens.
 
 ```bash
 RESOURCEHUB_TEST_DB="Host=127.0.0.1;Port=55432;Database=rhtest;Username=rhtest;Password=<pw>" dotnet test tests/ResourceHub.Tests
 ```
 
-`RESOURCEHUB_COMPOSE_TESTS=1` also builds and starts the Compose stack (needs Docker), with
-`JWKS_HOST_PATH` pointing at the test JWKS file and random passwords and field key, runs
-end-to-end checks against it and tears it down.
+`RESOURCEHUB_COMPOSE_TESTS=1` also builds and starts the Compose stack (needs Docker) under a
+throwaway project name, with `JWKS_HOST_PATH` pointing at the test JWKS file, random passwords and
+a random field key written to a secret file. It runs end-to-end checks against the stack (health
+status, owner-only migration, runtime role restrictions, no owner credentials or plain key in the
+API container) and tears it down.
 
 ## Where the security checks are
 
@@ -75,10 +119,10 @@ Paths are relative to `src/ResourceHub.Api/`.
 
 | What | File and lines |
 |---|---|
-| JwtBearer setup: RS256 allowlist, key chosen by `kid` from the JWKS only, `iss`/`aud`/`exp`/`nbf`, 60 s skew, no error detail | `Security/JwtAuthentication.cs` lines 32–85 (validation parameters 47–64; `kid` resolver 54–55) |
+| JwtBearer setup: RS256 allowlist, key chosen by `kid` from the JWKS only, `iss`/`aud`/`exp`/`nbf`, 60 s skew, no error detail | `Security/JwtAuthentication.cs` lines 32–85 (validation parameters 47–65; `kid` resolver 54–55) |
 | Strict `sub` (GUID) and `roles` (array of strings) after the signature check; all other claims dropped | `Security/JwtAuthentication.cs` lines 87–124 |
 | Loading the JWKS file: RSA signing keys ≥ 2048 bits, public parts only, duplicate `kid` refused | `Security/JwtAuthentication.cs` lines 126–168 |
-| Deny by default: every endpoint needs an authenticated user except health | `Program.cs` lines 42–46; `Endpoints/HealthEndpoints.cs` line 31 |
+| Deny by default: every endpoint needs an authenticated user except health | `Program.cs` lines 61–63; `Endpoints/HealthEndpoints.cs` line 32 |
 | Caller built from the token (sub, roles) plus seeded association | `Services/Actors.cs` lines 17–79 |
 
 ### Row-level authorization
@@ -113,12 +157,13 @@ are stored; the database only holds `license_keys."KeyCiphertext"` (`v1.` + base
 
 | Step | File and lines |
 |---|---|
-| Encrypt / decrypt, key loading and checks | `Security/FieldEncryptor.cs` lines 31–101 |
-| Key from `FIELD_ENCRYPTION_KEY`; the service will not start without a valid one | `Program.cs` line 27 |
+| Key loading and checks: from the secret file in `FIELD_ENCRYPTION_KEY_FILE`, or `FIELD_ENCRYPTION_KEY`; both set, a missing, unreadable or oversized file, or a key that is not 32 random-looking bytes is refused | `Security/FieldEncryptor.cs` lines 42–109 (choice of source 42–54, file read 90–109) |
+| Encrypt / decrypt | `Security/FieldEncryptor.cs` lines 111–150 |
+| The service and the migration job will not start without a valid key | `Program.cs` line 43; `Data/MigrationJob.cs` line 41 |
 | Encrypt on asset create and update | `Endpoints/AssetEndpoints.cs` lines 223, 289–301, 364–368 |
 | Decrypt for the admin allocate response | `Services/AllocationService.cs` line 141 |
 | Decrypt in the allocation listing, only for admin or the requester | `Endpoints/AllocationEndpoints.cs` lines 75–77 |
-| Seed keys and any old plaintext keys encrypted at startup, before the plaintext column is dropped | `Data/DatabaseStartup.cs` lines 31–83; `Data/Migrations/20261126100100_SecurityHardening.cs` |
+| Seed keys and any old plaintext keys encrypted during migration (the `migrate` job in Compose), before the plaintext column is dropped | `Data/DatabaseStartup.cs` lines 41–50 and 147–188; `Data/Migrations/20261126100100_SecurityHardening.cs` |
 
 Unallocated keys are never returned by any endpoint (only an admin could be allowed to see them,
 and no endpoint lists them); asset search covers names only.
@@ -140,7 +185,22 @@ and no endpoint lists them); asset search covers names only.
 - **Rate limiting (T3):** 300 requests per minute per token `sub`; 200 per minute per client IP
   for callers without a valid token; 429 with `Retry-After` past that. Request bodies are capped
   at 2 MB (`Security/RateLimiting.cs`, configurable under `RateLimiting:*`).
+- **Separate database roles (CWE-250, CWE-269):** the owner role owns the database, schema, tables,
+  triggers and trigger function, and only the one-shot `migrate` container logs in as it. The API's
+  runtime role owns nothing. It has `SELECT, INSERT, UPDATE, DELETE` on the data tables, only
+  `SELECT, INSERT` on `ticket_events` and `audit_events`, `SELECT` on `__EFMigrationsHistory`, and
+  no `CREATE`, `TEMPORARY`, `TRUNCATE`, `TRIGGER` or `REFERENCES`. It therefore cannot create,
+  alter or drop tables, triggers or functions, cannot `DISABLE TRIGGER` (owner only), and cannot
+  set `session_replication_role` (`db/init/01-app-role.sh`; grants in
+  `Data/DatabaseStartup.cs` lines 90–142; migration only over the owner connection in `Program.cs`
+  lines 83–99 and `Data/MigrationJob.cs`). The API container gets neither the owner's user name
+  nor its password.
 - **Database exposure (CWE-1392, CWE-1327, CWE-250, CWE-260):** no published database port (internal
-  network only), no committed or fallback passwords, the API connects as a role without
-  superuser, create-role or create-database rights, the API container runs as non-root with a
-  read-only filesystem, and the API port is bound to 127.0.0.1.
+  network only), no committed or fallback passwords, neither database role has superuser,
+  create-role or create-database rights, the API container runs as non-root with a read-only
+  filesystem, and the API port is bound to 127.0.0.1.
+- **Key not in the environment (CWE-526):** the field key reaches the `migrate` and `api` containers
+  only as a Docker secret file; their environment holds only its path.
+- **Health check:** Compose marks the API healthy when `dotnet ResourceHub.Api.dll --healthcheck`
+  gets 200 from `GET /api/v1/health` on loopback (`Endpoints/HealthProbe.cs`). The probe sends no
+  token and the endpoint is still the only public one.
