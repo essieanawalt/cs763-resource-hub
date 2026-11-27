@@ -1,0 +1,76 @@
+Peer threat check: baseline
+Thu Nov 26 11:12:40 EST 2026
+Base URL: http://127.0.0.1:8002   Token sent: no
+Peer repo: 1a094d6 on pa3-peer
+
+=== PT1 Tampering: two clients update the same project from the same original read ===
+POST /api/v1/projects -> 201
+{"id":"57ec6138-e1b7-4eb7-9f4c-eac418f46bca","title":"PT check original","description":"original","members":[{"id":"alice","role":"student"}],"units":[{"type":"lab","id":"lab-robotics"}],"created_at":"2026-11-26T16:12:41.039576+00:00","updated_at":"2026-11-26T16:12:41.039576+00:00","revision":1}
+project: 57ec6138-e1b7-4eb7-9f4c-eac418f46bca
+GET /api/v1/projects/57ec6138-e1b7-4eb7-9f4c-eac418f46bca -> 200
+{"id":"57ec6138-e1b7-4eb7-9f4c-eac418f46bca","title":"PT check original","description":"original","members":[{"id":"alice","role":"student"}],"units":[{"type":"lab","id":"lab-robotics"}],"created_at":"2026-11-26T16:12:41.039576+00:00","updated_at":"2026-11-26T16:12:41.039576+00:00","revision":1}
+-- client A updates (based on the original read)
+PUT /api/v1/projects/57ec6138-e1b7-4eb7-9f4c-eac418f46bca -> 200
+{"id":"57ec6138-e1b7-4eb7-9f4c-eac418f46bca","title":"PT1 update A","description":"change from client A","members":[{"id":"alice","role":"student"}],"units":[{"type":"lab","id":"lab-robotics"}],"created_at":"2026-11-26T16:12:41.039576+00:00","updated_at":"2026-11-26T16:12:41.124016+00:00","revision":2}
+-- client B updates, also based on the original read (stale)
+PUT /api/v1/projects/57ec6138-e1b7-4eb7-9f4c-eac418f46bca -> 200
+{"id":"57ec6138-e1b7-4eb7-9f4c-eac418f46bca","title":"PT1 update B (stale)","description":"change from client B","members":[{"id":"alice","role":"student"}],"units":[{"type":"lab","id":"lab-robotics"}],"created_at":"2026-11-26T16:12:41.039576+00:00","updated_at":"2026-11-26T16:12:41.136312+00:00","revision":3}
+-- final state
+GET /api/v1/projects/57ec6138-e1b7-4eb7-9f4c-eac418f46bca -> 200
+{"id":"57ec6138-e1b7-4eb7-9f4c-eac418f46bca","title":"PT1 update B (stale)","description":"change from client B","members":[{"id":"alice","role":"student"}],"units":[{"type":"lab","id":"lab-robotics"}],"created_at":"2026-11-26T16:12:41.039576+00:00","updated_at":"2026-11-26T16:12:41.136312+00:00","revision":3}
+Expected if protected: client B's update refused (409 or 412). Not protected: 200 and A's change is gone.
+
+=== PT2 Repudiation: change, download and delete, then look for a record ===
+POST /api/v1/projects -> 201
+{"id":"f95b3493-1977-4b56-8e68-3882238ca412","title":"PT2 project","description":"for the record check","members":[{"id":"alice","role":"student"}],"units":[{"type":"lab","id":"lab-robotics"}],"created_at":"2026-11-26T16:12:41.156562+00:00","updated_at":"2026-11-26T16:12:41.156562+00:00","revision":1}
+project: f95b3493-1977-4b56-8e68-3882238ca412
+POST /api/v1/projects/f95b3493-1977-4b56-8e68-3882238ca412/artifacts/manuscripts/ -> 201
+{"id":"5c460ac0-72f8-47c0-88aa-23f5f81431cb","project_id":"f95b3493-1977-4b56-8e68-3882238ca412","artifact_type":"manuscripts","metadata":{"title":"PT2 manuscript","abstract":"check","authors":["alice"],"keywords":["check"],"year":2026},"created_at":"2026-11-26T16:12:41.188147+00:00","updated_at":"2026-11-26T16:12:41.188147+00:00","file":null}
+artifact: 5c460ac0-72f8-47c0-88aa-23f5f81431cb
+POST upload -> 200
+{"id":"5c460ac0-72f8-47c0-88aa-23f5f81431cb","project_id":"f95b3493-1977-4b56-8e68-3882238ca412","artifact_type":"manuscripts","metadata":{"title":"PT2 manuscript","abstract":"check","authors":["alice"],"keywords":["check"],"year":2026},"created_at":"2026-11-26T16:12:41.188147+00:00","updated_at":"2026-11-26T16:12:41.222325+00:00","file":{"filename":"small.txt","sha256":"991dff7cf50fca8945ed329c11
+GET download file -> 200
+GET download zip -> 200
+PUT /api/v1/projects/f95b3493-1977-4b56-8e68-3882238ca412/artifacts/manuscripts/5c460ac0-72f8-47c0-88aa-23f5f81431cb -> 200
+{"id":"5c460ac0-72f8-47c0-88aa-23f5f81431cb","project_id":"f95b3493-1977-4b56-8e68-3882238ca412","artifact_type":"manuscripts","metadata":{"title":"PT2 manuscript (edited)","abstract":"check","authors":["alice"],"keywords":["check"],"year":2026},"created_at":"2026-11-26T16:12:41.188147+00:00","updated_at":"2026-11-26T16:12:41.254869+00:00","file":{"filename":"small.txt","sha256":"991dff7cf50fca8945ed329c1141947ed472199141f5d3a7ca3d4680b905f0f4","size":21}}
+DELETE /api/v1/projects/f95b3493-1977-4b56-8e68-3882238ca412/artifacts/manuscripts/5c460ac0-72f8-47c0-88aa-23f5f81431cb -> 204
+
+DELETE /api/v1/projects/f95b3493-1977-4b56-8e68-3882238ca412 -> 204
+
+-- API log since start of this check
+api-1  | INFO:     172.20.0.1:61322 - "POST /api/v1/projects HTTP/1.1" 201 Created
+api-1  | INFO:     172.20.0.1:61324 - "GET /api/v1/projects/57ec6138-e1b7-4eb7-9f4c-eac418f46bca HTTP/1.1" 200 OK
+api-1  | INFO:     172.20.0.1:61326 - "PUT /api/v1/projects/57ec6138-e1b7-4eb7-9f4c-eac418f46bca HTTP/1.1" 200 OK
+api-1  | INFO:     172.20.0.1:61336 - "PUT /api/v1/projects/57ec6138-e1b7-4eb7-9f4c-eac418f46bca HTTP/1.1" 200 OK
+api-1  | INFO:     172.20.0.1:61342 - "GET /api/v1/projects/57ec6138-e1b7-4eb7-9f4c-eac418f46bca HTTP/1.1" 200 OK
+api-1  | INFO:     172.20.0.1:61348 - "POST /api/v1/projects HTTP/1.1" 201 Created
+api-1  | INFO:     172.20.0.1:61356 - "POST /api/v1/projects/f95b3493-1977-4b56-8e68-3882238ca412/artifacts/manuscripts/ HTTP/1.1" 201 Created
+api-1  | INFO:     172.20.0.1:61370 - "POST /api/v1/projects/f95b3493-1977-4b56-8e68-3882238ca412/artifacts/manuscripts/5c460ac0-72f8-47c0-88aa-23f5f81431cb/file HTTP/1.1" 200 OK
+api-1  | INFO:     172.20.0.1:61378 - "GET /api/v1/projects/f95b3493-1977-4b56-8e68-3882238ca412/artifacts/manuscripts/5c460ac0-72f8-47c0-88aa-23f5f81431cb/file HTTP/1.1" 200 OK
+api-1  | INFO:     172.20.0.1:61382 - "GET /api/v1/projects/f95b3493-1977-4b56-8e68-3882238ca412/artifacts/manuscripts/download HTTP/1.1" 200 OK
+api-1  | INFO:     172.20.0.1:61396 - "PUT /api/v1/projects/f95b3493-1977-4b56-8e68-3882238ca412/artifacts/manuscripts/5c460ac0-72f8-47c0-88aa-23f5f81431cb HTTP/1.1" 200 OK
+api-1  | INFO:     172.20.0.1:61406 - "DELETE /api/v1/projects/f95b3493-1977-4b56-8e68-3882238ca412/artifacts/manuscripts/5c460ac0-72f8-47c0-88aa-23f5f81431cb HTTP/1.1" 204 No Content
+api-1  | INFO:     172.20.0.1:61418 - "DELETE /api/v1/projects/f95b3493-1977-4b56-8e68-3882238ca412 HTTP/1.1" 204 No Content
+-- database tables (looking for an audit or event table)
+          List of relations
+ Schema |   Name    | Type  |  Owner  
+--------+-----------+-------+---------
+ public | artifacts | table | indexer
+ public | projects  | table | indexer
+(2 rows)
+
+Expected if protected: a record of who changed, downloaded and deleted, still present after the delete.
+
+=== PT3 Denial of service: one oversized manuscript upload (50 MB) ===
+POST /api/v1/projects -> 201
+{"id":"ff27e2b1-2040-44ff-9079-b745a1633365","title":"PT3 project","description":"for the size check","members":[{"id":"alice","role":"student"}],"units":[{"type":"lab","id":"lab-robotics"}],"created_at":"2026-11-26T16:12:41.545522+00:00","updated_at":"2026-11-26T16:12:41.545522+00:00","revision":1}
+project: ff27e2b1-2040-44ff-9079-b745a1633365
+POST /api/v1/projects/ff27e2b1-2040-44ff-9079-b745a1633365/artifacts/manuscripts/ -> 201
+{"id":"7dad02f2-ec57-4319-8552-122f025d48fd","project_id":"ff27e2b1-2040-44ff-9079-b745a1633365","artifact_type":"manuscripts","metadata":{"title":"PT3 manuscript","abstract":"check","authors":["alice"],"keywords":["check"],"year":2026},"created_at":"2026-11-26T16:12:41.580222+00:00","updated_at":"2026-11-26T16:12:41.580222+00:00","file":null}
+artifact: 7dad02f2-ec57-4319-8552-122f025d48fd
+POST 50 MB upload -> 200 in 0.214601s
+{"id":"7dad02f2-ec57-4319-8552-122f025d48fd","project_id":"ff27e2b1-2040-44ff-9079-b745a1633365","artifact_type":"manuscripts","metadata":{"title":"PT3 manuscript","abstract":"check","authors":["alice"],"keywords":["check"],"year":2026},"created_at":"2026-11-26T16:12:41.580222+00:00","updated_at":"2026-11-26T16:12:41.850500+00:00","file":{"filename":"big.bin","sha256":"8565a714dca840f8652c5bae9249
+Expected if protected: 413 (or another refusal). Not protected: accepted.
+
+Done. Output saved to <Project>/peer-evidence/peer-threat-check-baseline-2026-11-26.txt
+The stack is still running; stop it with: (cd "<Project>/peer-evidence/../peer-artifact-indexer/PA2" && docker compose down -v)

@@ -1,0 +1,111 @@
+Peer threat check: measured
+Thu Nov 26 15:19:29 EST 2026
+Base URL: http://127.0.0.1:8002   Token sent: yes
+Peer repo: fd093ca on pa3-peer
+
+=== PT1 Tampering: two clients update the same project from the same original read ===
+POST /api/v1/projects -> 201
+{"id":"7b64a4d0-366e-4f21-b11c-a9825995e9a3","title":"PT check original","description":"original","members":[{"id":"alice","role":"student"}],"units":[{"type":"lab","id":"lab-robotics"}],"created_at":"2026-11-26T20:19:29.363759+00:00","updated_at":"2026-11-26T20:19:29.363759+00:00","revision":1}
+project: 7b64a4d0-366e-4f21-b11c-a9825995e9a3
+GET /api/v1/projects/7b64a4d0-366e-4f21-b11c-a9825995e9a3 -> 200
+{"id":"7b64a4d0-366e-4f21-b11c-a9825995e9a3","title":"PT check original","description":"original","members":[{"id":"alice","role":"student"}],"units":[{"type":"lab","id":"lab-robotics"}],"created_at":"2026-11-26T20:19:29.363759+00:00","updated_at":"2026-11-26T20:19:29.363759+00:00","revision":1}
+-- client A updates (based on the original read)
+PUT /api/v1/projects/7b64a4d0-366e-4f21-b11c-a9825995e9a3 -> 428
+{"detail":"If-Match header with the current revision (ETag) is required, e.g. If-Match: \"3\""}
+-- client B updates, also based on the original read (stale)
+PUT /api/v1/projects/7b64a4d0-366e-4f21-b11c-a9825995e9a3 -> 428
+{"detail":"If-Match header with the current revision (ETag) is required, e.g. If-Match: \"3\""}
+-- final state
+GET /api/v1/projects/7b64a4d0-366e-4f21-b11c-a9825995e9a3 -> 200
+{"id":"7b64a4d0-366e-4f21-b11c-a9825995e9a3","title":"PT check original","description":"original","members":[{"id":"alice","role":"student"}],"units":[{"type":"lab","id":"lab-robotics"}],"created_at":"2026-11-26T20:19:29.363759+00:00","updated_at":"2026-11-26T20:19:29.363759+00:00","revision":1}
+Expected if protected: client B's update refused (409 or 412). Not protected: 200 and A's change is gone.
+
+=== PT2 Repudiation: change, download and delete, then look for a record ===
+POST /api/v1/projects -> 201
+{"id":"e0e0313d-f825-4ce9-9c9a-6f00283c2aca","title":"PT2 project","description":"for the record check","members":[{"id":"alice","role":"student"}],"units":[{"type":"lab","id":"lab-robotics"}],"created_at":"2026-11-26T20:19:29.441096+00:00","updated_at":"2026-11-26T20:19:29.441096+00:00","revision":1}
+project: e0e0313d-f825-4ce9-9c9a-6f00283c2aca
+POST /api/v1/projects/e0e0313d-f825-4ce9-9c9a-6f00283c2aca/artifacts/manuscripts/ -> 201
+{"id":"37947ba8-dd74-4d55-b936-7c84d20ef5d3","project_id":"e0e0313d-f825-4ce9-9c9a-6f00283c2aca","artifact_type":"manuscripts","revision":1,"metadata":{"title":"PT2 manuscript","abstract":"check","authors":["alice"],"keywords":["check"],"year":2026},"created_at":"2026-11-26T20:19:29.472961+00:00","updated_at":"2026-11-26T20:19:29.472961+00:00","file":null}
+artifact: 37947ba8-dd74-4d55-b936-7c84d20ef5d3
+POST upload -> 428
+{"detail":"If-Match header with the current revision (ETag) is required, e.g. If-Match: \"3\""}
+GET download file -> 404
+GET download zip -> 200
+PUT /api/v1/projects/e0e0313d-f825-4ce9-9c9a-6f00283c2aca/artifacts/manuscripts/37947ba8-dd74-4d55-b936-7c84d20ef5d3 -> 428
+{"detail":"If-Match header with the current revision (ETag) is required, e.g. If-Match: \"3\""}
+DELETE /api/v1/projects/e0e0313d-f825-4ce9-9c9a-6f00283c2aca/artifacts/manuscripts/37947ba8-dd74-4d55-b936-7c84d20ef5d3 -> 204
+
+DELETE /api/v1/projects/e0e0313d-f825-4ce9-9c9a-6f00283c2aca -> 204
+
+-- API log since start of this check
+api-1  | INFO:     172.21.0.1:61760 - "POST /api/v1/projects/59770689-62bc-4709-8e8f-a1f110f96ec4/artifacts/manuscripts/f23a8d9a-7451-44d0-a86c-739f23dd4c72/file HTTP/1.1" 200 OK
+api-1  | INFO:     172.21.0.1:61762 - "GET /api/v1/projects/59770689-62bc-4709-8e8f-a1f110f96ec4/artifacts/manuscripts/f23a8d9a-7451-44d0-a86c-739f23dd4c72/file HTTP/1.1" 404 Not Found
+api-1  | INFO:     172.21.0.1:61778 - "GET /api/v1/projects/59770689-62bc-4709-8e8f-a1f110f96ec4/artifacts/manuscripts/download HTTP/1.1" 404 Not Found
+api-1  | INFO:     172.21.0.1:61788 - "GET /api/v1/projects/59770689-62bc-4709-8e8f-a1f110f96ec4/artifacts/manuscripts/f23a8d9a-7451-44d0-a86c-739f23dd4c72/file HTTP/1.1" 200 OK
+api-1  | INFO:     172.21.0.1:61794 - "POST /api/v1/projects HTTP/1.1" 422 Unprocessable Content
+api-1  | INFO:     172.21.0.1:61804 - "POST /api/v1/projects HTTP/1.1" 422 Unprocessable Content
+api-1  | INFO:     172.21.0.1:61820 - "GET /api/v1/projects/59770689-62bc-4709-8e8f-a1f110f96ec4 HTTP/1.1" 200 OK
+api-1  | INFO:     172.21.0.1:61836 - "DELETE /api/v1/projects/59770689-62bc-4709-8e8f-a1f110f96ec4 HTTP/1.1" 204 No Content
+api-1  | INFO:     172.21.0.1:61840 - "POST /api/v1/projects HTTP/1.1" 201 Created
+api-1  | INFO:     172.21.0.1:61848 - "GET /api/v1/projects/7b64a4d0-366e-4f21-b11c-a9825995e9a3 HTTP/1.1" 200 OK
+api-1  | INFO:     172.21.0.1:61862 - "PUT /api/v1/projects/7b64a4d0-366e-4f21-b11c-a9825995e9a3 HTTP/1.1" 428 Precondition Required
+api-1  | INFO:     172.21.0.1:61866 - "PUT /api/v1/projects/7b64a4d0-366e-4f21-b11c-a9825995e9a3 HTTP/1.1" 428 Precondition Required
+api-1  | INFO:     172.21.0.1:61872 - "GET /api/v1/projects/7b64a4d0-366e-4f21-b11c-a9825995e9a3 HTTP/1.1" 200 OK
+api-1  | INFO:     172.21.0.1:61874 - "POST /api/v1/projects HTTP/1.1" 201 Created
+api-1  | INFO:     172.21.0.1:61882 - "POST /api/v1/projects/e0e0313d-f825-4ce9-9c9a-6f00283c2aca/artifacts/manuscripts/ HTTP/1.1" 201 Created
+api-1  | INFO:     172.21.0.1:61886 - "POST /api/v1/projects/e0e0313d-f825-4ce9-9c9a-6f00283c2aca/artifacts/manuscripts/37947ba8-dd74-4d55-b936-7c84d20ef5d3/file HTTP/1.1" 428 Precondition Required
+api-1  | INFO:     172.21.0.1:61894 - "GET /api/v1/projects/e0e0313d-f825-4ce9-9c9a-6f00283c2aca/artifacts/manuscripts/37947ba8-dd74-4d55-b936-7c84d20ef5d3/file HTTP/1.1" 404 Not Found
+api-1  | INFO:     172.21.0.1:61898 - "GET /api/v1/projects/e0e0313d-f825-4ce9-9c9a-6f00283c2aca/artifacts/manuscripts/download HTTP/1.1" 200 OK
+api-1  | INFO:     172.21.0.1:61908 - "PUT /api/v1/projects/e0e0313d-f825-4ce9-9c9a-6f00283c2aca/artifacts/manuscripts/37947ba8-dd74-4d55-b936-7c84d20ef5d3 HTTP/1.1" 428 Precondition Required
+api-1  | INFO:     172.21.0.1:61916 - "DELETE /api/v1/projects/e0e0313d-f825-4ce9-9c9a-6f00283c2aca/artifacts/manuscripts/37947ba8-dd74-4d55-b936-7c84d20ef5d3 HTTP/1.1" 204 No Content
+api-1  | INFO:     172.21.0.1:61932 - "DELETE /api/v1/projects/e0e0313d-f825-4ce9-9c9a-6f00283c2aca HTTP/1.1" 204 No Content
+-- database tables (looking for an audit or event table)
+            List of relations
+ Schema |     Name     | Type  |  Owner  
+--------+--------------+-------+---------
+ public | artifacts    | table | indexer
+ public | audit_events | table | indexer
+ public | projects     | table | indexer
+(3 rows)
+
+Expected if protected: a record of who changed, downloaded and deleted, still present after the delete.
+
+=== PT3 Denial of service: one oversized manuscript upload (50 MB) ===
+POST /api/v1/projects -> 201
+{"id":"2902951a-d0df-4697-855a-7ddb8aaeeafd","title":"PT3 project","description":"for the size check","members":[{"id":"alice","role":"student"}],"units":[{"type":"lab","id":"lab-robotics"}],"created_at":"2026-11-26T20:19:29.720490+00:00","updated_at":"2026-11-26T20:19:29.720490+00:00","revision":1}
+project: 2902951a-d0df-4697-855a-7ddb8aaeeafd
+POST /api/v1/projects/2902951a-d0df-4697-855a-7ddb8aaeeafd/artifacts/manuscripts/ -> 201
+{"id":"840fa253-830d-49bc-8126-9b1396f350bd","project_id":"2902951a-d0df-4697-855a-7ddb8aaeeafd","artifact_type":"manuscripts","revision":1,"metadata":{"title":"PT3 manuscript","abstract":"check","authors":["alice"],"keywords":["check"],"year":2026},"created_at":"2026-11-26T20:19:29.755221+00:00","updated_at":"2026-11-26T20:19:29.755221+00:00","file":null}
+artifact: 840fa253-830d-49bc-8126-9b1396f350bd
+POST 50 MB upload -> 413 in 0.001308s
+{"detail": "Request body too large"}
+Expected if protected: 413 (or another refusal). Not protected: accepted.
+
+Done. Output saved to <Project>/peer-evidence/peer-threat-check-measured-2026-11-26.txt
+The stack is still running; stop it with: (cd "<Project>/peer-evidence/../peer-artifact-indexer/PA2" && docker compose down -v)
+ id |                at                | actor |         action          |              project_id              |             artifact_id              |  outcome  | status_code 
+----+----------------------------------+-------+-------------------------+--------------------------------------+--------------------------------------+-----------+-------------
+ 22 | 2026-11-26T20:19:29.756663+00:00 | alice | artifact.create         | 2902951a-d0df-4697-855a-7ddb8aaeeafd | 840fa253-830d-49bc-8126-9b1396f350bd | success   |         201
+ 21 | 2026-11-26T20:19:29.721392+00:00 | alice | project.create          | 2902951a-d0df-4697-855a-7ddb8aaeeafd |                                      | success   |         201
+ 20 | 2026-11-26T20:19:29.562877+00:00 | alice | project.delete          | e0e0313d-f825-4ce9-9c9a-6f00283c2aca |                                      | success   |         204
+ 19 | 2026-11-26T20:19:29.550709+00:00 | alice | artifact.delete         | e0e0313d-f825-4ce9-9c9a-6f00283c2aca | 37947ba8-dd74-4d55-b936-7c84d20ef5d3 | success   |         204
+ 18 | 2026-11-26T20:19:29.538296+00:00 | alice | artifact.update         | e0e0313d-f825-4ce9-9c9a-6f00283c2aca | 37947ba8-dd74-4d55-b936-7c84d20ef5d3 | conflict  |         428
+ 17 | 2026-11-26T20:19:29.528269+00:00 | alice | manuscript.download_zip | e0e0313d-f825-4ce9-9c9a-6f00283c2aca |                                      | success   |         200
+ 16 | 2026-11-26T20:19:29.517320+00:00 | alice | manuscript.download     | e0e0313d-f825-4ce9-9c9a-6f00283c2aca | 37947ba8-dd74-4d55-b936-7c84d20ef5d3 | not_found |         404
+ 15 | 2026-11-26T20:19:29.505063+00:00 | alice | manuscript.upload       | e0e0313d-f825-4ce9-9c9a-6f00283c2aca | 37947ba8-dd74-4d55-b936-7c84d20ef5d3 | conflict  |         428
+ 14 | 2026-11-26T20:19:29.473985+00:00 | alice | artifact.create         | e0e0313d-f825-4ce9-9c9a-6f00283c2aca | 37947ba8-dd74-4d55-b936-7c84d20ef5d3 | success   |         201
+ 13 | 2026-11-26T20:19:29.442119+00:00 | alice | project.create          | e0e0313d-f825-4ce9-9c9a-6f00283c2aca |                                      | success   |         201
+ 12 | 2026-11-26T20:19:29.419162+00:00 | alice | project.update          | 7b64a4d0-366e-4f21-b11c-a9825995e9a3 |                                      | conflict  |         428
+ 11 | 2026-11-26T20:19:29.407053+00:00 | alice | project.update          | 7b64a4d0-366e-4f21-b11c-a9825995e9a3 |                                      | conflict  |         428
+ 10 | 2026-11-26T20:19:29.364782+00:00 | alice | project.create          | 7b64a4d0-366e-4f21-b11c-a9825995e9a3 |                                      | success   |         201
+  9 | 2026-11-26T20:19:29.309638+00:00 | alice | project.delete          | 59770689-62bc-4709-8e8f-a1f110f96ec4 |                                      | success   |         204
+  8 | 2026-11-26T20:19:29.043594+00:00 | alice | manuscript.download     | 59770689-62bc-4709-8e8f-a1f110f96ec4 | f23a8d9a-7451-44d0-a86c-739f23dd4c72 | success   |         200
+  7 | 2026-11-26T20:19:29.030723+00:00 | bob   | manuscript.download_zip | 59770689-62bc-4709-8e8f-a1f110f96ec4 |                                      | denied    |         404
+  6 | 2026-11-26T20:19:29.017307+00:00 | bob   | manuscript.download     | 59770689-62bc-4709-8e8f-a1f110f96ec4 | f23a8d9a-7451-44d0-a86c-739f23dd4c72 | denied    |         404
+  5 | 2026-11-26T20:19:29.006854+00:00 | alice | manuscript.upload       | 59770689-62bc-4709-8e8f-a1f110f96ec4 | f23a8d9a-7451-44d0-a86c-739f23dd4c72 | success   |         200
+  4 | 2026-11-26T20:19:28.959418+00:00 | alice | artifact.create         | 59770689-62bc-4709-8e8f-a1f110f96ec4 | f23a8d9a-7451-44d0-a86c-739f23dd4c72 | success   |         201
+  3 | 2026-11-26T20:19:28.939644+00:00 | bob   | project.delete          | 59770689-62bc-4709-8e8f-a1f110f96ec4 |                                      | denied    |         404
+  2 | 2026-11-26T20:19:28.913030+00:00 | bob   | project.update          | 59770689-62bc-4709-8e8f-a1f110f96ec4 |                                      | denied    |         404
+  1 | 2026-11-26T20:19:28.858226+00:00 | alice | project.create          | 59770689-62bc-4709-8e8f-a1f110f96ec4 |                                      | success   |         201
+(22 rows)
+

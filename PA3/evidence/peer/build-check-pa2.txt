@@ -1,0 +1,135 @@
+Fresh build check, 2026-11-26. Before the build: docker compose down -v removed the previous volumes (cs763-pa2_manuscripts, cs763-pa2_database); built with --no-cache, started with --force-recreate. Repo state before the run: branch pa3-peer at 1a094d6 (tag assignment-2-v1.0.0), git status clean. After the run: docker compose down -v removed containers, volumes and networks.
+
+Thu Nov 26 10:18:05 EST 2026
+ Image cs763-artifact-indexer:pa2 Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 751B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 838B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/python:3.13-slim-bookworm@sha256:281d39ff02e3b389401586134ff9e6572954687822a58055ec07a60ded4e0b7f
+#3 DONE 0.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 88B done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 127B done
+#5 DONE 0.0s
+
+#6 [builder 1/4] FROM docker.io/library/python:3.13-slim-bookworm@sha256:281d39ff02e3b389401586134ff9e6572954687822a58055ec07a60ded4e0b7f
+#6 resolve docker.io/library/python:3.13-slim-bookworm@sha256:281d39ff02e3b389401586134ff9e6572954687822a58055ec07a60ded4e0b7f done
+#6 DONE 0.0s
+
+#7 [stage-1 2/5] WORKDIR /app
+#7 CACHED
+
+#8 [builder 2/4] WORKDIR /build
+#8 CACHED
+
+#9 [builder 3/4] COPY requirements.txt .
+#9 DONE 0.0s
+
+#10 [stage-1 3/5] RUN useradd --uid 10001 --create-home app && mkdir -p /data/manuscripts && chown -R app:app /data
+#10 DONE 0.1s
+
+#11 [builder 4/4] RUN python -m venv /opt/venv && /opt/venv/bin/pip install --no-cache-dir --require-hashes -r requirements.txt
+#11 1.501 Ignoring tzdata: markers 'sys_platform == "win32"' don't match your environment
+#11 1.580 Collecting annotated-doc==0.0.6 (from -r requirements.txt (line 1))
+#11 1.701   Downloading annotated_doc-0.0.6-py3-none-any.whl (5.3 kB)
+#11 1.717 Collecting annotated-types==0.8.0 (from -r requirements.txt (line 5))
+#11 1.740   Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+#11 1.770 Collecting anyio==4.16.0 (from -r requirements.txt (line 9))
+#11 1.789   Downloading anyio-4.16.0-py3-none-any.whl (134 kB)
+#11 1.859 Collecting click==8.5.1 (from -r requirements.txt (line 15))
+#11 1.881   Downloading click-8.5.1-py3-none-any.whl (126 kB)
+#11 1.976 Collecting fastapi==0.163.1 (from -r requirements.txt (line 19))
+#11 1.997   Downloading fastapi-0.163.1-py3-none-any.whl (154 kB)
+#11 2.054 Collecting h11==0.16.0 (from -r requirements.txt (line 23))
+#11 2.075   Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+#11 2.101 Collecting idna==3.20 (from -r requirements.txt (line 27))
+#11 2.122   Downloading idna-3.20-py3-none-any.whl (69 kB)
+#11 2.174 Collecting opentelemetry-api==1.45.2 (from -r requirements.txt (line 31))
+#11 2.193   Downloading opentelemetry_api-1.45.2-py3-none-any.whl (60 kB)
+#11 2.237 Collecting psycopg==3.3.9 (from -r requirements.txt (line 35))
+#11 2.256   Downloading psycopg-3.3.9-py3-none-any.whl (219 kB)
+#11 2.490 Collecting psycopg-binary==3.3.9 (from -r requirements.txt (line 39))
+#11 2.508   Downloading psycopg_binary-3.3.9-cp313-cp313-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl (4.1 MB)
+#11 3.418      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.1/4.1 MB 4.6 MB/s  0:00:00
+#11 3.543 Collecting pydantic==2.14.3 (from -r requirements.txt (line 52))
+#11 3.570   Downloading pydantic-2.14.3-py3-none-any.whl (494 kB)
+#11 4.291 Collecting pydantic-core==2.50.4 (from -r requirements.txt (line 56))
+#11 4.311   Downloading pydantic_core-2.50.4-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.whl (2.1 MB)
+#11 4.842      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 4.1 MB/s  0:00:00
+#11 4.877 Collecting python-multipart==0.0.34 (from -r requirements.txt (line 77))
+#11 4.923   Downloading python_multipart-0.0.34-py3-none-any.whl (32 kB)
+#11 5.274 Collecting sqlalchemy==2.1.8 (from -r requirements.txt (line 81))
+#11 5.294   Downloading sqlalchemy-2.1.8-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (4.6 MB)
+#11 6.369      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.6/4.6 MB 4.3 MB/s  0:00:01
+#11 6.415 Collecting starlette==1.10.0 (from -r requirements.txt (line 95))
+#11 6.441   Downloading starlette-1.10.0-py3-none-any.whl (80 kB)
+#11 6.496 Collecting typing-extensions==4.16.0 (from -r requirements.txt (line 99))
+#11 6.518   Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+#11 6.557 Collecting typing-inspection==0.4.5 (from -r requirements.txt (line 110))
+#11 6.580   Downloading typing_inspection-0.4.5-py3-none-any.whl (14 kB)
+#11 6.624 Collecting uvicorn==0.54.0 (from -r requirements.txt (line 120))
+#11 6.643   Downloading uvicorn-0.54.0-py3-none-any.whl (87 kB)
+#11 6.702 Installing collected packages: typing-extensions, python-multipart, psycopg-binary, psycopg, idna, h11, click, annotated-types, annotated-doc, uvicorn, typing-inspection, sqlalchemy, pydantic-core, opentelemetry-api, anyio, starlette, pydantic, fastapi
+#11 7.632 
+#11 7.632 Successfully installed annotated-doc-0.0.6 annotated-types-0.8.0 anyio-4.16.0 click-8.5.1 fastapi-0.163.1 h11-0.16.0 idna-3.20 opentelemetry-api-1.45.2 psycopg-3.3.9 psycopg-binary-3.3.9 pydantic-2.14.3 pydantic-core-2.50.4 python-multipart-0.0.34 sqlalchemy-2.1.8 starlette-1.10.0 typing-extensions-4.16.0 typing-inspection-0.4.5 uvicorn-0.54.0
+#11 7.633 
+#11 7.633 [notice] A new release of pip is available: 26.2.2 -> 26.3
+#11 7.633 [notice] To update, run: /opt/venv/bin/python -m pip install --upgrade pip
+#11 DONE 7.8s
+
+#12 [stage-1 4/5] COPY --from=builder /opt/venv /opt/venv
+#12 DONE 0.2s
+
+#13 [stage-1 5/5] COPY app ./app
+#13 DONE 0.0s
+
+#14 exporting to image
+#14 exporting layers
+#14 exporting layers 1.0s done
+#14 exporting manifest sha256:d324e2b400e994ae7615c92d874e261c3644aa3243475191a2bb7d7e95dc6313 done
+#14 exporting config sha256:6404c491b63a38c5d5bb2f334813587589b55b0301acce58e62bd252a103d07a done
+#14 exporting attestation manifest sha256:02de285be495db84a6d590670c7276fbaa813fff67d2cc8b15c8c7bb9e8711ce done
+#14 exporting manifest list sha256:6af85054b9d51791ff31f9b2e3ad8bb77ae5b1c16dff5df197aa623d06a6ee8e done
+#14 naming to docker.io/library/cs763-artifact-indexer:pa2 done
+#14 unpacking to docker.io/library/cs763-artifact-indexer:pa2
+#14 unpacking to docker.io/library/cs763-artifact-indexer:pa2 0.3s done
+#14 DONE 1.3s
+
+#15 resolving provenance for metadata file
+#15 DONE 0.0s
+ Image cs763-artifact-indexer:pa2 Built 
+ Volume cs763-pa2_manuscripts Creating 
+ Network cs763-pa2_backend Creating 
+ Volume cs763-pa2_database Creating 
+ Network cs763-pa2_ingress Creating 
+ Volume cs763-pa2_database Created 
+ Volume cs763-pa2_manuscripts Created 
+ Network cs763-pa2_backend Created 
+ Container cs763-pa2-db-1 Creating 
+ Network cs763-pa2_ingress Created 
+ Container cs763-pa2-db-1 Created 
+ Container cs763-pa2-api-1 Creating 
+ Container cs763-pa2-api-1 Created 
+ Container cs763-pa2-db-1 Starting 
+ Container cs763-pa2-db-1 Started 
+ Container cs763-pa2-db-1 Waiting 
+ Container cs763-pa2-db-1 Healthy 
+ Container cs763-pa2-api-1 Starting 
+ Container cs763-pa2-api-1 Started 
+ Container cs763-pa2-api-1 Waiting 
+ Container cs763-pa2-db-1 Waiting 
+ Container cs763-pa2-db-1 Healthy 
+ Container cs763-pa2-api-1 Healthy 
+NAME              IMAGE                                                                                          COMMAND                  SERVICE   CREATED          STATUS                    PORTS
+cs763-pa2-api-1   cs763-artifact-indexer:pa2                                                                     "uvicorn app.main:ap…"   api       11 seconds ago   Up 5 seconds (healthy)    127.0.0.1:8002->8000/tcp
+cs763-pa2-db-1    postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5   "docker-entrypoint.s…"   db        11 seconds ago   Up 11 seconds (healthy)   5432/tcp
+{"status":"ok"}
