@@ -2,7 +2,7 @@
 # Language stack: GitHub Actions YAML / .NET 10 / Docker
 # Prompt Summary: "DevSecOps pipeline: build, test, Docker image, Trivy, Semgrep, SonarQube Cloud"
 # AI Contribution: Pipeline structure, steps and scanner setup (~90%)
-# Human Modifications: PA2 (2026-11-14): paths moved to PA2/functional-codebase. PA3 (2026-11-26): pointed at PA3/secure-codebase (Sonar report paths, test results, Docker build context) and PA2 excluded from all scans (~10%)
+# Human Modifications: PA2 (2026-11-14): paths moved to PA2/functional-codebase. PA3 (2026-11-26): pointed at PA3/secure-codebase (Sonar report paths, test results, Docker build context) and PA2, PA3/evidence and PA3/.ai_logs excluded from all scans (the last two added by the chat assistant at my request) (~10%)
 # Verification: pipeline run on the pa3-own pull request
 # Confidence: Medium (until that run passes)
 # DevSecOps pipeline: build + test, Docker image, Trivy, Semgrep, SonarQube Cloud.
@@ -109,7 +109,7 @@ jobs:
             /o:"essieanawalt" \
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.exclusions="PA1/**,PA2/**" \
+            /d:sonar.exclusions="PA1/**,PA2/**,PA3/evidence/**,PA3/.ai_logs/**" \
             /d:sonar.cs.opencover.reportsPaths="PA3/secure-codebase/tests/**/TestResults/**/coverage.opencover.xml" \
             /d:sonar.cs.vstest.reportsPaths="PA3/secure-codebase/tests/**/TestResults/*.trx"
 
@@ -162,7 +162,7 @@ jobs:
             -v trivy-cache:/root/.cache \
             "$TRIVY_IMAGE" fs /src \
               --scanners vuln \
-              --skip-dirs '**/bin' --skip-dirs '**/obj' --skip-dirs 'reports' --skip-dirs '.sonarqube' --skip-dirs 'PA2' --skip-dirs 'PA1' \
+              --skip-dirs '**/bin' --skip-dirs '**/obj' --skip-dirs 'reports' --skip-dirs '.sonarqube' --skip-dirs 'PA2' --skip-dirs 'PA1' --skip-dirs 'PA3/evidence' --skip-dirs 'PA3/.ai_logs' \
               --list-all-pkgs \
               --exit-code 0 \
               --format json --output /out/trivy-deps.json
@@ -224,6 +224,8 @@ jobs:
               --config p/csharp \
               --exclude 'PA2' \
               --exclude 'PA1' \
+              --exclude 'PA3/evidence' \
+              --exclude 'PA3/.ai_logs' \
               --metrics=off \
               --sarif-output=reports/semgrep/semgrep.sarif \
               --json-output=reports/semgrep/semgrep.json \
