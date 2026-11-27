@@ -1,0 +1,121 @@
+# Tool: Claude Code (Claude Opus 5.5)
+# Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
+# Prompt Summary: "PA3 hardening: separate owner and runtime database roles, API health check, field key as a secret file, SonarQube smells, test first"
+# AI Contribution: Compose stack for the PA3 copy: database on an internal network with no published port and no fallback passwords; a one-shot migration job as the schema owner; the API as a runtime role that owns nothing, with no owner credentials, the field key as a Docker secret file and a health check that needs no extra packages; JWKS mounted read-only (CWE-1392, CWE-1327, CWE-250, CWE-260, CWE-269, CWE-526) (~100%)
+# Human Modifications: None yet
+# Verification: ComposeConfigTests (static) and ComposeStackTests (live, RESOURCEHUB_COMPOSE_TESTS=1)
+# Confidence: High
+#
+# Every secret comes from the environment or a local .env (see .env.example); "${VAR:?}" makes
+# Compose stop with an error instead of falling back to a committed value.
+
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (see .env.example)}
+      # Password auth over TCP; inside the container only the OS user postgres may connect locally.
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=peer"
+      APP_DB_NAME: resourcehub
+      OWNER_DB_USER: ${OWNER_DB_USER:-resourcehub_owner}
+      OWNER_DB_PASSWORD: ${OWNER_DB_PASSWORD:?Set OWNER_DB_PASSWORD in .env (see .env.example)}
+      APP_DB_USER: ${APP_DB_USER:-resourcehub_app}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?Set APP_DB_PASSWORD in .env (see .env.example)}
+    # No published port: the database is reachable only from the migrate and api containers on the internal network.
+    networks:
+      - backend
+    volumes:
+      # postgres:18 keeps data under /var/lib/postgresql/<version>, so mount the parent.
+      - db-data:/var/lib/postgresql
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -d resourcehub"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    security_opt:
+      - no-new-privileges:true
+
+  # One-shot job: applies the migrations (and encrypts any plaintext license keys) as the schema
+  # owner, grants the runtime role its data access, and exits. Only this container gets the owner's
+  # credentials.
+  migrate:
+    build: .
+    command: ["--migrate"]
+    environment:
+      ConnectionStrings__HubDbOwner: "Host=db;Port=5432;Database=resourcehub;Username=${OWNER_DB_USER:-resourcehub_owner};Password=${OWNER_DB_PASSWORD:?Set OWNER_DB_PASSWORD in .env};Timeout=5"
+      Database__RuntimeRole: ${APP_DB_USER:-resourcehub_app}
+      FIELD_ENCRYPTION_KEY_FILE: /run/secrets/field_encryption_key
+    secrets:
+      - field_encryption_key
+    networks:
+      - backend
+    restart: "no"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build: .
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__HubDb: "Host=db;Port=5432;Database=resourcehub;Username=${APP_DB_USER:-resourcehub_app};Password=${APP_DB_PASSWORD:?Set APP_DB_PASSWORD in .env};Timeout=5"
+      JWT_JWKS_PATH: ${JWT_JWKS_PATH:-/etc/resourcehub/jwks.json}
+      JWT_ISSUER: ${JWT_ISSUER:-http://localhost:9000}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-cs763-api}
+      # The key itself is a secret file, so docker inspect shows only this path.
+      FIELD_ENCRYPTION_KEY_FILE: /run/secrets/field_encryption_key
+    secrets:
+      - field_encryption_key
+    volumes:
+      - type: bind
+        source: ${JWKS_HOST_PATH:?Set JWKS_HOST_PATH to the JWKS file with the token issuer's public keys}
+        target: ${JWT_JWKS_PATH:-/etc/resourcehub/jwks.json}
+        read_only: true
+    ports:
+      # Bound to the loopback interface only; put a TLS-terminating proxy in front for anything else.
+      - "127.0.0.1:${API_PORT:-8080}:8080"
+    networks:
+      - backend
+      - frontend
+    # The app checks itself (GET /api/v1/health on loopback, no token); the image needs no extra HTTP client.
+    healthcheck:
+      test: ["CMD", "dotnet", "ResourceHub.Api.dll", "--healthcheck"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+      start_interval: 2s
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+secrets:
+  field_encryption_key:
+    # Host file holding only the base64 key (openssl rand -base64 32 > secrets/field_encryption_key).
+    file: ${FIELD_ENCRYPTION_KEY_HOST_FILE:?Set FIELD_ENCRYPTION_KEY_HOST_FILE to the file holding the field key (see .env.example)}
+
+networks:
+  backend:
+    internal: true
+  frontend: {}
+
+volumes:
+  db-data:

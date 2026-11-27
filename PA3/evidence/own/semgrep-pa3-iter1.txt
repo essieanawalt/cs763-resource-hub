@@ -1,0 +1,15 @@
+                  
+                  
+┌────────────────┐
+│ 1 Code Finding │
+└────────────────┘
+                                                                   
+    PA3/secure-codebase/src/ResourceHub.Api/Data/DatabaseStartup.cs
+   ❯❯❱ csharp.lang.security.sqli.csharp-sqli.csharp-sqli
+          ❰❰ Blocking ❱❱
+          Detected a formatted string in a SQL statement. This could lead to SQL injection if variables in the
+          SQL statement are not properly sanitized. Use a prepared statements instead. You can obtain a       
+          PreparedStatement using 'SqlCommand' and 'SqlParameter'.                                            
+          Details: https://sg.run/d2Xd                                                                        
+                                                                                                              
+           89┆ command.CommandText = sql;

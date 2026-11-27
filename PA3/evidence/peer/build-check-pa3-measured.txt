@@ -1,0 +1,145 @@
+Thu Nov 26 15:12:14 EST 2026
+ Image cs763-artifact-indexer:pa2 Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 751B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 838B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/python:3.13-slim-bookworm@sha256:281d39ff02e3b389401586134ff9e6572954687822a58055ec07a60ded4e0b7f
+#3 DONE 0.0s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 527B done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 429B done
+#5 DONE 0.0s
+
+#6 [builder 1/4] FROM docker.io/library/python:3.13-slim-bookworm@sha256:281d39ff02e3b389401586134ff9e6572954687822a58055ec07a60ded4e0b7f
+#6 resolve docker.io/library/python:3.13-slim-bookworm@sha256:281d39ff02e3b389401586134ff9e6572954687822a58055ec07a60ded4e0b7f done
+#6 DONE 0.0s
+
+#7 [builder 2/4] WORKDIR /build
+#7 CACHED
+
+#8 [stage-1 2/5] WORKDIR /app
+#8 CACHED
+
+#9 [builder 3/4] COPY requirements.txt .
+#9 DONE 0.0s
+
+#10 [stage-1 3/5] RUN useradd --uid 10001 --create-home app && mkdir -p /data/manuscripts && chown -R app:app /data
+#10 DONE 0.1s
+
+#11 [builder 4/4] RUN python -m venv /opt/venv && /opt/venv/bin/pip install --no-cache-dir --require-hashes -r requirements.txt
+#11 1.464 Ignoring tzdata: markers 'sys_platform == "win32"' don't match your environment
+#11 1.532 Collecting annotated-doc==0.0.6 (from -r requirements.txt (line 1))
+#11 1.648   Downloading annotated_doc-0.0.6-py3-none-any.whl (5.3 kB)
+#11 1.668 Collecting annotated-types==0.8.0 (from -r requirements.txt (line 5))
+#11 1.686   Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+#11 1.717 Collecting anyio==4.16.0 (from -r requirements.txt (line 9))
+#11 1.744   Downloading anyio-4.16.0-py3-none-any.whl (134 kB)
+#11 1.929 Collecting cffi==2.1.1 (from -r requirements.txt (line 15))
+#11 1.948   Downloading cffi-2.1.1-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.whl (222 kB)
+#11 2.019 Collecting click==8.5.1 (from -r requirements.txt (line 32))
+#11 2.038   Downloading click-8.5.1-py3-none-any.whl (126 kB)
+#11 2.244 Collecting cryptography==49.0.0 (from -r requirements.txt (line 36))
+#11 2.263   Downloading cryptography-49.0.0-cp311-abi3-manylinux_2_34_aarch64.whl (4.7 MB)
+#11 3.398      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.7/4.7 MB 4.2 MB/s  0:00:01
+#11 3.474 Collecting fastapi==0.163.1 (from -r requirements.txt (line 67))
+#11 3.505   Downloading fastapi-0.163.1-py3-none-any.whl (154 kB)
+#11 3.566 Collecting h11==0.16.0 (from -r requirements.txt (line 71))
+#11 3.584   Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+#11 3.613 Collecting idna==3.20 (from -r requirements.txt (line 75))
+#11 3.638   Downloading idna-3.20-py3-none-any.whl (69 kB)
+#11 3.680 Collecting opentelemetry-api==1.45.2 (from -r requirements.txt (line 79))
+#11 3.703   Downloading opentelemetry_api-1.45.2-py3-none-any.whl (60 kB)
+#11 3.742 Collecting psycopg==3.3.9 (from -r requirements.txt (line 83))
+#11 3.767   Downloading psycopg-3.3.9-py3-none-any.whl (219 kB)
+#11 3.983 Collecting psycopg-binary==3.3.9 (from -r requirements.txt (line 87))
+#11 4.008   Downloading psycopg_binary-3.3.9-cp313-cp313-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl (4.1 MB)
+#11 4.978      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.1/4.1 MB 4.3 MB/s  0:00:00
+#11 5.006 Collecting pycparser==3.12 (from -r requirements.txt (line 100))
+#11 5.030   Downloading pycparser-3.12-py3-none-any.whl (62 kB)
+#11 5.161 Collecting pydantic==2.14.3 (from -r requirements.txt (line 104))
+#11 5.180   Downloading pydantic-2.14.3-py3-none-any.whl (494 kB)
+#11 5.893 Collecting pydantic-core==2.50.4 (from -r requirements.txt (line 108))
+#11 5.912   Downloading pydantic_core-2.50.4-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.whl (2.1 MB)
+#11 6.412      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 4.3 MB/s  0:00:00
+#11 6.435 Collecting pyjwt==2.15.1 (from -r requirements.txt (line 129))
+#11 6.457   Downloading pyjwt-2.15.1-py3-none-any.whl (33 kB)
+#11 6.485 Collecting python-multipart==0.0.34 (from -r requirements.txt (line 133))
+#11 6.504   Downloading python_multipart-0.0.34-py3-none-any.whl (32 kB)
+#11 6.828 Collecting sqlalchemy==2.1.8 (from -r requirements.txt (line 137))
+#11 6.849   Downloading sqlalchemy-2.1.8-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl (4.6 MB)
+#11 7.912      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.6/4.6 MB 4.3 MB/s  0:00:01
+#11 7.963 Collecting starlette==1.10.0 (from -r requirements.txt (line 151))
+#11 7.984   Downloading starlette-1.10.0-py3-none-any.whl (80 kB)
+#11 8.033 Collecting typing-extensions==4.16.0 (from -r requirements.txt (line 155))
+#11 8.052   Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+#11 8.080 Collecting typing-inspection==0.4.5 (from -r requirements.txt (line 166))
+#11 8.100   Downloading typing_inspection-0.4.5-py3-none-any.whl (14 kB)
+#11 8.136 Collecting uvicorn==0.54.0 (from -r requirements.txt (line 176))
+#11 8.156   Downloading uvicorn-0.54.0-py3-none-any.whl (87 kB)
+#11 8.209 Installing collected packages: typing-extensions, python-multipart, pyjwt, pycparser, psycopg-binary, psycopg, idna, h11, click, annotated-types, annotated-doc, uvicorn, typing-inspection, sqlalchemy, pydantic-core, opentelemetry-api, cffi, anyio, starlette, pydantic, cryptography, fastapi
+#11 9.277 
+#11 9.278 Successfully installed annotated-doc-0.0.6 annotated-types-0.8.0 anyio-4.16.0 cffi-2.1.1 click-8.5.1 cryptography-49.0.0 fastapi-0.163.1 h11-0.16.0 idna-3.20 opentelemetry-api-1.45.2 psycopg-3.3.9 psycopg-binary-3.3.9 pycparser-3.12 pydantic-2.14.3 pydantic-core-2.50.4 pyjwt-2.15.1 python-multipart-0.0.34 sqlalchemy-2.1.8 starlette-1.10.0 typing-extensions-4.16.0 typing-inspection-0.4.5 uvicorn-0.54.0
+#11 9.278 
+#11 9.278 [notice] A new release of pip is available: 26.2.2 -> 26.3
+#11 9.278 [notice] To update, run: /opt/venv/bin/python -m pip install --upgrade pip
+#11 DONE 9.4s
+
+#12 [stage-1 4/5] COPY --from=builder /opt/venv /opt/venv
+#12 DONE 0.3s
+
+#13 [stage-1 5/5] COPY app ./app
+#13 DONE 0.0s
+
+#14 exporting to image
+#14 exporting layers
+#14 exporting layers 1.3s done
+#14 exporting manifest sha256:892010d781f09d13b16df909db396112faac4be3050d096e83a410856099021d done
+#14 exporting config sha256:fb2ebe9f9c5b2a56151722d20570432406298ef2686df0401d2963a7daf20987 done
+#14 exporting attestation manifest sha256:45a9d04a220bfb3474a7b7b7f0c991ad4c6ef50f5a42f2d34870e6e9063e44e4 done
+#14 exporting manifest list sha256:80d0f551e645cc63062eee6795b249e08971c464604d85ceb4d1e3c264cb861a done
+#14 naming to docker.io/library/cs763-artifact-indexer:pa2 done
+#14 unpacking to docker.io/library/cs763-artifact-indexer:pa2
+#14 unpacking to docker.io/library/cs763-artifact-indexer:pa2 0.3s done
+#14 DONE 1.7s
+
+#15 resolving provenance for metadata file
+#15 DONE 0.0s
+ Image cs763-artifact-indexer:pa2 Built 
+ Volume cs763-pa2_manuscripts Creating 
+ Network cs763-pa2_backend Creating 
+ Volume cs763-pa2_database Creating 
+ Network cs763-pa2_ingress Creating 
+ Volume cs763-pa2_manuscripts Created 
+ Volume cs763-pa2_database Created 
+ Network cs763-pa2_ingress Created 
+ Network cs763-pa2_backend Created 
+ Container cs763-pa2-db-1 Creating 
+ Container cs763-pa2-db-1 Created 
+ Container cs763-pa2-api-1 Creating 
+ Container cs763-pa2-api-1 Created 
+ Container cs763-pa2-db-1 Starting 
+ Container cs763-pa2-db-1 Started 
+ Container cs763-pa2-db-1 Waiting 
+ Container cs763-pa2-db-1 Healthy 
+ Container cs763-pa2-api-1 Starting 
+ Container cs763-pa2-api-1 Started 
+ Container cs763-pa2-api-1 Waiting 
+ Container cs763-pa2-db-1 Waiting 
+ Container cs763-pa2-db-1 Healthy 
+ Container cs763-pa2-api-1 Healthy 
+error while interpolating services.api.environment.FIELD_ENCRYPTION_KEY: required variable FIELD_ENCRYPTION_KEY is missing a value: set FIELD_ENCRYPTION_KEY (see functional-codebase/.env.example)
+error while interpolating services.api.volumes.[]: required variable JWKS_HOST_PATH is missing a value: set JWKS_HOST_PATH to the public JWKS file on the host
+--- rerun of ps and healthz with --env-file (the first attempt omitted it)
+NAME              IMAGE                                                                                          COMMAND                  SERVICE   CREATED          STATUS                    PORTS
+cs763-pa2-api-1   cs763-artifact-indexer:pa2                                                                     "uvicorn app.main:ap…"   api       46 seconds ago   Up 41 seconds (healthy)   127.0.0.1:8002->8000/tcp
+cs763-pa2-db-1    postgres:17-bookworm@sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5   "docker-entrypoint.s…"   db        46 seconds ago   Up 46 seconds (healthy)   5432/tcp
+{"status":"ok"}

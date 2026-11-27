@@ -1,0 +1,129 @@
+Thu Nov 26 19:38:43 EST 2026
+ Image secure-codebase-migrate Building 
+ Image secure-codebase-api Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.40kB done
+#1 DONE 0.0s
+
+#2 [api internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.79kB done
+#2 DONE 0.0s
+
+#3 [migrate] resolve image config for docker-image://docker.io/docker/dockerfile:1
+#3 DONE 0.4s
+
+#4 [migrate] docker-image://docker.io/docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183
+#4 resolve docker.io/docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183 done
+#4 CACHED
+
+#5 [api internal] load metadata for mcr.microsoft.com/dotnet/aspnet:10.0
+#5 DONE 0.2s
+
+#6 [migrate internal] load metadata for mcr.microsoft.com/dotnet/sdk:10.0
+#6 DONE 0.2s
+
+#7 [migrate internal] load .dockerignore
+#7 transferring context: 685B done
+#7 DONE 0.0s
+
+#8 [migrate build 1/7] FROM mcr.microsoft.com/dotnet/sdk:10.0@sha256:8c6edfb26c85153f236d26efebd9ad349aec403583f343f201ee67838b23658d
+#8 resolve mcr.microsoft.com/dotnet/sdk:10.0@sha256:8c6edfb26c85153f236d26efebd9ad349aec403583f343f201ee67838b23658d done
+#8 DONE 0.0s
+
+#9 [migrate build 2/7] WORKDIR /src
+#9 CACHED
+
+#10 [api runtime 1/3] FROM mcr.microsoft.com/dotnet/aspnet:10.0@sha256:aac50ceef10391e78a899e3d2ccd00bbafa2dcb56ccf4586cbccf00edb84fc21
+#10 resolve mcr.microsoft.com/dotnet/aspnet:10.0@sha256:aac50ceef10391e78a899e3d2ccd00bbafa2dcb56ccf4586cbccf00edb84fc21 done
+#10 DONE 0.0s
+
+#11 [api runtime 2/3] WORKDIR /app
+#11 CACHED
+
+#12 [api internal] load build context
+#12 transferring context: 3.28kB done
+#12 DONE 0.0s
+
+#13 [migrate build 3/7] COPY global.json Directory.Build.props .editorconfig ./
+#13 DONE 0.0s
+
+#14 [migrate build 4/7] COPY src/ResourceHub.Api/ResourceHub.Api.csproj src/ResourceHub.Api/packages.lock.json src/ResourceHub.Api/
+#14 DONE 0.0s
+
+#15 [migrate build 5/7] RUN dotnet restore src/ResourceHub.Api/ResourceHub.Api.csproj --locked-mode
+#15 0.397   Determining projects to restore...
+#15 13.64   Restored /src/src/ResourceHub.Api/ResourceHub.Api.csproj (in 13.12 sec).
+#15 DONE 13.9s
+
+#16 [migrate build 6/7] COPY src/ src/
+#16 DONE 0.0s
+
+#17 [api build 7/7] RUN dotnet publish src/ResourceHub.Api/ResourceHub.Api.csproj     --configuration Release --no-restore --output /app/publish /p:UseAppHost=false
+#17 1.576   ResourceHub.Api -> /src/src/ResourceHub.Api/bin/Release/net10.0/ResourceHub.Api.dll
+#17 1.602   ResourceHub.Api -> /app/publish/
+#17 DONE 1.7s
+
+#18 [migrate runtime 3/3] COPY --from=build /app/publish .
+#18 DONE 0.0s
+
+#19 [api] exporting to image
+#19 exporting layers
+#19 exporting layers 0.2s done
+#19 exporting manifest sha256:294f693ea4f7d441effb7011994d7925f47a371679346753f295de7b84707828 done
+#19 exporting config sha256:546ddc57caf93136044793719d2b7b146bd1e8f29bb7ecf5b5dc960fccf3b1cf done
+#19 exporting attestation manifest sha256:656ca2344c1a6577497e5441def69d51be872bfbaebb9b0aac87236eadfb7f49 done
+#19 exporting manifest list sha256:f70ddfd4ddeb1f4de5db794e865f8a4c5e7d8d8ad17ebfb1213f1bd5ddc76876 done
+#19 naming to docker.io/library/secure-codebase-api:latest done
+#19 unpacking to docker.io/library/secure-codebase-api:latest 0.0s done
+#19 DONE 0.2s
+
+#20 [migrate] exporting to image
+#20 exporting layers 0.2s done
+#20 exporting manifest sha256:56a99d57131189d2ef97d2ff17d6e2538dfb3e0b6304697462925ffeec693d49 done
+#20 exporting config sha256:f8c1bb9f1c48096634c79cd7d9fe4ad769825285ab78cac518f01c6a05f130fc done
+#20 exporting attestation manifest sha256:7796805db19dcaa6f62e81dc32991799fd2b4d30456400f956fee5ddb7d94978 done
+#20 exporting manifest list sha256:bf8402bb64624da022dc800011c6378e046b2b973a1d7a24149d7bbca8f148e0 done
+#20 naming to docker.io/library/secure-codebase-migrate:latest done
+#20 unpacking to docker.io/library/secure-codebase-migrate:latest 0.0s done
+#20 DONE 0.2s
+
+#21 [api] resolving provenance for metadata file
+#21 DONE 0.0s
+
+#22 [migrate] resolving provenance for metadata file
+#22 DONE 0.0s
+ Image secure-codebase-api Built 
+ Image secure-codebase-migrate Built 
+ Network secure-codebase_backend Creating 
+ Network secure-codebase_frontend Creating 
+ Volume secure-codebase_db-data Creating 
+ Volume secure-codebase_db-data Created 
+ Network secure-codebase_frontend Created 
+ Network secure-codebase_backend Created 
+ Container secure-codebase-db-1 Creating 
+ Container secure-codebase-db-1 Created 
+ Container secure-codebase-migrate-1 Creating 
+ Container secure-codebase-migrate-1 Created 
+ Container secure-codebase-api-1 Creating 
+ Container secure-codebase-api-1 Created 
+ Container secure-codebase-db-1 Starting 
+ Container secure-codebase-db-1 Started 
+ Container secure-codebase-db-1 Waiting 
+ Container secure-codebase-db-1 Healthy 
+ Container secure-codebase-migrate-1 Starting 
+ Container secure-codebase-migrate-1 Started 
+ Container secure-codebase-migrate-1 Waiting 
+ Container secure-codebase-migrate-1 Exited 
+ Container secure-codebase-api-1 Starting 
+ Container secure-codebase-api-1 Started 
+ Container secure-codebase-migrate-1 Waiting 
+ Container secure-codebase-api-1 Waiting 
+ Container secure-codebase-db-1 Waiting 
+ Container secure-codebase-migrate-1 Exited 
+ Container secure-codebase-db-1 Healthy 
+ Container secure-codebase-api-1 Healthy 
+NAME                        IMAGE                     COMMAND                  SERVICE   CREATED         STATUS                     PORTS
+secure-codebase-api-1       secure-codebase-api       "dotnet ResourceHub.…"   api       9 seconds ago   Up 2 seconds (healthy)     127.0.0.1:8080->8080/tcp
+secure-codebase-db-1        postgres:18               "docker-entrypoint.s…"   db        9 seconds ago   Up 8 seconds (healthy)     5432/tcp
+secure-codebase-migrate-1   secure-codebase-migrate   "dotnet ResourceHub.…"   migrate   9 seconds ago   Exited (0) 2 seconds ago   
+{"status":"healthy","database":"reachable"}

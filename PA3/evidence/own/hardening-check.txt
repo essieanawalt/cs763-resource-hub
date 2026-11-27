@@ -1,0 +1,53 @@
+Thu Nov 26 19:39:45 EST 2026
+=== H1: who owns the tables
+psql: error: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: FATAL:  Peer authentication failed for user "postgres"
+=== H1: the API's role tries schema and history changes (all should be refused)
+--- ALTER TABLE ticket_events DISABLE TRIGGER ALL;
+ERROR:  must be owner of table ticket_events
+--- DROP TRIGGER audit_events_append_only ON audit_events;
+ERROR:  must be owner of relation audit_events
+--- DROP TABLE audit_events;
+ERROR:  must be owner of table audit_events
+--- DELETE FROM audit_events;
+ERROR:  permission denied for table audit_events
+--- CREATE TABLE probe (x int);
+                     ^
+=== H1 and H3: variable names in the API container's environment (no values shown)
+
+APP_UID
+ASPNET_VERSION
+ASPNETCORE_ENVIRONMENT
+ASPNETCORE_HTTP_PORTS
+ConnectionStrings__HubDb
+DOTNET_CLI_TELEMETRY_OPTOUT
+DOTNET_RUNNING_IN_CONTAINER
+DOTNET_VERSION
+FIELD_ENCRYPTION_KEY_FILE
+JWT_AUDIENCE
+JWT_ISSUER
+JWT_JWKS_PATH
+PATH
+=== H1: does the API's connection string use the owner role? (count of matches)
+0
+=== rerun: who owns the tables (as the postgres OS user; root is refused by peer authentication)
+       tablename       |    tableowner     
+-----------------------+-------------------
+ __EFMigrationsHistory | resourcehub_owner
+ allocations           | resourcehub_owner
+ assets                | resourcehub_owner
+ audit_events          | resourcehub_owner
+ courses               | resourcehub_owner
+ device_assignments    | resourcehub_owner
+ license_keys          | resourcehub_owner
+ projects              | resourcehub_owner
+ research_labs         | resourcehub_owner
+ ticket_events         | resourcehub_owner
+ ticket_items          | resourcehub_owner
+ tickets               | resourcehub_owner
+ users                 | resourcehub_owner
+(13 rows)
+
+=== rerun: CREATE TABLE as the API's role (full error)
+ERROR:  permission denied for schema public
+LINE 1: CREATE TABLE probe (x int);
+                     ^

@@ -1,0 +1,19 @@
+# Tool: Claude Code (Claude Opus 5.5)
+# Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
+# Prompt Summary: "PA3 hardening: separate owner and runtime database roles, API health check, field key as a secret file, SonarQube smells, test first"
+# AI Contribution: Keeps build output, tests, secrets (including the secrets/ folder with the field key file) and local env files out of the image build context (~100%)
+# Human Modifications: None yet
+# Verification: docker compose build via ComposeStackTests
+# Confidence: High
+**/bin/
+**/obj/
+tests/
+.env
+.env.*
+!.env.example
+**/*.pem
+**/*.key
+**/jwks*.json
+secrets/
+.git
+.claude

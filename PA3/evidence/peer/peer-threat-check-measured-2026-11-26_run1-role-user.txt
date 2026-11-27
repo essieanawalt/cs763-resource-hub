@@ -1,0 +1,95 @@
+Peer threat check: measured
+Thu Nov 26 15:17:52 EST 2026
+Base URL: http://127.0.0.1:8002   Token sent: yes
+Peer repo: fd093ca on pa3-peer
+
+=== PT1 Tampering: two clients update the same project from the same original read ===
+POST /api/v1/projects -> 403
+{"detail":"Role not permitted"}
+project: 
+GET /api/v1/projects/ -> 307
+
+-- client A updates (based on the original read)
+PUT /api/v1/projects/ -> 307
+
+-- client B updates, also based on the original read (stale)
+PUT /api/v1/projects/ -> 307
+
+-- final state
+GET /api/v1/projects/ -> 307
+
+Expected if protected: client B's update refused (409 or 412). Not protected: 200 and A's change is gone.
+
+=== PT2 Repudiation: change, download and delete, then look for a record ===
+POST /api/v1/projects -> 403
+{"detail":"Role not permitted"}
+project: 
+POST /api/v1/projects//artifacts/manuscripts/ -> 404
+{"detail":"Not Found"}
+artifact: 
+POST upload -> 404
+{"detail":"Not Found"}
+GET download file -> 404
+GET download zip -> 404
+PUT /api/v1/projects//artifacts/manuscripts/ -> 404
+{"detail":"Not Found"}
+DELETE /api/v1/projects//artifacts/manuscripts/ -> 404
+{"detail":"Not Found"}
+DELETE /api/v1/projects/ -> 307
+
+-- API log since start of this check
+api-1  | INFO:     172.21.0.1:64886 - "GET /api/v1/projects HTTP/1.1" 401 Unauthorized
+api-1  | INFO:     172.21.0.1:64890 - "GET /api/v1/projects HTTP/1.1" 401 Unauthorized
+api-1  | INFO:     172.21.0.1:64904 - "GET /api/v1/projects HTTP/1.1" 401 Unauthorized
+api-1  | INFO:     172.21.0.1:64912 - "GET /api/v1/projects HTTP/1.1" 401 Unauthorized
+api-1  | INFO:     172.21.0.1:64920 - "POST /api/v1/projects HTTP/1.1" 403 Forbidden
+api-1  | INFO:     172.21.0.1:64930 - "GET /api/v1/projects/ HTTP/1.1" 307 Temporary Redirect
+api-1  | INFO:     172.21.0.1:64946 - "PUT /api/v1/projects/ HTTP/1.1" 307 Temporary Redirect
+api-1  | INFO:     172.21.0.1:64948 - "DELETE /api/v1/projects/ HTTP/1.1" 307 Temporary Redirect
+api-1  | INFO:     172.21.0.1:64964 - "POST /api/v1/projects//artifacts/manuscripts/ HTTP/1.1" 404 Not Found
+api-1  | INFO:     172.21.0.1:64972 - "POST /api/v1/projects//artifacts/manuscripts//file HTTP/1.1" 404 Not Found
+api-1  | INFO:     172.21.0.1:64982 - "GET /api/v1/projects//artifacts/manuscripts//file HTTP/1.1" 404 Not Found
+api-1  | INFO:     172.21.0.1:64998 - "GET /api/v1/projects//artifacts/manuscripts/download HTTP/1.1" 404 Not Found
+api-1  | INFO:     172.21.0.1:65002 - "GET /api/v1/projects//artifacts/manuscripts//file HTTP/1.1" 404 Not Found
+api-1  | INFO:     172.21.0.1:65006 - "POST /api/v1/projects HTTP/1.1" 403 Forbidden
+api-1  | INFO:     172.21.0.1:65008 - "POST /api/v1/projects HTTP/1.1" 403 Forbidden
+api-1  | INFO:     172.21.0.1:65024 - "GET /api/v1/projects/ HTTP/1.1" 307 Temporary Redirect
+api-1  | INFO:     172.21.0.1:65032 - "DELETE /api/v1/projects/ HTTP/1.1" 307 Temporary Redirect
+api-1  | INFO:     172.21.0.1:65040 - "POST /api/v1/projects HTTP/1.1" 403 Forbidden
+api-1  | INFO:     127.0.0.1:44136 - "GET /healthz HTTP/1.1" 200 OK
+api-1  | INFO:     172.21.0.1:65056 - "GET /api/v1/projects/ HTTP/1.1" 307 Temporary Redirect
+api-1  | INFO:     172.21.0.1:65058 - "PUT /api/v1/projects/ HTTP/1.1" 307 Temporary Redirect
+api-1  | INFO:     172.21.0.1:65062 - "PUT /api/v1/projects/ HTTP/1.1" 307 Temporary Redirect
+api-1  | INFO:     172.21.0.1:65068 - "GET /api/v1/projects/ HTTP/1.1" 307 Temporary Redirect
+api-1  | INFO:     172.21.0.1:65078 - "POST /api/v1/projects HTTP/1.1" 403 Forbidden
+api-1  | INFO:     172.21.0.1:65086 - "POST /api/v1/projects//artifacts/manuscripts/ HTTP/1.1" 404 Not Found
+api-1  | INFO:     172.21.0.1:65102 - "POST /api/v1/projects//artifacts/manuscripts//file HTTP/1.1" 404 Not Found
+api-1  | INFO:     172.21.0.1:65104 - "GET /api/v1/projects//artifacts/manuscripts//file HTTP/1.1" 404 Not Found
+api-1  | INFO:     172.21.0.1:65120 - "GET /api/v1/projects//artifacts/manuscripts/download HTTP/1.1" 404 Not Found
+api-1  | INFO:     172.21.0.1:65130 - "PUT /api/v1/projects//artifacts/manuscripts/ HTTP/1.1" 404 Not Found
+api-1  | INFO:     172.21.0.1:65140 - "DELETE /api/v1/projects//artifacts/manuscripts/ HTTP/1.1" 404 Not Found
+api-1  | INFO:     172.21.0.1:65146 - "DELETE /api/v1/projects/ HTTP/1.1" 307 Temporary Redirect
+-- database tables (looking for an audit or event table)
+            List of relations
+ Schema |     Name     | Type  |  Owner  
+--------+--------------+-------+---------
+ public | artifacts    | table | indexer
+ public | audit_events | table | indexer
+ public | projects     | table | indexer
+(3 rows)
+
+Expected if protected: a record of who changed, downloaded and deleted, still present after the delete.
+
+=== PT3 Denial of service: one oversized manuscript upload (50 MB) ===
+POST /api/v1/projects -> 403
+{"detail":"Role not permitted"}
+project: 
+POST /api/v1/projects//artifacts/manuscripts/ -> 404
+{"detail":"Not Found"}
+artifact: 
+POST 50 MB upload -> 413 in 0.001245s
+{"detail": "Request body too large"}
+Expected if protected: 413 (or another refusal). Not protected: accepted.
+
+Done. Output saved to <Project>/peer-evidence/peer-threat-check-measured-2026-11-26.txt
+The stack is still running; stop it with: (cd "<Project>/peer-evidence/../peer-artifact-indexer/PA2" && docker compose down -v)

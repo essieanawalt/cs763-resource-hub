@@ -1,0 +1,105 @@
+Thu Nov 26 12:45:10 EST 2026
+ Image secure-codebase-api Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 736B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.50kB done
+#2 DONE 0.0s
+
+#3 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#3 DONE 0.4s
+
+#4 docker-image://docker.io/docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183
+#4 resolve docker.io/docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183 done
+#4 CACHED
+
+#5 [internal] load metadata for mcr.microsoft.com/dotnet/sdk:10.0
+#5 DONE 0.2s
+
+#6 [internal] load metadata for mcr.microsoft.com/dotnet/aspnet:10.0
+#6 DONE 0.2s
+
+#7 [internal] load .dockerignore
+#7 transferring context: 620B done
+#7 DONE 0.0s
+
+#8 [runtime 1/3] FROM mcr.microsoft.com/dotnet/aspnet:10.0@sha256:aac50ceef10391e78a899e3d2ccd00bbafa2dcb56ccf4586cbccf00edb84fc21
+#8 resolve mcr.microsoft.com/dotnet/aspnet:10.0@sha256:aac50ceef10391e78a899e3d2ccd00bbafa2dcb56ccf4586cbccf00edb84fc21 done
+#8 DONE 0.0s
+
+#9 [runtime 2/3] WORKDIR /app
+#9 CACHED
+
+#10 [build 1/7] FROM mcr.microsoft.com/dotnet/sdk:10.0@sha256:8c6edfb26c85153f236d26efebd9ad349aec403583f343f201ee67838b23658d
+#10 resolve mcr.microsoft.com/dotnet/sdk:10.0@sha256:8c6edfb26c85153f236d26efebd9ad349aec403583f343f201ee67838b23658d done
+#10 DONE 0.0s
+
+#11 [build 2/7] WORKDIR /src
+#11 CACHED
+
+#12 [internal] load build context
+#12 transferring context: 3.06kB done
+#12 DONE 0.0s
+
+#13 [build 3/7] COPY global.json Directory.Build.props ./
+#13 DONE 0.0s
+
+#14 [build 4/7] COPY src/ResourceHub.Api/ResourceHub.Api.csproj src/ResourceHub.Api/packages.lock.json src/ResourceHub.Api/
+#14 DONE 0.0s
+
+#15 [build 5/7] RUN dotnet restore src/ResourceHub.Api/ResourceHub.Api.csproj --locked-mode
+#15 0.404   Determining projects to restore...
+#15 15.73   Restored /src/src/ResourceHub.Api/ResourceHub.Api.csproj (in 15.2 sec).
+#15 DONE 15.9s
+
+#16 [build 6/7] COPY src/ src/
+#16 DONE 0.0s
+
+#17 [build 7/7] RUN dotnet publish src/ResourceHub.Api/ResourceHub.Api.csproj     --configuration Release --no-restore --output /app/publish /p:UseAppHost=false
+#17 1.648   ResourceHub.Api -> /src/src/ResourceHub.Api/bin/Release/net10.0/ResourceHub.Api.dll
+#17 1.678   ResourceHub.Api -> /app/publish/
+#17 DONE 1.7s
+
+#18 [runtime 3/3] COPY --from=build /app/publish .
+#18 DONE 0.0s
+
+#19 exporting to image
+#19 exporting layers
+#19 exporting layers 0.2s done
+#19 exporting manifest sha256:d3d6fa2e04ee2cdf35bdf70c8e9ec5749737340e0f7bd51e1541bfa276658321 done
+#19 exporting config sha256:f74dec18f09834e27b7e2567eb997a025145322cc720f6eea79da56cefe11ff4 done
+#19 exporting attestation manifest sha256:8761a2acb36bc379baae34f28198f02615a634073716edf305769b3580fc380a done
+#19 exporting manifest list sha256:6225bc8dd514f9fc106859636cd2367388b99e966309b652de070af7fed60f28 done
+#19 naming to docker.io/library/secure-codebase-api:latest done
+#19 unpacking to docker.io/library/secure-codebase-api:latest 0.0s done
+#19 DONE 0.2s
+
+#20 resolving provenance for metadata file
+#20 DONE 0.0s
+ Image secure-codebase-api Built 
+ Volume secure-codebase_db-data Creating 
+ Network secure-codebase_backend Creating 
+ Network secure-codebase_frontend Creating 
+ Volume secure-codebase_db-data Created 
+ Network secure-codebase_frontend Created 
+ Network secure-codebase_backend Created 
+ Container secure-codebase-db-1 Creating 
+ Container secure-codebase-db-1 Created 
+ Container secure-codebase-api-1 Creating 
+ Container secure-codebase-api-1 Created 
+ Container secure-codebase-db-1 Starting 
+ Container secure-codebase-db-1 Started 
+ Container secure-codebase-db-1 Waiting 
+ Container secure-codebase-db-1 Healthy 
+ Container secure-codebase-api-1 Starting 
+ Container secure-codebase-api-1 Started 
+ Container secure-codebase-db-1 Waiting 
+ Container secure-codebase-api-1 Waiting 
+ Container secure-codebase-api-1 Healthy 
+ Container secure-codebase-db-1 Healthy 
+NAME                    IMAGE                 COMMAND                  SERVICE   CREATED         STATUS                   PORTS
+secure-codebase-api-1   secure-codebase-api   "dotnet ResourceHub.…"   api       6 seconds ago   Up Less than a second    127.0.0.1:8080->8080/tcp
+secure-codebase-db-1    postgres:18           "docker-entrypoint.s…"   db        6 seconds ago   Up 6 seconds (healthy)   5432/tcp
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.2","title":"Unauthorized","status":401,"traceId":"00-4ae526ae38459d0a7e6bb697b349e791-a5d93d7b8bef3e80-00"}{"status":"healthy","database":"reachable"}

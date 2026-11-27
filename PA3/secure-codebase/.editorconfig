@@ -1,0 +1,22 @@
+# Tool: Claude Code (Claude Opus 5.5)
+# Language stack: C# / ASP.NET Core (.NET 10), PostgreSQL 18, EF Core
+# Prompt Summary: "PA3 hardening: separate owner and runtime database roles, API health check, field key as a secret file, SonarQube smells, test first"
+# AI Contribution: Makes the four rules SonarQube reported (CA1873, CA1861, ASP0025, CA1859) build warnings, so with TreatWarningsAsErrors they fail the build if they come back; excludes the generated EF Core migrations from CA1861 (~100%)
+# Human Modifications: None yet
+# Verification: dotnet build ResourceHub.slnx -c Release (0 warnings); the same build with these rules on but without the fixes listed every finding
+# Confidence: High
+
+[*.cs]
+# Log arguments evaluated even when the level is off.
+dotnet_diagnostic.CA1873.severity = warning
+# Constant arrays passed as arguments.
+dotnet_diagnostic.CA1861.severity = warning
+# Use AddAuthorizationBuilder.
+dotnet_diagnostic.ASP0025.severity = warning
+# Return or declare the more specific type.
+dotnet_diagnostic.CA1859.severity = warning
+
+# EF Core writes the migrations (columns: new[] { ... } in CreateIndex and friends). Migrations
+# that have been applied must not be edited, so CA1861 is off for this folder only.
+[src/ResourceHub.Api/Data/Migrations/*.cs]
+dotnet_diagnostic.CA1861.severity = none
