@@ -1,6 +1,6 @@
 # Resource Allocation & Help Desk Hub — secure codebase (PA3)
 
-> **AI Usage Log:** written by Claude Code (Claude Opus 5.5) during the PA3 measured run, iteration 1 (~100% AI). Human changes: this note only, added after `pa3-measured`. Verification: the file paths and line ranges below were spot-checked against the code, and I reviewed the authentication, authorization and encryption sections (`PA3/.ai_logs/conceptual_journal.md` §2.1).
+> **AI Usage Log:** written by Claude Code (Claude Opus 5.5) in the PA3 measured run (iteration 1) and updated in the post-measured hardening run (H1–H4), ~100% AI. Human changes: this note only. Verification: the agent rechecked every file path and line range below during the hardening run; I reviewed the authentication, authorization and encryption sections (`PA3/.ai_logs/conceptual_journal.md` §2.1) and checked the hardening on the running stack (`PA3/evidence/own/hardening-check.txt`).
 
 Help desk tickets request hardware, software licenses and cloud credit vouchers for courses and
 research labs; approved tickets are allocated from asset pools. This copy is the PA2 service
